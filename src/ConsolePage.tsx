@@ -525,9 +525,9 @@ export function ConsolePage() {
       setIsConnected(true);
 
       // start avatar
-      if (localStorage.getItem('cogSvcSubKey') && localStorage.getItem('cogSvcRegion')  ) {
-        await startAvatarSession();
-      }
+      // if (localStorage.getItem('cogSvcSubKey') && localStorage.getItem('cogSvcRegion')  ) {
+      //   await startAvatarSession();
+      // }
 
       // setInputValue('Hello, how are you?');
       // await delayFunction(2000);
@@ -1329,10 +1329,10 @@ export function ConsolePage() {
       for (const sentence of sentences) {
         if (sentence.exists === false) {
           console.log(`Speech Need: ${sentence.sentence}`);
-          if (avatarSynthesizerRef.current) {
+          if (isAvatarStarted) {
             speakAvatar(sentence.sentence);
           } else {
-            textToSpeechAndPlay(sentence.sentence);
+            // textToSpeechAndPlay(sentence.sentence);
           }
         }
       }
@@ -1424,10 +1424,12 @@ export function ConsolePage() {
   const appendAssistantToLastMessage = (text: string) => {
     setMessagesAssistant((prevMessages: any) => {
       const lastMessage = prevMessages[prevMessages.length - 1];
+      const latestText = lastMessage.text + text
       const updatedLastMessage = {
         ...lastMessage,
-        text: lastMessage.text + text
+        text: latestText
       };
+
       return [...prevMessages.slice(0, -1), updatedLastMessage];
     });
   };

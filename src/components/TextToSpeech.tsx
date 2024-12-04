@@ -2,7 +2,8 @@ import * as SpeechSDK from 'microsoft-cognitiveservices-speech-sdk';
 
 
 export function textToSpeechAndPlay(text: string) {
-  return;
+  console.log('textToSpeechAndPlay: ', text)
+
   const cogSvcSubKey = localStorage.getItem('cogSvcSubKey') || '';
   const cogSvcRegion = localStorage.getItem('cogSvcRegion') || '';
 

@@ -93,26 +93,30 @@ const FileViewer = () => {
 
     const file = event.target.files[0];
 
-    const vectorStoreId = await getOrCreateVectorStore();
+    try {
+      const vectorStoreId = await getOrCreateVectorStore();
 
-    // upload using the file stream
-    const openaiFile = await getOpenAIClient().files.create({
-      file: file,
-      purpose: 'assistants'
-    });
+      // upload using the file stream
+      const openaiFile = await getOpenAIClient().files.create({
+        file: file,
+        purpose: 'assistants'
+      });
 
-    // add file to vector store
-    await getOpenAIClient().beta.vectorStores.files.create(vectorStoreId, {
-      file_id: openaiFile.id
-    });
+      // add file to vector store
+      await getOpenAIClient().beta.vectorStores.files.create(vectorStoreId, {
+        file_id: openaiFile.id
+      });
+    } catch (error) {
+      console.error('Error uploading file: ', error);
+      alert(error);
+    }
   };
 
   return (
     <div className={styles.fileViewer}>
       <div
-        className={`${styles.filesList} ${
-          files.length !== 0 ? styles.grow : ''
-        }`}
+        className={`${styles.filesList} ${files.length !== 0 ? styles.grow : ''
+          }`}
       >
         {files.length === 0 ? (
           <div className={styles.title}>Test file search</div>
