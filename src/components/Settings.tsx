@@ -7,14 +7,14 @@ import { RealtimeClient } from '@theodoreniu/realtime-api-beta';
 import Dropdown from './Dropdown';
 import { GRAPHRAG_ABOUT } from '../tools/azure_docs';
 import { ASSISTENT_TYPE_ASSISTANT, ASSISTENT_TYPE_DEFAULT, ASSISTENT_TYPE_REALTIME } from '../utils/const';
-import { IS_DEBUG } from '../ConsolePage';
+import { useContexts } from '../context/AppProvider';
 
 interface ChildComponentProps {
   client: RealtimeClient;
 }
 
 const SettingsComponent: React.FC<ChildComponentProps> = ({ client }) => {
-
+  const { debug } = useContexts();
   const [isVisible, setIsVisible] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -23,7 +23,7 @@ const SettingsComponent: React.FC<ChildComponentProps> = ({ client }) => {
     { value: 'english', label: 'English' }
   ];
 
-  const supportedAssistanTypes = IS_DEBUG ? [
+  const supportedAssistanTypes = debug ? [
     { value: ASSISTENT_TYPE_REALTIME, label: 'Realtime' },
     { value: ASSISTENT_TYPE_ASSISTANT, label: 'STT -> Assistant -> TTS' }
   ] : [

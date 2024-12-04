@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Webcam from 'react-webcam';
-import { usePhotos } from '../context/AppProvider';
+import { useContexts } from '../context/AppProvider';
 import { RealtimeClient } from '@theodoreniu/realtime-api-beta';
 import { imageLimit } from '../utils/conversation_config.js';
-import { replaceInstructions } from '../utils/instructions';
+
 
 interface ChildComponentProps {
   client: RealtimeClient;
@@ -13,7 +13,7 @@ const RagComponent: React.FC<ChildComponentProps> = ({ client }) => {
   const webcamRef = React.useRef<Webcam>(null);
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [isUploadedRag, setIsUploadedRag] = useState(false);
-  const { setPhotos } = usePhotos();
+  const { setPhotos, replaceInstructions } = useContexts();
   const photoInterval = 1000;
 
 

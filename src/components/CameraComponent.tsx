@@ -1,12 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Webcam from 'react-webcam';
-import { usePhotos } from '../context/AppProvider';
+import { useContexts } from '../context/AppProvider';
 import { RealtimeClient } from '@theodoreniu/realtime-api-beta';
 import { imageLimit } from '../utils/conversation_config.js';
 import { getCompletion } from '../utils/openai';
 import { WavStreamPlayer } from '../lib/wavtools';
 import './CameraComponent.scss';
-import { replaceInstructions } from '../utils/instructions';
 import { Camera, CameraOff, RefreshCw } from 'react-feather';
 
 interface ChildComponentProps {
@@ -19,7 +18,7 @@ const CameraComponent: React.FC<ChildComponentProps> = ({ client, wavStreamPlaye
   const webcamRef = React.useRef<Webcam>(null);
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { photos, setPhotos, setLoading } = usePhotos();
+  const { photos, photosRef, setPhotos, setLoading, replaceInstructions } = useContexts();
   const [iseWebcamReady, setWebcamReady] = useState(false);
   const photoInterval = 1000;
   const [facingMode, setFacingMode] = useState('user');
@@ -46,10 +45,6 @@ const CameraComponent: React.FC<ChildComponentProps> = ({ client, wavStreamPlaye
   const handleWebcamReady = () => {
     setWebcamReady(true);
   };
-
-  useEffect(() => {
-    localStorage.setItem('photos', JSON.stringify(photos));
-  }, [photos]);
 
   useEffect(() => {
 
@@ -141,10 +136,9 @@ const CameraComponent: React.FC<ChildComponentProps> = ({ client, wavStreamPlaye
         return { error: `The maximum number of seconds is ${imageLimit}` };
       }
 
-      const photosList = JSON.parse(localStorage.getItem('photos') || '[]');
-      console.log('photosList', photosList);
+      console.log('photosList', photosRef.current);
 
-      if (photosList.length === 0) {
+      if (photosRef.current.length === 0) {
         return { error: 'no photos, please turn on your camera' };
       }
 
@@ -157,7 +151,7 @@ const CameraComponent: React.FC<ChildComponentProps> = ({ client, wavStreamPlaye
 
       // for photos
       let photoCount = 0;
-      photosList.forEach((photo: string) => {
+      photosRef.current.forEach((photo: string) => {
         if (photoCount < seconds) {
           content.push({
             type: 'image_url',
@@ -212,10 +206,9 @@ const CameraComponent: React.FC<ChildComponentProps> = ({ client, wavStreamPlaye
       }
     }, async ({ prompt }: { [key: string]: any }) => {
 
-      const photosList = JSON.parse(localStorage.getItem('photos') || '[]');
-      console.log('photosList', photosList);
+      console.log('photosList', photosRef.current);
 
-      if (photosList.length === 0) {
+      if (photosRef.current.length === 0) {
         return { error: 'no photos, please turn on your camera' };
       }
 
@@ -226,12 +219,12 @@ const CameraComponent: React.FC<ChildComponentProps> = ({ client, wavStreamPlaye
         }
       ];
 
-      const photoIndex = photosList.length >= 1 ? 1 : 0;
+      const photoIndex = photosRef.current.length >= 1 ? 1 : 0;
 
       content.push({
         type: 'image_url',
         image_url: {
-          url: photosList[photoIndex]
+          url: photosRef.current[photoIndex]
         }
       });
 

@@ -4,16 +4,20 @@ import { fileUploadInstructions, fileUploadTooBig } from '../utils/conversation_
 import './FileUploadComponent.scss';
 import { Upload } from 'react-feather';
 import { Button } from '../components/button/Button';
-import { DATA_BEGIN, DATA_END, getInstructions, setInstructions } from '../utils/instructions';
+import { DATA_BEGIN, DATA_END } from '../utils/instructions';
+import { useContexts } from '../context/AppProvider';
 
 interface ChildComponentProps {
   client: RealtimeClient;
 }
 
 const FileUploadComponent: React.FC<ChildComponentProps> = ({ client }) => {
+
   const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState<string>('Upload File');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { replaceInstructions } = useContexts();
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -80,12 +84,10 @@ const FileUploadComponent: React.FC<ChildComponentProps> = ({ client }) => {
   };
 
   const updateDataFile = (content: string) => {
-    const instructions = getInstructions();
     const regex = new RegExp(`${DATA_BEGIN}[\\s\\S]*?${DATA_END}`, 'g');
+    const target = `${DATA_BEGIN}\n${content}\n${DATA_END}`;
 
-    const new_instructions = instructions.replace(regex, `${DATA_BEGIN}\n${content}\n${DATA_END}`);
-    setInstructions(new_instructions);
-    return new_instructions;
+    return replaceInstructions(regex, target);
   };
 
   const handleButtonClick = () => {

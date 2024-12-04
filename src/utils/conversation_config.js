@@ -1,4 +1,4 @@
-export const imageLimit = 30;
+export const imageLimit = 60;
 
 export const delayFunction = function delay(ms) {
   return new Promise(resolve => {

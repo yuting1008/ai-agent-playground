@@ -6,7 +6,7 @@ import { WavRecorder, WavStreamPlayer } from './lib/wavtools';
 import { clientHiChinese, clientHiEnglish, delayFunction, notDisplay, products } from './utils/conversation_config.js';
 import { WavRenderer } from './utils/wav_renderer';
 
-import { Mic, MicOff, Send, X, Zap, StopCircle, Move, PlayCircle, Clock } from 'react-feather';
+import { Mic, MicOff, Send, X, Zap, StopCircle, Clock } from 'react-feather';
 import { Button } from './components/button/Button';
 import { Toggle } from './components/toggle/Toggle';
 import './ConsolePage.scss';
@@ -42,17 +42,11 @@ import Painting from './components/Painting';
 import SettingsComponent from './components/Settings';
 import FileUploadComponent from './components/FileUploadComponent';
 import ProductList from './components/ProductList';
-import { getDefaultInstructions, replaceInstructions, setInstructions } from './utils/instructions';
 import { ASSISTENT_TYPE_ASSISTANT, ASSISTENT_TYPE_DEFAULT, ASSISTENT_TYPE_REALTIME } from './utils/const';
 import LocalStorageViewer from './components/LocalStorageViewer';
 import FileViewer from './components/FileViewer';
-import { textToSpeechAndPlay } from './components/TextToSpeech';
-
-
-export const IS_DEBUG: boolean = window.location.href.includes('localhost');
-
-export const MS_GRAPH_TOKEN: string = process.env.MS_GRAPH_TOKEN || '';
-
+import { useContexts } from './context/AppProvider';
+import Loading from './components/Loading';
 
 /**
  * Type for result from get_weather() function call
@@ -136,20 +130,27 @@ interface RealtimeEvent {
 
 export function ConsolePage() {
 
+  const {
+    setLoading,
+    threadRef, setThread,
+    threadJobRef, setThreadJob,
+    assistantResponseBufferRef, setAssistantResponseBuffer,
+    isAvatarStarted, isAvatarStartedRef, setIsAvatarStarted,
+    avatarSpeechSentencesArrayRef, setAvatarSpeechSentencesArray,
+    realtimeInstructionsRef, setRealtimeInstructions, replaceInstructions
+  } = useContexts();
+
   const [assistantType, setAssistantType] = useState<string>(localStorage.getItem('assistanType') || ASSISTENT_TYPE_DEFAULT);
 
   const [isAssistant, setIsAssistant] = useState<boolean>(assistantType === ASSISTENT_TYPE_ASSISTANT);
   const [isRealtime, setIsRealtime] = useState<boolean>(assistantType === ASSISTENT_TYPE_REALTIME);
 
   // ----------------- avatar speech -----------------
-  const [isAvatarStarted, setIsAvatarStarted] = useState(false);
   const [isAvatarLoading, setIsAvatarLoading] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem('isAvatarStarted', isAvatarStarted ? 'true' : 'false');
-
-    const currentInstructions = isAvatarStarted ? replaceInstructions('你的虚拟人形象处于关闭状态', '你的虚拟人形象处于打开状态')
+    const currentInstructions = isAvatarStartedRef.current ? replaceInstructions('你的虚拟人形象处于关闭状态', '你的虚拟人形象处于打开状态')
       : replaceInstructions('你的虚拟人形象处于打开状态', '你的虚拟人形象处于关闭状态');
 
     clientRef.current.isConnected() && clientRef.current.updateSession({ instructions: currentInstructions });
@@ -241,7 +242,7 @@ export function ConsolePage() {
    * Toggle avatar session
    */
   const toggleAvatar = async () => {
-    if (isAvatarStarted) {
+    if (isAvatarStartedRef.current) {
       stopAvatarSession();
     } else {
       await startAvatarSession();
@@ -510,10 +511,6 @@ export function ConsolePage() {
     setIsAssistant(assistantType === ASSISTENT_TYPE_ASSISTANT);
     setIsRealtime(assistantType === ASSISTENT_TYPE_REALTIME);
 
-    localStorage.removeItem('threadJob');
-    localStorage.removeItem('responseBuffer');
-    localStorage.removeItem('speech_lock');
-
     if (isAssistant) {
       setIsConnecting(true);
       setIsConnected(false);
@@ -604,7 +601,7 @@ export function ConsolePage() {
    * Disconnect and reset conversation state
    */
   const disconnectConversation = useCallback(async () => {
-    localStorage.removeItem('sentences');
+
     window.location.href = '/';
 
     // stopAvatarSession();
@@ -812,7 +809,7 @@ export function ConsolePage() {
    * Whether to use the avatar
    */
   function shouldUseRealTimeAudio() {
-    return localStorage.getItem('isAvatarStarted') !== 'true';
+    return !isAvatarStartedRef.current;
   }
 
   const memoryTool: Function = async ({ key, value }: { [key: string]: any }) => {
@@ -825,6 +822,7 @@ export function ConsolePage() {
   };
 
   const weatherTool: Function = async ({ lat, lng, location }: { [key: string]: any }) => {
+    isAssistant && setLoading(true);
     setMarker({ lat, lng, location });
     setCoords({ lat, lng, location });
     const result = await fetch(
@@ -840,6 +838,7 @@ export function ConsolePage() {
       units: json.current_units.wind_speed_10m as string
     };
     setMarker({ lat, lng, location, temperature, wind_speed });
+    isAssistant && setLoading(false);
     return json;
   };
 
@@ -860,7 +859,7 @@ export function ConsolePage() {
       while (checkTime < 10) {
         await delayFunction(1000);
         checkTime++;
-        if (localStorage.getItem('isAvatarStarted') === 'true') {
+        if (isAvatarStartedRef.current) {
           return { message: 'ok' };
         }
       }
@@ -928,7 +927,8 @@ export function ConsolePage() {
       sentences.unshift(firstPart);
     }
 
-    const existingSentences: string[] = JSON.parse(localStorage.getItem('sentences') || '[]');
+    const existingSentences: string[] = avatarSpeechSentencesArrayRef.current;
+    
     const result: SentenceStatus[] = sentences.map(sentence => {
       const sentenceId = `${id}-${sentence}`;
       const exists = existingSentences.includes(sentenceId);
@@ -938,7 +938,7 @@ export function ConsolePage() {
       return { sentence, exists };
     });
 
-    localStorage.setItem('sentences', JSON.stringify(existingSentences));
+    setAvatarSpeechSentencesArray(existingSentences);
 
     return result;
   }
@@ -954,8 +954,7 @@ export function ConsolePage() {
     const client = clientRef.current;
 
     // Set instructions
-    setInstructions(getDefaultInstructions());
-    client.updateSession({ instructions: getDefaultInstructions() });
+    client.updateSession({ instructions: realtimeInstructionsRef.current });
     // Set transcription, otherwise we don't get user transcriptions back
     client.updateSession({ input_audio_transcription: { model: 'whisper-1' } });
     // Set voice
@@ -1116,7 +1115,6 @@ export function ConsolePage() {
 
   const [messagesAssistant, setMessagesAssistant] = useState<any[]>([]);
   const [assistantRunning, setAssistantRunning] = useState(false);
-  const [assistantThreadId, setAssistantThreadId] = useState('');
 
   // automatically scroll to bottom of chat
   const messagesEndAssistantRef = useRef<HTMLDivElement | null>(null);
@@ -1129,19 +1127,18 @@ export function ConsolePage() {
 
 
   const stopCurrentStreamJob = async () => {
-    const threadJob = localStorage.getItem('threadJob')
-    if (threadJob) {
-      console.log('stopCurrentStreamJob:', threadJob);
+    if (!threadJobRef.current) return;
 
-      try {
-        const cancelJob = await getOpenAIClient().beta.threads.runs.cancel(assistantThreadId, threadJob);
-        console.log('cancelJob', cancelJob);
-      } catch (error) {
-        console.error('cancelJob error', error);
-      }
+    console.log('stopCurrentStreamJob:', threadJobRef.current);
 
-      localStorage.removeItem('threadJob')
+    try {
+      const cancelJob = await getOpenAIClient().beta.threads.runs.cancel(threadRef.current?.id, threadJobRef.current?.id);
+      console.log('cancelJob', cancelJob);
+    } catch (error) {
+      console.error('cancelJob error', error);
     }
+
+    setThreadJob(null);
   };
 
   const sendText = async (inputValue: string) => {
@@ -1149,8 +1146,7 @@ export function ConsolePage() {
 
     if (isAssistant) {
       await stopCurrentStreamJob();
-
-      localStorage.setItem('responseBuffer', '');
+      setAssistantResponseBuffer('')
       stopAvatarSpeaking();
       sendAssistantMessage(inputValue);
       setMessagesAssistant((prevMessages: any) => [
@@ -1276,16 +1272,16 @@ export function ConsolePage() {
   const createThread = async () => {
     const thread = await getOpenAIClient().beta.threads.create();
     console.log('thread', thread);
-    setAssistantThreadId(thread.id);
+    setThread(thread);
   };
 
   const sendAssistantMessage = async (text: string) => {
-    await getOpenAIClient().beta.threads.messages.create(assistantThreadId, {
+    await getOpenAIClient().beta.threads.messages.create(threadRef.current?.id, {
       role: 'user',
       content: text
     });
 
-    const stream = getOpenAIClient().beta.threads.runs.stream(assistantThreadId, {
+    const stream = getOpenAIClient().beta.threads.runs.stream(threadRef.current?.id, {
       assistant_id: localStorage.getItem('assistantId') || ''
     });
 
@@ -1299,7 +1295,7 @@ export function ConsolePage() {
     tool_call_id: string
   }[]) => {
     const stream = getOpenAIClient().beta.threads.runs.submitToolOutputsStream(
-      assistantThreadId,
+      threadRef.current?.id,
       runId,
       // { tool_outputs: [{ output: result, tool_call_id: toolCallId }] },
       { tool_outputs: toolCallOutputs }
@@ -1320,16 +1316,15 @@ export function ConsolePage() {
   const handleAssistantTextDelta = (delta: any) => {
     if (delta.value != null) {
 
-      const responseBuffer = localStorage.getItem('responseBuffer') || '';
-      const latestText = responseBuffer + delta.value;
-      localStorage.setItem('responseBuffer', latestText);
+      const latestText = assistantResponseBufferRef.current + delta.value;
+      setAssistantResponseBuffer(latestText);
 
-      const sentences = processAndStoreSentence(assistantThreadId, latestText);
+      const sentences = processAndStoreSentence(threadRef.current?.id, latestText);
 
       for (const sentence of sentences) {
         if (sentence.exists === false) {
           console.log(`Speech Need: ${sentence.sentence}`);
-          if (isAvatarStarted) {
+          if (isAvatarStartedRef.current) {
             speakAvatar(sentence.sentence);
           } else {
             // textToSpeechAndPlay(sentence.sentence);
@@ -1383,7 +1378,7 @@ export function ConsolePage() {
   // handleRunCompleted - re-enable the input form
   const handleAssistantRunCompleted = () => {
     setAssistantRunning(false);
-    localStorage.removeItem('threadJob')
+    setThreadJob(null);
   };
 
   const handleAssistantReadableStream = (stream: AssistantStream) => {
@@ -1402,11 +1397,12 @@ export function ConsolePage() {
     stream.on('event', (event) => {
 
       if (event.event === 'thread.run.created') {
-        localStorage.setItem('threadJob', event.data.id)
+        console.log('thread.run.created', event.data);
+        setThreadJob(event.data);
       }
 
       if (event.event === 'thread.run.completed') {
-        localStorage.removeItem('threadJob')
+        setThreadJob(null);
       }
 
       if (event.event === 'thread.run.requires_action')
@@ -1462,6 +1458,8 @@ export function ConsolePage() {
    */
   return (
     <div data-component="ConsolePage">
+
+      <Loading />
 
       <Painting client={clientRef.current} wavStreamPlayer={wavStreamPlayerRef.current} />
 
@@ -1635,7 +1633,7 @@ export function ConsolePage() {
                         )}
 
                       {/*file message*/}
-                      {conversationItem.formatted.file && (conversationItem.role === 'user' || !isAvatarStarted) && (
+                      {conversationItem.formatted.file && (conversationItem.role === 'user' || !isAvatarStartedRef.current) && (
                         <audio
                           src={conversationItem.formatted.file.url}
                           controls
@@ -1730,18 +1728,18 @@ export function ConsolePage() {
               style={{ display: isAvatarLoading ? 'none' : '' }}
             // disabled={isAvatarLoading}
             >
-              {isAvatarStarted ? 'Off' : 'On'}
+              {isAvatarStartedRef.current ? 'Off' : 'On'}
             </button>
-            <video ref={avatarVideoRef} style={{ display: isAvatarStarted ? '' : 'none' }}>Your browser does not support
+            <video ref={avatarVideoRef} style={{ display: isAvatarStartedRef.current ? '' : 'none' }}>Your browser does not support
               the video tag.
             </video>
-            <audio ref={avatarAudioRef} style={{ display: isAvatarStarted ? '' : 'none' }}>Your browser does not support
+            <audio ref={avatarAudioRef} style={{ display: isAvatarStartedRef.current ? '' : 'none' }}>Your browser does not support
               the audio tag.
             </audio>
           </div>
 
           <CameraComponent client={clientRef.current} wavStreamPlayer={wavStreamPlayerRef.current}
-            assistantThreadId={assistantThreadId} />
+            assistantThreadId={threadRef.current?.id} />
 
           {!isConnected && (
             <SettingsComponent client={clientRef.current} />

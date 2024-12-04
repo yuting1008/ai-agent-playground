@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { IS_DEBUG } from '../ConsolePage';
 import { X } from 'react-feather';
+import { useContexts } from '../context/AppProvider';
+import styles from './LocalStorageViewer.module.css';
 
 interface LocalStorageItem {
   key: string;
@@ -12,9 +13,18 @@ const excludeKeys = ['Hm_', 'ally-supports-cache'];
 const LocalStorageViewer: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [localStorageData, setLocalStorageData] = useState<LocalStorageItem[]>([]);
+  const { photosRef,
+    assistantResponseBufferRef,
+    threadJobRef,
+    threadRef,
+    avatarSpeechSentencesArrayRef,
+    isAvatarStartedRef,
+    realtimeInstructionsRef,
+  } = useContexts();
 
   const fetchLocalStorageData = useCallback(() => {
     const keys = Object.keys(localStorage);
+
     const data: LocalStorageItem[] = keys
       .filter((key) => {
         return !excludeKeys.some((excludeKey) => key.startsWith(excludeKey));
@@ -24,6 +34,7 @@ const LocalStorageViewer: React.FC = () => {
         value: localStorage.getItem(key)
       }))
       .sort((a, b) => a.key.localeCompare(b.key));
+
     setLocalStorageData(data);
   }, []);
 
@@ -73,99 +84,64 @@ const LocalStorageViewer: React.FC = () => {
     };
   }, [isOpen, handleEscKey, handleShortcutKey]);
 
+  function getStringArraySizeUtf8InMB(arr: string[]): number {
+    const encoder = new TextEncoder();
+    const totalBytes = arr.reduce((total, str) => total + encoder.encode(str).length, 0);
+    return parseFloat((totalBytes / (1024 * 1024)).toFixed(5));
+  }
+
+
   return (
     <div>
 
       {isOpen && (
         <>
 
-          <div
-            style={{
-              position: 'fixed',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              width: '100%',
-              maxHeight: '100%',
-              backgroundColor: '#1e1e1e',
-              color: 'white',
-              padding: '20px',
-              boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
-              zIndex: 10000,
-              overflow: 'auto',
-              borderRadius: '8px'
-            }}
-          >
+          <div className={styles.table}>
 
-            <X onClick={handleClose}
-              style={{ cursor: 'pointer', fontSize: '20px', float: 'right', marginBottom: '10px' }} />
+            <X onClick={handleClose} className={styles.close} />
 
+            <h1 className={styles.title}>App State</h1>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
-                  <th style={{ border: '1px solid gray', padding: '8px' }}>Key</th>
-                  <th style={{ border: '1px solid gray', padding: '8px' }}>Value</th>
+                  <th className={styles.th}>Key</th>
+                  <th className={styles.th}>Value</th>
                 </tr>
               </thead>
               <tbody>
-                {localStorageData.length > 0 ? (
+                <tr key='photosRef'><td className={styles.tdKey} >photosRef</td><td className={styles.tdValue}>{photosRef.current.length}</td></tr>
+                <tr key='photosRefSize'><td className={styles.tdKey} >photosRefSize</td><td className={styles.tdValue}>{getStringArraySizeUtf8InMB(photosRef.current)} MB</td></tr>
+                <tr key='assistantResponseBufferRef'><td className={styles.tdKey} >assistantResponseBufferRef</td><td className={styles.tdValue}>{assistantResponseBufferRef.current}</td></tr>
+                <tr key='threadRef'><td className={styles.tdKey} >threadRef</td><td className={styles.tdValue}>{JSON.stringify(threadRef.current)}</td></tr>
+                <tr key='threadJobRef'><td className={styles.tdKey} >threadJobRef</td><td className={styles.tdValue}>{JSON.stringify(threadJobRef.current)}</td></tr>
+                <tr key='avatarSpeechSentencesArrayRef'><td className={styles.tdKey} >avatarSpeechSentencesArrayRef</td><td className={styles.tdValue}>{JSON.stringify(avatarSpeechSentencesArrayRef.current)}</td></tr>
+                <tr key='isAvatarStartedRef'><td className={styles.tdKey} >isAvatarStartedRef</td><td className={styles.tdValue}>{JSON.stringify(isAvatarStartedRef.current)}</td></tr>
+                <tr key='realtimeInstructionsRef'><td className={styles.tdKey} >realtimeInstructionsRef</td><td className={styles.tdValue}>{realtimeInstructionsRef.current}</td></tr>
+              </tbody>
+            </table>
+
+            <h1 className={styles.title}>Local Storage</h1>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th className={styles.th}>Key</th><th className={styles.th}>Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                {
                   localStorageData.map((item, index) => (
                     <tr key={index}>
-                      <td
-                        style={{
-                          border: '1px solid gray',
-                          padding: '8px',
-                          backgroundColor: '#2e2e2e'
-                        }}
-                      >
-                        {item.key}
-                      </td>
-                      <td
-                        style={{
-                          border: '1px solid gray',
-                          padding: '8px',
-                          wordBreak: 'break-all',
-                          whiteSpace: 'pre-wrap',
-                          backgroundColor: '#2e2e2e'
-                        }}
-                      >
-                        {item.value}
-                      </td>
+                      <td className={styles.tdKey} >{item.key}</td><td className={styles.tdValue}>{item.value}</td>
                     </tr>
                   ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan={2}
-                      style={{
-                        border: '1px solid gray',
-                        padding: '8px',
-                        textAlign: 'center',
-                        backgroundColor: '#2e2e2e'
-                      }}
-                    >
-                      No data
-                    </td>
-                  </tr>
-                )}
+                }
               </tbody>
             </table>
 
           </div>
 
-
-          <div
-            style={{
-              position: 'fixed',
-              top: '0',
-              left: '0',
-              width: '100%',
-              height: '100%',
-              backgroundColor: 'rgba(0, 0, 0, 0.5)',
-              zIndex: 9999
-            }}
-            onClick={handleClose}
-          ></div>
+          <div className={styles.closeDiv} onClick={handleClose}></div>
         </>
       )}
     </div>

@@ -42,29 +42,3 @@ ${DATA_BEGIN}
 用户还没有上传数据文件
 ${DATA_END}
 `;
-
-export function getDefaultInstructions() {
-  const prompt = localStorage.getItem('prompt') || '';
-
-  if (prompt) {
-    return `${instructions}\n\nOther requirements of the user: \n${prompt}`;
-  }
-
-  return instructions;
-}
-
-export function getInstructions() {
-  return localStorage.getItem('instructions') || getDefaultInstructions();
-}
-
-export function setInstructions(instructions: string) {
-  localStorage.setItem('instructions', instructions);
-}
-
-
-export function replaceInstructions(source: string, target: string) {
-  const instructions = getInstructions();
-  const new_instructions = instructions.replace(source, target);
-  setInstructions(new_instructions);
-  return new_instructions;
-}
