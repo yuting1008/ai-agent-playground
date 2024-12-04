@@ -3,7 +3,7 @@ export const ASSISTENT_TYPE_REALTIME = 'realtime';
 
 export const ASSISTENT_TYPE_DEFAULT = ASSISTENT_TYPE_REALTIME;
 
-
+export const ALLOW_PROMPT_CHARACTERS = 1500;
 export const CAMERA_PHOTO_LIMIT = 60;
 
 

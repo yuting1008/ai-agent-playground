@@ -2,10 +2,10 @@
 
 import React, { useState } from "react";
 import styles from "./Warnings.module.css";
-import { useContexts } from "../AppProvider";
+import { useContexts } from "../providers/AppProvider";
 
 const Warnings = () => {
-  const { assistantIdRef } = useContexts();
+  const { assistantRef } = useContexts();
 
   const [loading, setLoading] = useState(false);
   const [newAssistantId, setNewAssistantId] = useState("");
@@ -22,7 +22,7 @@ const Warnings = () => {
 
   return (
     <>
-      {!assistantIdRef.current && (
+      {!assistantRef.current && (
         <div className={styles.container}>
           <h1>Start by creating your assistant</h1>
           <div className={styles.message}>

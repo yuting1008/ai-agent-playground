@@ -1,4 +1,5 @@
 import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
+import { useContexts } from '../providers/AppProvider';
 
 export const definition: ToolDefinitionType = {
   name: 'set_memory',
@@ -18,4 +19,14 @@ export const definition: ToolDefinitionType = {
     },
     required: ['key', 'value']
   }
+};
+
+export const handler: Function = async ({ key, value }: { [key: string]: any }) => {
+  const { setMemoryKv } = useContexts();
+  setMemoryKv((memoryKv) => {
+    const newKv = { ...memoryKv };
+    newKv[key] = value;
+    return newKv;
+  });
+  return { ok: true };
 };

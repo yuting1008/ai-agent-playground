@@ -6,15 +6,40 @@ import './Settings.scss';
 import { RealtimeClient } from '@theodoreniu/realtime-api-beta';
 import Dropdown from './Dropdown';
 import { GRAPHRAG_ABOUT } from '../tools/azure_docs';
-import { ASSISTENT_TYPE_ASSISTANT, ASSISTENT_TYPE_DEFAULT, ASSISTENT_TYPE_REALTIME } from '../lib/const';
-import { useContexts } from '../AppProvider';
+import { ALLOW_PROMPT_CHARACTERS, ASSISTENT_TYPE_ASSISTANT, ASSISTENT_TYPE_REALTIME } from '../lib/const';
+import { useContexts } from '../providers/AppProvider';
+import { useSettings } from '../providers/SettingsProvider';
 
-interface ChildComponentProps {
-  client: RealtimeClient;
-}
 
-const SettingsComponent: React.FC<ChildComponentProps> = ({ client }) => {
+const SettingsComponent: React.FC = () => {
   const { debug } = useContexts();
+
+  const { realtimeClientRef } = useContexts();
+
+  const { 
+    languageRef, setLanguage,
+    assistanTypeRef, setAssistanType,
+    dallTargetUriRef, setDallTargetUri,
+    dallApiKeyRef, setDallApiKey,
+    graphragUrlRef, setGraphragUrl,
+    graphragApiKeyRef, setGraphragApiKey,
+    graphragProjectNameRef, setGraphragProjectName,
+    graphragAboutRef, setGraphragAbout,
+    graphragCacheRef, setGraphragCache,
+    cogSvcRegionRef, setCogSvcRegion,
+    cogSvcSubKeyRef, setCogSvcSubKey,
+    completionTargetUriRef, setCompletionTargetUri,
+    completionApiKeyRef, setCompletionApiKey,
+    promptRef, setPrompt,
+    endpointRef, setEndpoint,
+    keyRef, setKey,
+    feishuHookRef, setFeishuHook,
+    quoteTokenRef, setQuoteToken,
+    newsKeyRef, setNewsKey,
+    mxnzpAppIdRef, setMxnzpAppId,
+    mxnzpAppSecretRef, setMxnzpAppSecret
+  } = useSettings();
+
   const [isVisible, setIsVisible] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -45,41 +70,31 @@ const SettingsComponent: React.FC<ChildComponentProps> = ({ client }) => {
   }, []);
 
   const DefaultSettings = () => {
-    const [language, setSelected] = useState<string>(localStorage.getItem('language') || 'chinese');
-    const [assistanType, setAssistanType] = useState<string>(localStorage.getItem('assistanType') || ASSISTENT_TYPE_DEFAULT);
+
 
     const handleDropdownChange = (value: string) => {
-      setSelected(value);
+      setLanguage(value);
     };
 
     const handleAssistanTypeChange = (value: string) => {
       setAssistanType(value);
     };
 
-    useEffect(() => {
-      localStorage.setItem('language', language);
-      localStorage.setItem('assistanType', assistanType);
-    }, [language, assistanType]);
+
 
     return <div>
 
       <div className="settings-label">Assistant Type</div>
-      <Dropdown options={supportedAssistanTypes} selectedValue={assistanType} onChange={handleAssistanTypeChange} />
+      <Dropdown options={supportedAssistanTypes} selectedValue={assistanTypeRef.current} onChange={handleAssistanTypeChange} />
 
       <div className="settings-label">Default Language</div>
-      <Dropdown options={supportedLanguages} selectedValue={language} onChange={handleDropdownChange} />
+      <Dropdown options={supportedLanguages} selectedValue={languageRef.current} onChange={handleDropdownChange} />
 
     </div>;
   };
 
   const SettingsRealtime = () => {
-    const [endpoint, setEndpoint] = useState(localStorage.getItem('endpoint') || '');
-    const [key, setKey] = useState(localStorage.getItem('key') || '');
 
-    useEffect(() => {
-      localStorage.setItem('endpoint', endpoint);
-      localStorage.setItem('key', key);
-    }, [endpoint, key]);
 
     const handleEndpointChange = (e: any) => {
       setEndpoint(e.target.value);
@@ -93,7 +108,7 @@ const SettingsComponent: React.FC<ChildComponentProps> = ({ client }) => {
       <div className="settings-label">Target URI</div>
       <input type={'text'}
         className="settings-input"
-        value={endpoint}
+        value={endpointRef.current}
         placeholder={'https://xxx.openai.azure.com/openai/realtime?api-version=2024-10-01-preview&deployment=xxx'}
         onChange={handleEndpointChange} />
 
@@ -105,7 +120,7 @@ const SettingsComponent: React.FC<ChildComponentProps> = ({ client }) => {
       </div>
       <input type={isVisible ? 'text' : 'password'}
         className="settings-input"
-        value={key}
+        value={keyRef.current}
         placeholder={''}
         onChange={handleKeyChange} />
 
@@ -113,13 +128,7 @@ const SettingsComponent: React.FC<ChildComponentProps> = ({ client }) => {
   };
 
   const DALLE = () => {
-    const [dallTargetUri, setDallTargetUri] = useState(localStorage.getItem('dallTargetUri') || '');
-    const [dallApiKey, setDallApiKey] = useState(localStorage.getItem('dallApiKey') || '');
 
-    useEffect(() => {
-      localStorage.setItem('dallTargetUri', dallTargetUri);
-      localStorage.setItem('dallApiKey', dallApiKey);
-    }, [dallTargetUri, dallApiKey]);
 
     const handleDallTargetUriChange = (e: any) => {
       setDallTargetUri(e.target.value);
@@ -133,7 +142,7 @@ const SettingsComponent: React.FC<ChildComponentProps> = ({ client }) => {
       <div className="settings-label">Target URI</div>
       <input type={'text'}
         className="settings-input"
-        value={dallTargetUri}
+        value={dallTargetUriRef.current}
         placeholder={'https://xxx.openai.azure.com/openai/deployments/dall-e-3/images/generations?api-version=2024-02-01'}
         onChange={handleDallTargetUriChange} />
 
@@ -145,7 +154,7 @@ const SettingsComponent: React.FC<ChildComponentProps> = ({ client }) => {
       </div>
       <input type={isVisible ? 'text' : 'password'}
         className="settings-input"
-        value={dallApiKey}
+        value={dallApiKeyRef.current}
         placeholder={''}
         onChange={handleDallApiKeyChange} />
 
@@ -153,20 +162,7 @@ const SettingsComponent: React.FC<ChildComponentProps> = ({ client }) => {
   };
 
   const GraphRAG = () => {
-    const [graphragUrl, setGraphragUrl] = useState(localStorage.getItem('graphragUrl') || '');
-    const [graphragApiKey, setGraphragApiKey] = useState(localStorage.getItem('graphragApiKey') || '');
-    const [graphragProjectName, setGraphragProjectName] = useState(localStorage.getItem('graphragProjectName') || '');
-    const [graphragAbout, setGraphragAbout] = useState(localStorage.getItem('graphragAbout') || GRAPHRAG_ABOUT);
-
-    useEffect(() => {
-      localStorage.setItem('graphragUrl', graphragUrl);
-      localStorage.setItem('graphragApiKey', graphragApiKey);
-      localStorage.setItem('graphragProjectName', graphragProjectName);
-      localStorage.setItem('graphragAbout', graphragAbout);
-    }, [graphragUrl, graphragApiKey, graphragProjectName, graphragAbout]);
-
-    const [graphragCache, setGraphragCache] = useState<string>(localStorage.getItem('graphragCache') || 'Disable');
-
+  
     const graphragCacheOptions = [
       { value: 'Enable', label: 'Enable' },
       { value: 'Disable', label: 'Disable' }
@@ -176,9 +172,6 @@ const SettingsComponent: React.FC<ChildComponentProps> = ({ client }) => {
       setGraphragCache(value);
     };
 
-    useEffect(() => {
-      localStorage.setItem('graphragCache', graphragCache);
-    }, [graphragCache]);
 
     const handleGraphragUrlChange = (e: any) => {
       setGraphragUrl(e.target.value);
@@ -204,7 +197,7 @@ const SettingsComponent: React.FC<ChildComponentProps> = ({ client }) => {
       <div className="settings-label">API URL</div>
       <input type={'text'}
         className="settings-input"
-        value={graphragUrl}
+        value={graphragUrlRef.current}
         placeholder={'https://xxx.xxx.xxx.azurecontainerapps.io'}
         onChange={handleGraphragUrlChange} />
 
@@ -216,39 +209,30 @@ const SettingsComponent: React.FC<ChildComponentProps> = ({ client }) => {
       </div>
       <input type={isVisible ? 'text' : 'password'}
         className="settings-input"
-        value={graphragApiKey}
+        value={graphragApiKeyRef.current}
         placeholder={''}
         onChange={handleGraphragApiKeyChange} />
 
       <div className="settings-label">Project Name</div>
       <input type={'text'}
         className="settings-input"
-        value={graphragProjectName}
+        value={graphragProjectNameRef.current}
         placeholder={''}
         onChange={handleGraphragProjectNameChange} />
 
       <div className="settings-label">About</div>
       <input type={'text'}
         className="settings-input"
-        value={graphragAbout}
+        value={graphragAboutRef.current}
         placeholder={GRAPHRAG_ABOUT}
         onChange={handleGraphragAboutChange} />
 
       <div className="settings-label">API Cache</div>
-      <Dropdown options={graphragCacheOptions} selectedValue={graphragCache} onChange={handleGraphragCacheChange} />
+      <Dropdown options={graphragCacheOptions} selectedValue={graphragCacheRef.current} onChange={handleGraphragCacheChange} />
     </div>;
   };
 
   const Speech = () => {
-    const [cogSvcRegion, setCogSvcRegion] = useState(localStorage.getItem('cogSvcRegion') || 'westus2');
-    const [cogSvcSubKey, setCogSvcSubKey] = useState(localStorage.getItem('cogSvcSubKey') || '');
-    const [privateEndpoint, setPrivateEndpoint] = useState(localStorage.getItem('privateEndpoint') || '');
-
-    useEffect(() => {
-      localStorage.setItem('cogSvcSubKey', cogSvcSubKey);
-      localStorage.setItem('cogSvcRegion', cogSvcRegion);
-      localStorage.setItem('privateEndpoint', privateEndpoint);
-    }, [cogSvcSubKey, cogSvcRegion, privateEndpoint]);
 
     const handleCogSvcSubKeyChange = (e: any) => {
       setCogSvcSubKey(e.target.value);
@@ -258,15 +242,13 @@ const SettingsComponent: React.FC<ChildComponentProps> = ({ client }) => {
       setCogSvcRegion(e.target.value);
     };
 
-    const handlePrivateEndpointChange = (e: any) => {
-      setPrivateEndpoint(e.target.value);
-    };
+
 
     return <div>
       <div className="settings-label">Region</div>
       <input type={'text'}
         className="settings-input"
-        value={cogSvcRegion}
+        value={cogSvcRegionRef.current}
         placeholder={'westus2'}
         onChange={handleCogSvcRegionChange} />
 
@@ -278,7 +260,7 @@ const SettingsComponent: React.FC<ChildComponentProps> = ({ client }) => {
       </div>
       <input type={isVisible ? 'text' : 'password'}
         className="settings-input"
-        value={cogSvcSubKey}
+        value={cogSvcSubKeyRef.current}
         placeholder={''}
         onChange={handleCogSvcSubKeyChange} />
 
@@ -294,13 +276,6 @@ const SettingsComponent: React.FC<ChildComponentProps> = ({ client }) => {
   };
 
   const SettingsCompletion = () => {
-    const [completionTargetUri, setCompletionTargetUri] = useState(localStorage.getItem('completionTargetUri') || '');
-    const [completionApiKey, setCompletionApiKey] = useState(localStorage.getItem('completionApiKey') || '');
-
-    useEffect(() => {
-      localStorage.setItem('completionTargetUri', completionTargetUri);
-      localStorage.setItem('completionApiKey', completionApiKey);
-    }, [completionTargetUri, completionApiKey]);
 
     const handleCompletionTargetUriChange = (e: any) => {
       setCompletionTargetUri(e.target.value);
@@ -314,7 +289,7 @@ const SettingsComponent: React.FC<ChildComponentProps> = ({ client }) => {
       <div className="settings-label">Target URI</div>
       <input type={'text'}
         className="settings-input"
-        value={completionTargetUri}
+        value={completionTargetUriRef.current}
         placeholder={'https://xxxx.openai.azure.com/openai/deployments/gpt-4o-mini/chat/completions?api-version=2024-08-01-preview'}
         onChange={handleCompletionTargetUriChange} />
 
@@ -326,68 +301,62 @@ const SettingsComponent: React.FC<ChildComponentProps> = ({ client }) => {
       </div>
       <input type={isVisible ? 'text' : 'password'}
         className="settings-input"
-        value={completionApiKey}
+        value={completionApiKeyRef.current}
         placeholder={''}
         onChange={handleCompletionApiKeyChange} />
 
     </div>;
   };
 
-
   const Prompt = () => {
-    const [prompt, setPrompt] = useState(localStorage.getItem('prompt') || '');
-
-    useEffect(() => {
-      localStorage.setItem('prompt', prompt);
-    }, [prompt]);
-
+  
     const handlePromptChange = (e: any) => {
       setPrompt(e.target.value);
     };
 
-    const ALLOW_CHARACTERS = 1500;
 
     return <div>
       <textarea
         className="settings-input"
-        value={prompt}
+        value={promptRef.current}
         style={{ fontSize: '12px' }}
         placeholder={''}
         rows={20}
-        maxLength={ALLOW_CHARACTERS}
+        maxLength={ALLOW_PROMPT_CHARACTERS}
         onChange={handlePromptChange}
       />
-      <div className="settings-label">Remaining Characters: {ALLOW_CHARACTERS - prompt.length}</div>
+      <div className="settings-label">Remaining Characters: {ALLOW_PROMPT_CHARACTERS - prompt.length}</div>
     </div>;
   };
 
   const handleExport = () => {
     // get all settings to json obejct and base64 encode
     const settings = {
-      endpoint: localStorage.getItem('endpoint') || '',
-      key: localStorage.getItem('key') || '',
-      completionTargetUri: localStorage.getItem('completionTargetUri') || '',
-      completionApiKey: localStorage.getItem('completionApiKey') || '',
-      cogSvcRegion: localStorage.getItem('cogSvcRegion') || '',
-      cogSvcSubKey: localStorage.getItem('cogSvcSubKey') || '',
-      dallTargetUri: localStorage.getItem('dallTargetUri') || '',
-      dallApiKey: localStorage.getItem('dallApiKey') || '',
+      endpoint: endpointRef.current,
+      key: keyRef.current,
+      completionTargetUri: completionTargetUriRef.current,
+      completionApiKey: completionApiKeyRef.current,
+      cogSvcRegion: cogSvcRegionRef.current,
+      cogSvcSubKey: cogSvcSubKeyRef.current,
+      dallTargetUri: dallTargetUriRef.current,
+      dallApiKey: dallApiKeyRef.current,
 
-      graphragUrl: localStorage.getItem('graphragUrl') || '',
-      graphragApiKey: localStorage.getItem('graphragApiKey') || '',
-      graphragProjectName: localStorage.getItem('graphragProjectName') || '',
-      graphragCache: localStorage.getItem('graphragCache') || 'false',
-      graphragAbout: localStorage.getItem('graphragAbout') || GRAPHRAG_ABOUT,
+      graphragUrl: graphragUrlRef.current,
+      graphragApiKey: graphragApiKeyRef.current,
+      graphragProjectName: graphragProjectNameRef.current,
+      graphragCache: graphragCacheRef.current,
+      graphragAbout: graphragAboutRef.current,
 
-      prompt: localStorage.getItem('prompt') || '',
+      assistanTypeRef: assistanTypeRef.current,
+      language: languageRef.current,
+      prompt: promptRef.current,
 
-      feishuHook: localStorage.getItem('feishuHook') || '',
-      quoteToken: localStorage.getItem('quoteToken') || '',
-      newsKey: localStorage.getItem('newsKey') || '',
-      mxnzpAppId: localStorage.getItem('mxnzpAppId') || '',
-      mxnzpAppSecret: localStorage.getItem('mxnzpAppSecret') || '',
-      language: localStorage.getItem('language') || '',
-      assistentType: localStorage.getItem('assistanType') || ASSISTENT_TYPE_DEFAULT
+      feishuHook: feishuHookRef.current,
+      quoteToken: quoteTokenRef.current,
+      newsKey: newsKeyRef.current,
+      mxnzpAppId: mxnzpAppIdRef.current,
+      mxnzpAppSecret: mxnzpAppSecretRef.current,
+      
     };
     const content = JSON.stringify(settings, null, 2);
     const blob = new Blob([content], { type: 'application/json' });
@@ -417,37 +386,38 @@ const SettingsComponent: React.FC<ChildComponentProps> = ({ client }) => {
           alert('Import failed, Please check your settings.');
           return;
         }
+
         // update settings
-        localStorage.setItem('endpoint', settings.endpoint);
-        localStorage.setItem('key', settings.key);
+        setEndpoint(settings.endpoint);
+        setKey(settings.key);
 
-        localStorage.setItem('completionTargetUri', settings.completionTargetUri);
-        localStorage.setItem('completionApiKey', settings.completionApiKey);
+        setCompletionTargetUri(settings.completionTargetUri);
+        setCompletionApiKey(settings.completionApiKey);
 
-        localStorage.setItem('cogSvcRegion', settings.cogSvcRegion);
-        localStorage.setItem('cogSvcSubKey', settings.cogSvcSubKey);
+        setCogSvcRegion(settings.cogSvcRegion);
+        setCogSvcSubKey(settings.cogSvcSubKey);
 
-        localStorage.setItem('dallTargetUri', settings.dallTargetUri);
-        localStorage.setItem('dallApiKey', settings.dallApiKey);
+        setDallTargetUri(settings.dallTargetUri);
+        setDallApiKey(settings.dallApiKey);
 
-        localStorage.setItem('graphragUrl', settings.graphragUrl);
-        localStorage.setItem('graphragApiKey', settings.graphragApiKey);
-        localStorage.setItem('graphragProjectName', settings.graphragProjectName);
-        localStorage.setItem('graphragCache', settings.graphragCache);
-        localStorage.setItem('graphragAbout', settings.graphragAbout);
+        setGraphragUrl(settings.graphragUrl);
+        setGraphragApiKey(settings.graphragApiKey);
+        setGraphragProjectName(settings.graphragProjectName);
+        setGraphragCache(settings.graphragCache);
+        setGraphragAbout(settings.graphragAbout);
 
-        localStorage.setItem('feishuHook', settings.feishuHook);
-        localStorage.setItem('quoteToken', settings.quoteToken);
-        localStorage.setItem('newsKey', settings.newsKey);
-        localStorage.setItem('mxnzpAppId', settings.mxnzpAppId);
-        localStorage.setItem('mxnzpAppSecret', settings.mxnzpAppSecret);
-        localStorage.setItem('language', settings.language);
-        localStorage.setItem('assistanType', settings.assistanType);
+        setFeishuHook(settings.feishuHook);
+        setQuoteToken(settings.quoteToken);
+        setNewsKey(settings.newsKey);
+        setMxnzpAppId(settings.mxnzpAppId);
+        setMxnzpAppSecret(settings.mxnzpAppSecret);
+        setLanguage(settings.language);
+        setAssistanType(settings.assistanType);
 
-        localStorage.setItem('prompt', settings.prompt);
+        setPrompt(settings.prompt);
 
         alert('Import success, Page will reload.');
-        window.location.reload();
+     
       } catch (error) {
         console.error(`import error: ${error}`);
       }
@@ -493,15 +463,7 @@ const SettingsComponent: React.FC<ChildComponentProps> = ({ client }) => {
   };
 
   const SettingsTokens = () => {
-    const [feishuHook, setFeishuHook] = useState(localStorage.getItem('feishuHook') || '');
-    const [quoteToken, setQuoteToken] = useState(localStorage.getItem('quoteToken') || '');
-    const [newsKey, setNewsKey] = useState(localStorage.getItem('newsKey') || '');
-
-    useEffect(() => {
-      localStorage.setItem('feishuHook', feishuHook);
-      localStorage.setItem('quoteToken', quoteToken);
-      localStorage.setItem('newsKey', newsKey);
-    }, [feishuHook, quoteToken, newsKey]);
+   
 
     const handleFeishuHookChange = (e: any) => {
       setFeishuHook(e.target.value);
@@ -516,13 +478,6 @@ const SettingsComponent: React.FC<ChildComponentProps> = ({ client }) => {
     };
 
 
-    const [mxnzpAppId, setMxnzpAppId] = useState(localStorage.getItem('mxnzpAppId') || '');
-    const [mxnzpAppSecret, setMxnzpAppSecret] = useState(localStorage.getItem('mxnzpAppSecret') || '');
-
-    useEffect(() => {
-      localStorage.setItem('mxnzpAppId', mxnzpAppId);
-      localStorage.setItem('mxnzpAppSecret', mxnzpAppSecret);
-    }, [mxnzpAppId, mxnzpAppSecret]);
 
     const handleMxnzpAppIdChange = (e: any) => {
       setMxnzpAppId(e.target.value);
@@ -544,7 +499,7 @@ const SettingsComponent: React.FC<ChildComponentProps> = ({ client }) => {
       </div>
       <input type={isVisible ? 'text' : 'password'}
         className="settings-input"
-        value={feishuHook}
+        value={feishuHookRef.current}
         placeholder={''}
         onChange={handleFeishuHookChange} />
 
@@ -557,7 +512,7 @@ const SettingsComponent: React.FC<ChildComponentProps> = ({ client }) => {
       </div>
       <input type={isVisible ? 'text' : 'password'}
         className="settings-input"
-        value={quoteToken}
+        value={quoteTokenRef.current}
         placeholder={''}
         onChange={handleQuoteTokenChange} />
 
@@ -570,7 +525,7 @@ const SettingsComponent: React.FC<ChildComponentProps> = ({ client }) => {
       </div>
       <input type={isVisible ? 'text' : 'password'}
         className="settings-input"
-        value={newsKey}
+        value={newsKeyRef.current}
         placeholder={''}
         onChange={handleNewsKeyChange} />
 
@@ -582,7 +537,7 @@ const SettingsComponent: React.FC<ChildComponentProps> = ({ client }) => {
           </div>
           <input type={'text'}
             className="settings-input"
-            value={mxnzpAppId}
+            value={mxnzpAppIdRef.current}
             placeholder={''}
             onChange={handleMxnzpAppIdChange} />
         </div>
@@ -597,7 +552,7 @@ const SettingsComponent: React.FC<ChildComponentProps> = ({ client }) => {
           </div>
           <input type={isVisible ? 'text' : 'password'}
             className="settings-input"
-            value={mxnzpAppSecret}
+            value={mxnzpAppSecretRef.current}
             placeholder={''}
             onChange={handleMxnzpAppSecretChange} />
         </div>
@@ -654,18 +609,15 @@ const SettingsComponent: React.FC<ChildComponentProps> = ({ client }) => {
 
   const closeModal = () => {
     setIsModalOpen(false);
-    window.location.reload();
   };
 
-
   return (
-    <div className="content-actions" style={{ display: client.isConnected() ? 'none' : '' }}>
-
+    <div className="content-actions" style={{ display: realtimeClientRef?.current?.isConnected() ? 'none' : '' }}>
 
       <Button className="container_bg"
-        label={client.isConnected() ? 'Disconnect to Settings' : 'Settings'}
+        label={realtimeClientRef?.current?.isConnected() ? 'Disconnect to Settings' : 'Settings'}
         icon={Settings}
-        disabled={client.isConnected() ? true : false}
+        disabled={realtimeClientRef?.current?.isConnected() ? true : false}
         onClick={handleClick}
       />
 

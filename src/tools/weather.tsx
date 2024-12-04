@@ -1,4 +1,6 @@
 import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
+import { useContexts } from '../providers/AppProvider';
+import { useSettings } from '../providers/SettingsProvider';
 
 export const definition: ToolDefinitionType = {
   name: 'get_weather',
@@ -22,4 +24,19 @@ export const definition: ToolDefinitionType = {
     },
     required: ['lat', 'lng', 'location']
   }
+};
+
+
+export const handler: Function = async ({ lat, lng, location }: { [key: string]: any }) => {
+  const { setLoading } = useContexts();
+  const { isAssistant } = useSettings();
+  setLoading(true);
+
+  const result = await fetch(
+    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,wind_speed_10m`
+  );
+  const json = await result.json();
+
+  isAssistant && setLoading(false);
+  return json;
 };

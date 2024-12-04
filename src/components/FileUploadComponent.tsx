@@ -5,7 +5,7 @@ import './FileUploadComponent.scss';
 import { Upload } from 'react-feather';
 import { Button } from '../components/button/Button';
 import { DATA_BEGIN, DATA_END } from '../lib/instructions';
-import { useContexts } from '../AppProvider';
+import { useContexts } from '../providers/AppProvider';
 
 interface ChildComponentProps {
   client: RealtimeClient;

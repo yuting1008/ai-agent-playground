@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import styles from './FileViewer.module.css';
 import { getOpenAIClient } from '../lib/openai';
-import { useContexts } from '../AppProvider';
+import { useContexts } from '../providers/AppProvider';
 
 const TrashIcon = () => (
   <svg
@@ -50,11 +50,12 @@ const getOrCreateVectorStore = async (assistantId: string) => {
 const FileViewer = () => {
   const [files, setFiles] = useState<any[]>([]);
 
-  const { assistantIdRef } = useContexts();
+  const { assistantRef } = useContexts();
 
   useEffect(() => {
+
     const interval = setInterval(() => {
-      fetchFiles(assistantIdRef.current);
+      fetchFiles(assistantRef?.current?.id);
     }, 1000);
 
     return () => clearInterval(interval);
@@ -62,6 +63,9 @@ const FileViewer = () => {
 
   // list files in assistant's vector store
   const fetchFiles = async (assistantId: string) => {
+    if (!assistantId) {
+      return;
+    }
 
     const vectorStoreId = await getOrCreateVectorStore(assistantId); // get or create vector store
     const fileList = await getOpenAIClient().beta.vectorStores.files.list(vectorStoreId);
@@ -86,7 +90,7 @@ const FileViewer = () => {
 
   // delete file from assistant's vector store
   const handleFileDelete = async (fileId: string) => {
-    const vectorStoreId = await getOrCreateVectorStore(assistantIdRef.current); // get or create vector store
+    const vectorStoreId = await getOrCreateVectorStore(assistantRef.current.id); // get or create vector store
     await getOpenAIClient().beta.vectorStores.files.del(vectorStoreId, fileId); // delete file from vector store
   };
 
@@ -96,7 +100,7 @@ const FileViewer = () => {
     const file = event.target.files[0];
 
     try {
-      const vectorStoreId = await getOrCreateVectorStore(assistantIdRef.current);
+      const vectorStoreId = await getOrCreateVectorStore(assistantRef.current.id);
 
       // upload using the file stream
       const openaiFile = await getOpenAIClient().files.create({

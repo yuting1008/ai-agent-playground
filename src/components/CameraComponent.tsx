@@ -1,20 +1,14 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Webcam from 'react-webcam';
-import { useContexts } from '../AppProvider';
+import { useContexts } from '../providers/AppProvider';
 import { RealtimeClient } from '@theodoreniu/realtime-api-beta';
 import { CAMERA_PHOTO_LIMIT } from '../lib/const';
 import { getCompletion } from '../lib/openai';
-import { WavStreamPlayer } from '../lib/wavtools';
 import './CameraComponent.scss';
 import { Camera, CameraOff, RefreshCw } from 'react-feather';
 
-interface ChildComponentProps {
-  client: RealtimeClient;
-  wavStreamPlayer: WavStreamPlayer;
-  assistantThreadId: string | null;
-}
 
-const CameraComponent: React.FC<ChildComponentProps> = ({ client, wavStreamPlayer, assistantThreadId }) => {
+const CameraComponent: React.FC = () => {
   const webcamRef = React.useRef<Webcam>(null);
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -23,6 +17,9 @@ const CameraComponent: React.FC<ChildComponentProps> = ({ client, wavStreamPlaye
   const photoInterval = 1000;
   const [facingMode, setFacingMode] = useState('user');
   const [cameraCount, setCameraCount] = useState(0);
+  const { threadRef } = useContexts();
+
+  const { realtimeClientRef } = useContexts();
 
   useEffect(() => {
     const getCameras = async () => {
@@ -50,9 +47,9 @@ const CameraComponent: React.FC<ChildComponentProps> = ({ client, wavStreamPlaye
 
     console.log(`iseWebcamReady: ${iseWebcamReady}`);
 
-    if (client && client.isConnected()) {
+    if (realtimeClientRef?.current?.isConnected()) {
       console.log('update instructions');
-      client.updateSession({
+      realtimeClientRef?.current.updateSession({
         instructions: isCameraOn ? replaceInstructions('现在我的摄像头是关闭的', '现在我的摄像头打开的') : replaceInstructions('现在我的摄像头打开的', '现在我的摄像头是关闭的')
       });
     } else {
@@ -62,7 +59,7 @@ const CameraComponent: React.FC<ChildComponentProps> = ({ client, wavStreamPlaye
   }, [iseWebcamReady]);
 
   useEffect(() => {
-    if (!isCameraOn || (!client.isConnected() && !assistantThreadId)) {
+    if (!isCameraOn || (!realtimeClientRef?.current.isConnected() && !threadRef.current?.id)) {
       setWebcamReady(false);
     }
   }, [isCameraOn]);
@@ -79,7 +76,7 @@ const CameraComponent: React.FC<ChildComponentProps> = ({ client, wavStreamPlaye
 
   const capture = useCallback(() => {
 
-    if (!client.isConnected() && !assistantThreadId) {
+    if (!realtimeClientRef?.current.isConnected() && !threadRef.current?.id) {
       setWebcamReady(false);
       setIsCameraOn(false);
     }
@@ -113,7 +110,7 @@ const CameraComponent: React.FC<ChildComponentProps> = ({ client, wavStreamPlaye
     /************************************************************
      * camera_video_record
      */
-    client.addTool({
+    realtimeClientRef?.current.addTool({
       name: 'camera_video_record',
       description: 'What have you seen in the past time? What have you seen in the past time in this camera? respond wait message to the user before calling the tool.',
       parameters: {
@@ -192,7 +189,7 @@ const CameraComponent: React.FC<ChildComponentProps> = ({ client, wavStreamPlaye
     /************************************************************
      * camera_current
      */
-    client.addTool({
+    realtimeClientRef?.current.addTool({
       name: 'camera_current',
       description: 'What do you see now? What is in this camera now? respond wait message to the user before calling the tool.',
       parameters: {
@@ -253,7 +250,7 @@ const CameraComponent: React.FC<ChildComponentProps> = ({ client, wavStreamPlaye
      *
      * camera_of
      */
-    client.addTool({
+    realtimeClientRef?.current.addTool({
       name: 'camera_on_or_off',
       description: 'turn off or turn on camera now. only respond wait message to the user before calling the tool if turn on camera.',
       parameters: {
@@ -299,7 +296,7 @@ const CameraComponent: React.FC<ChildComponentProps> = ({ client, wavStreamPlaye
     <div className="content-block camera container_bg">
 
       {
-        (client.isConnected() || assistantThreadId) && (
+        (realtimeClientRef?.current.isConnected() || threadRef.current?.id) && (
           <div>
             <button className="content-block-btn"
                     style={{ display: (isCameraOn && !iseWebcamReady) ? 'none' : '' }}
@@ -317,7 +314,7 @@ const CameraComponent: React.FC<ChildComponentProps> = ({ client, wavStreamPlaye
       }
 
       {
-        (client.isConnected() || assistantThreadId) && isCameraOn && (
+        (realtimeClientRef?.current.isConnected() || threadRef.current?.id) && isCameraOn && (
           iseWebcamReady ? null : <div className="camLoading">
             <div className="spinner" key={'camLoading'}></div>
           </div>
@@ -325,7 +322,7 @@ const CameraComponent: React.FC<ChildComponentProps> = ({ client, wavStreamPlaye
       }
 
       {
-        (client.isConnected() || assistantThreadId) && isCameraOn && (
+        (realtimeClientRef?.current.isConnected() || threadRef.current?.id) && isCameraOn && (
           <Webcam
             audio={false}
             ref={webcamRef}

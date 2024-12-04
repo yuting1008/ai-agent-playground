@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { RealtimeClient } from '@theodoreniu/realtime-api-beta';
 import { ItemType } from '@theodoreniu/realtime-api-beta/dist/lib/client.js';
 import { WavRecorder, WavStreamPlayer } from './lib/wavtools';
 import { clientHiChinese, clientHiEnglish, notDisplay, products } from './lib/const';
-import { delayFunction } from './lib/helper';
 import { WavRenderer } from './lib/wav_renderer';
 
 import { Mic, MicOff, Send, X, Zap, StopCircle, Clock } from 'react-feather';
@@ -15,10 +13,6 @@ import ReactMarkdown from 'react-markdown';
 import Markdown from 'react-markdown';
 import CameraComponent from './components/CameraComponent';
 
-import { AssistantStream } from 'openai/lib/AssistantStream';
-// @ts-expect-error - no types for this yet
-import { AssistantStreamEvent } from 'openai/resources/beta/assistants/assistants';
-import { createAssistant, getOpenAIClient } from './lib/openai';
 
 import * as memory from './tools/memory';
 import * as order_get from './tools/order_get';
@@ -38,33 +32,21 @@ import * as exchange_rate_aim from './tools/exchange_rate_aim';
 import * as exchange_rate_list from './tools/exchange_rate_list';
 import * as azure_docs from './tools/azure_docs';
 import * as exchange_rate_configs from './tools/exchange_rate_configs';
-import * as SpeechSDK from 'microsoft-cognitiveservices-speech-sdk';
 import Painting from './components/Painting';
 import SettingsComponent from './components/Settings';
 import FileUploadComponent from './components/FileUploadComponent';
 import ProductList from './components/ProductList';
-import { ASSISTENT_TYPE_ASSISTANT, ASSISTENT_TYPE_DEFAULT, ASSISTENT_TYPE_REALTIME } from './lib/const';
 import LocalStorageViewer from './components/LocalStorageViewer';
 import FileViewer from './components/FileViewer';
-import { useContexts } from './AppProvider';
+import { useContexts } from './providers/AppProvider';
 import Loading from './components/Loading';
-
-/**
- * Type for result from get_weather() function call
- */
-interface Coordinates {
-  lat: number;
-  lng: number;
-  location?: string;
-  temperature?: {
-    value: number;
-    units: string;
-  };
-  wind_speed?: {
-    value: number;
-    units: string;
-  };
-}
+import { useSettings } from './providers/SettingsProvider';
+import { useAssistant } from './providers/AssistantProvider';
+import { NightMode } from './components/NightMode';
+import Avatar from './components/Avatar';
+import { useAvatar } from './providers/AvatarProvider';
+import { useStt } from './providers/SttProvider';
+import { useRealtime } from './providers/RealtimeProvider';
 
 
 type AssistantMessageProps = {
@@ -131,289 +113,43 @@ interface RealtimeEvent {
 
 export function ConsolePage() {
 
+  const { wavRecorderRef, wavStreamPlayerRef } = useRealtime();
+  const { isConnected, isConnectedRef, setIsConnected } = useRealtime();
+  const { setIsConnecting } = useRealtime();
+  const { cancleRealtimeResponse, isConnectingRef, connectMessageRef, setConnectMessage, deleteConversationItem, changeTurnEndType, isRecordingRef, canPushToTalkRef, startRecording, stopRecording } = useRealtime();
+
+
+
   const {
-    setLoading,
-    threadRef, setThread,
-    threadJobRef, setThreadJob,
-    assistantResponseBufferRef, setAssistantResponseBuffer,
-    isAvatarStarted, isAvatarStartedRef, setIsAvatarStarted,
-    avatarSpeechSentencesArrayRef, setAvatarSpeechSentencesArray,
-    realtimeInstructionsRef, setRealtimeInstructions, replaceInstructions,
-    assistantIdRef, setAssistantId,
-  } = useContexts();
 
-  const [assistantType, setAssistantType] = useState<string>(localStorage.getItem('assistanType') || ASSISTENT_TYPE_DEFAULT);
 
-  const [isAssistant, setIsAssistant] = useState<boolean>(assistantType === ASSISTENT_TYPE_ASSISTANT);
-  const [isRealtime, setIsRealtime] = useState<boolean>(assistantType === ASSISTENT_TYPE_REALTIME);
+
+    isAvatarStartedRef,
+
+    realtimeInstructionsRef,
+
+    realtimeClientRef,
+    inputValueRef } = useContexts();
+
+  const {
+    isAssistant,
+    isRealtime,
+    endpointRef,
+    keyRef,
+    languageRef,
+  } = useSettings();
+
+  const {
+    setupAssistant,
+    stopCurrentStreamJob,
+    createThread } = useAssistant();
+
+  const { speakAvatar, processAndStoreSentence, stopAvatarSpeaking } = useAvatar();
+
 
   // ----------------- avatar speech -----------------
-  const [isAvatarLoading, setIsAvatarLoading] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
-
-  useEffect(() => {
-    const currentInstructions = isAvatarStartedRef.current ? replaceInstructions('你的虚拟人形象处于关闭状态', '你的虚拟人形象处于打开状态')
-      : replaceInstructions('你的虚拟人形象处于打开状态', '你的虚拟人形象处于关闭状态');
-
-    clientRef.current.isConnected() && clientRef.current.updateSession({ instructions: currentInstructions });
-
-  }, [isAvatarStarted]);
-
-  // Refs for maintaining instance variables
-  const avatarSynthesizerRef = useRef<any>(null);
-  const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
-
-  const htmlEncodeAvatar = (text: string): string => {
-    // remove all can't speak characters
-    text = text.replace(/\*/g, '');
-
-    const entityMap: { [key: string]: string } = {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      '\'': '&#39;',
-      '/': '&#x2F;'
-    };
-    return String(text).replace(/[&<>"'\/]/g, (match) => entityMap[match]);
-  };
-
-  const avatarVideoRef = useRef<HTMLVideoElement>(null);
-  const avatarAudioRef = useRef<HTMLAudioElement>(null);
-
-  const setupWebRTCAvatar = async (
-    iceServerUrl: string,
-    iceServerUsername: string,
-    iceServerCredential: string
-  ) => {
-    const useTcpForWebRTC = false;
-
-    peerConnectionRef.current = new RTCPeerConnection({
-      iceServers: [{
-        urls: [useTcpForWebRTC ? iceServerUrl.replace(':3478', ':443?transport=tcp') : iceServerUrl],
-        username: iceServerUsername,
-        credential: iceServerCredential
-      }],
-      iceTransportPolicy: useTcpForWebRTC ? 'relay' : 'all'
-    });
-
-    peerConnectionRef.current.ontrack = (event) => {
-
-      const video = avatarVideoRef.current;
-      const audio = avatarAudioRef.current;
-
-      if (!video || !audio) {
-        console.error('avatarVideoRef or avatarAudioRef is not initialized');
-        return;
-      }
-
-      console.log(event);
-
-      if (event.track.kind === 'video') {
-        video.id = 'avatarVideo';
-        video.srcObject = event.streams[0];
-        video.autoplay = true;
-      } else if (event.track.kind === 'audio') {
-        audio.id = 'avatarAudio';
-        audio.srcObject = event.streams[0];
-        audio.autoplay = true;
-      }
-
-      video.onloadedmetadata = () => {
-        setIsAvatarStarted(true);
-        setIsAvatarLoading(false);
-      };
-    };
-
-    // Add transceivers
-    peerConnectionRef.current.addTransceiver('video', { direction: 'sendrecv' });
-    peerConnectionRef.current.addTransceiver('audio', { direction: 'sendrecv' });
-
-    // Start avatar
-    console.log('starting avatar...');
-    const result = await avatarSynthesizerRef.current.startAvatarAsync(peerConnectionRef.current);
-    if (result.reason === SpeechSDK.ResultReason.SynthesizingAudioCompleted) {
-      console.log('Avatar started successfully');
-    } else {
-      throw new Error(JSON.stringify(result));
-    }
-
-  };
-
-  /**
-   * Toggle avatar session
-   */
-  const toggleAvatar = async () => {
-    if (isAvatarStartedRef.current) {
-      stopAvatarSession();
-    } else {
-      await startAvatarSession();
-    }
-  };
-
-  /**
-   * Start avatar session
-   */
-  const startAvatarSession = async () => {
-    try {
-      const cogSvcSubKey = localStorage.getItem('cogSvcSubKey') || '';
-      const cogSvcRegion = localStorage.getItem('cogSvcRegion') || '';
-      const privateEndpoint = localStorage.getItem('privateEndpoint') || '';
-
-      if (!cogSvcSubKey || !cogSvcRegion) {
-        alert('Please set your Cognitive Services subscription key, region, and private endpoint.');
-        setIsAvatarLoading(false);
-        setIsAvatarStarted(false);
-        return;
-      }
-
-      setIsAvatarLoading(true);
-      console.log('starting avatar session...');
-
-      let speechSynthesisConfig;
-      if (privateEndpoint) {
-        console.log(`using private endpoint: ${privateEndpoint}`);
-        speechSynthesisConfig = SpeechSDK.SpeechConfig.fromEndpoint(
-          new URL(`wss://${privateEndpoint}/tts/cognitiveservices/websocket/v1?enableTalkingAvatar=true`),
-          cogSvcSubKey
-        );
-      } else {
-        speechSynthesisConfig = SpeechSDK.SpeechConfig.fromSubscription(cogSvcSubKey, cogSvcRegion);
-        console.log(`using public endpoint: ${cogSvcRegion}`);
-      }
-
-      const videoFormat = new SpeechSDK.AvatarVideoFormat();
-      videoFormat.width = 300;
-      videoFormat.height = 250;
-      videoFormat.setCropRange(
-        new SpeechSDK.Coordinate(600, 0),
-        new SpeechSDK.Coordinate(1360, 520)
-      );
-      console.log('videoFormat: ' + videoFormat);
-
-      const avatarConfig = new SpeechSDK.AvatarConfig(
-        'harry',
-        'business',
-        videoFormat
-      );
-      console.log('avatarConfig: ' + avatarConfig);
-      avatarConfig.customized = false;
-      avatarConfig.backgroundImage = new URL('https://playground.azuretsp.com/images/avatar_bg.jpg');
-
-      // Get token
-      const response = await fetch(
-        privateEndpoint
-          ? `https://${privateEndpoint}/tts/cognitiveservices/avatar/relay/token/v1`
-          : `https://${cogSvcRegion}.tts.speech.microsoft.com/cognitiveservices/avatar/relay/token/v1`,
-        {
-          headers: {
-            'Ocp-Apim-Subscription-Key': cogSvcSubKey
-          }
-        }
-      );
-
-      const responseData = await response.json();
-      console.log('responseData: ' + responseData);
-
-      avatarSynthesizerRef.current = new SpeechSDK.AvatarSynthesizer(
-        speechSynthesisConfig,
-        avatarConfig
-      );
-
-      await setupWebRTCAvatar(
-        responseData.Urls[0],
-        responseData.Username,
-        responseData.Password
-      );
-      console.log('avatarSynthesizerRef.current: ' + avatarSynthesizerRef.current);
-    } catch (error) {
-      console.log(error);
-      alert(`Avatar session failed to start. Please check your configuration or network.\n` + error);
-      setIsAvatarLoading(false);
-      setIsAvatarStarted(false);
-    }
-  };
 
 
-  const speakAvatar = async (spokenText: string) => {
-    if (!avatarSynthesizerRef.current) return;
-
-    try {
-      setIsSpeaking(true);
-      const ttsVoice = 'en-US-AndrewMultilingualNeural';
-      const spokenSsml = `
-          <speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xmlns:mstts='http://www.w3.org/2001/mstts' xml:lang='en-US'>
-            <voice name='${ttsVoice}'>
-              <mstts:leadingsilence-exact value='0'/>
-              ${htmlEncodeAvatar(spokenText)}
-            </voice>
-          </speak>`;
-
-      const result = await avatarSynthesizerRef.current.speakSsmlAsync(spokenSsml);
-      if (result.reason === SpeechSDK.ResultReason.SynthesizingAudioCompleted) {
-        console.log(`Speech completed: ${spokenText}`);
-        setIsSpeaking(false);
-      } else {
-        throw new Error('Speech synthesis failed: ' + JSON.stringify(result));
-      }
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setIsSpeaking(false);
-    }
-  };
-
-  /**
-   * Stop speaking avatar
-   */
-  const stopAvatarSpeaking = async () => {
-    if (!avatarSynthesizerRef.current) return;
-
-    try {
-      await avatarSynthesizerRef.current.stopSpeakingAsync();
-      setIsSpeaking(false);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const stopAvatarSession = () => {
-    if (avatarSynthesizerRef.current) {
-      avatarSynthesizerRef.current.close();
-    }
-    setIsAvatarStarted(false);
-    setIsAvatarLoading(false);
-    if (avatarVideoRef.current) {
-      avatarVideoRef.current.srcObject = null;
-    }
-    if (avatarAudioRef.current) {
-      avatarAudioRef.current.srcObject = null;
-    }
-  };
-  // ----------------- avatar speech -----------------
-
-  /**
-   * Instantiate:
-   * - WavRecorder (speech input)
-   * - WavStreamPlayer (speech output)
-   * - RealtimeClient (API client)
-   */
-  const wavRecorderRef = useRef<WavRecorder>(
-    new WavRecorder({ sampleRate: 24000 })
-  );
-  const wavStreamPlayerRef = useRef<WavStreamPlayer>(
-    new WavStreamPlayer({ sampleRate: 24000 })
-  );
-  const clientRef = useRef<RealtimeClient>(
-    new RealtimeClient(
-      {
-        apiKey: localStorage.getItem('key') || '',
-        url: localStorage.getItem('endpoint') || '',
-        debug: false,
-        dangerouslyAllowAPIKeyInBrowser: true
-      }
-    )
-  );
 
   /**
    * References for
@@ -436,87 +172,15 @@ export function ConsolePage() {
    */
   const [items, setItems] = useState<ItemType[]>([]);
   const [realtimeEvents, setRealtimeEvents] = useState<RealtimeEvent[]>([]);
-  const [expandedEvents, setExpandedEvents] = useState<{
-    [key: string]: boolean;
-  }>({});
-  const [isConnected, setIsConnected] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [connectMessage, setConnectMessage] = useState('Awaiting Connection...');
-  const [canPushToTalk, setCanPushToTalk] = useState(true);
-  const [isRecording, setIsRecording] = useState(false);
-  const [memoryKv, setMemoryKv] = useState<{ [key: string]: any }>({});
-  const [coords, setCoords] = useState<Coordinates | null>({
-    lat: 39.9841,
-    lng: 116.3125
-  });
-  const [marker, setMarker] = useState<Coordinates | null>(null);
+
+
 
   // if connected is false, clear all items
   useEffect(() => {
-    if (isConnected == false) {
+    if (isConnectedRef.current == false) {
       setItems([]);
     }
   }, [isConnected]);
-
-  /**
-   * Night mode toggle
-   */
-  const [isNightMode, setIsNightMode] = useState(false);
-  useEffect(() => {
-
-    if (isNightMode) {
-      document.body.classList.add('night-mode');
-    } else {
-      document.body.classList.remove('night-mode');
-    }
-
-    const currentInstructions = isNightMode ? replaceInstructions('你的界面现在是白天模式', '你的界面现在是夜间模式')
-      : replaceInstructions('你的界面现在是夜间模式', '你的界面现在是白天模式');
-
-    clientRef.current.isConnected() && clientRef.current.updateSession({ instructions: currentInstructions });
-
-  }, [isNightMode]);
-
-  const toggleNightMode = () => {
-    setIsNightMode(!isNightMode);
-  };
-
-  /**
-   * Utility for formatting the timing of logs
-   */
-  const formatTime = useCallback((timestamp: string) => {
-    const startTime = startTimeRef.current;
-    const t0 = new Date(startTime).valueOf();
-    const t1 = new Date(timestamp).valueOf();
-    const delta = t1 - t0;
-    const hs = Math.floor(delta / 10) % 100;
-    const s = Math.floor(delta / 1000) % 60;
-    const m = Math.floor(delta / 60_000) % 60;
-    const pad = (n: number) => {
-      let s = n + '';
-      while (s.length < 2) {
-        s = '0' + s;
-      }
-      return s;
-    };
-    return `${pad(m)}:${pad(s)}.${pad(hs)}`;
-  }, []);
-
-  const setupAssistant = async () => {
-    try {
-      // const assistantId = localStorage.getItem('assistantId') || '';
-      // if (assistantId) {
-      //   console.log(`Assistant already exists: ${assistantId}`);
-      //   return;
-      // }
-      const assistantResponse = await createAssistant();
-      console.log(`Assistant created: ${JSON.stringify(assistantResponse)}`);
-      setAssistantId(assistantResponse.id);
-    } catch (error: any) {
-      console.error(`Error creating assistant: ${error.message}`);
-      alert(`Error creating assistant: ${error.message}`);
-    }
-  };
 
   /**
    * Connect to conversation:
@@ -524,10 +188,6 @@ export function ConsolePage() {
    */
   const connectConversation = useCallback(async () => {
 
-    setAssistantType(localStorage.getItem('assistanType') || ASSISTENT_TYPE_DEFAULT);
-
-    setIsAssistant(assistantType === ASSISTENT_TYPE_ASSISTANT);
-    setIsRealtime(assistantType === ASSISTENT_TYPE_REALTIME);
 
     if (isAssistant) {
       setIsConnecting(true);
@@ -550,14 +210,16 @@ export function ConsolePage() {
       return;
     }
 
-    if (!localStorage.getItem('endpoint')) {
+
+
+    if (!endpointRef.current) {
       setIsConnected(false);
       setIsConnecting(false);
       setConnectMessage('Please set your Target URI.');
       return;
     }
 
-    if (!localStorage.getItem('key')) {
+    if (!keyRef.current) {
       setIsConnected(false);
       setIsConnecting(false);
       setConnectMessage('Please set your Key.');
@@ -565,7 +227,7 @@ export function ConsolePage() {
     }
 
     setIsConnecting(true);
-    const client = clientRef.current;
+    const client = realtimeClientRef.current;
     const wavRecorder = wavRecorderRef.current;
     const wavStreamPlayer = wavStreamPlayerRef.current;
 
@@ -582,7 +244,7 @@ export function ConsolePage() {
       setIsConnected(false);
       setIsConnecting(false);
       setConnectMessage(tip);
-      alert(`${tip}\n${e}\n\nKey is "${localStorage.getItem('key')}"`);
+      alert(`${tip}\n${e}\n\nKey is "${keyRef.current}"`);
       window.location.href = '/';
       return;
     }
@@ -601,12 +263,11 @@ export function ConsolePage() {
     // Connect to audio output
     await wavStreamPlayer.connect();
 
-    const language = localStorage.getItem('language') || 'chinese';
 
     client.sendUserMessageContent([
       {
         type: `input_text`,
-        text: language === 'chinese' ? clientHiChinese : clientHiEnglish
+        text: languageRef.current === 'chinese' ? clientHiChinese : clientHiEnglish
       }
     ]);
 
@@ -627,11 +288,8 @@ export function ConsolePage() {
     // setIsConnecting(false);
     // setRealtimeEvents([]);
     // setItems([]);
-    // setMemoryKv({});
-    // setCoords({
-    //   lat: 39.9841,
-    //   lng: 116.3125
-    // });
+
+
     // setMarker(null);
 
     // const client = clientRef.current;
@@ -643,87 +301,12 @@ export function ConsolePage() {
     // const wavStreamPlayer = wavStreamPlayerRef.current;
     // await wavStreamPlayer.interrupt();
 
-    // window.location.href = '/';
+
   }, []);
 
-  const deleteConversationItem = useCallback(async (id: string) => {
-    const client = clientRef.current;
-    client.deleteItem(id);
-  }, []);
 
-  const cancleRealtimeResponse = async () => {
-    const client = clientRef.current;
-    const wavStreamPlayer = wavStreamPlayerRef.current;
-    const trackSampleOffset = await wavStreamPlayer.interrupt();
-    if (trackSampleOffset?.trackId) {
-      const { trackId, offset } = trackSampleOffset;
-      await client.cancelResponse(trackId, offset);
-    }
-  };
 
-  /**
-   * In push-to-talk mode, start recording
-   * .appendInputAudio() for each sample
-   */
-  const startRecording = async () => {
-    setIsRecording(true);
-    const client = clientRef.current;
-    const wavRecorder = wavRecorderRef.current;
-    const wavStreamPlayer = wavStreamPlayerRef.current;
-    const trackSampleOffset = await wavStreamPlayer.interrupt();
-    if (trackSampleOffset?.trackId) {
-      const { trackId, offset } = trackSampleOffset;
-      await client.cancelResponse(trackId, offset);
-    }
-    await wavRecorder.record((data) => client.appendInputAudio(data.mono));
-  };
 
-  /**
-   * In push-to-talk mode, stop recording
-   */
-  const stopRecording = async () => {
-    try {
-      const client = clientRef.current;
-      const wavRecorder = wavRecorderRef.current;
-      setIsRecording(false);
-      await wavRecorder.pause();
-      client.createResponse();
-    } catch (e) {
-      setIsConnecting(false);
-      setIsConnected(false);
-      setConnectMessage('Connection Failed. \nPlease check your network and reconnect.');
-      clientRef.current.disconnect();
-      console.error(e);
-    }
-  };
-
-  /**
-   * Switch between Manual <> VAD mode for communication
-   */
-  const changeTurnEndType = async (value: string) => {
-    const client = clientRef.current;
-    const wavRecorder = wavRecorderRef.current;
-    if (value === 'none' && wavRecorder.getStatus() === 'recording') {
-      await wavRecorder.pause();
-    }
-
-    try {
-      client.updateSession({
-        turn_detection: value === 'none' ? null : { type: 'server_vad' }
-      });
-      if (value === 'server_vad' && client.isConnected()) {
-        await wavRecorder.record((data) => client.appendInputAudio(data.mono));
-      }
-      setCanPushToTalk(value === 'none');
-    } catch (e) {
-      setIsConnecting(false);
-      setIsConnected(false);
-      setConnectMessage('Connection Failed. \nPlease check your network and reconnect.');
-      client.disconnect();
-      console.error(e);
-    }
-
-  };
 
   /**
    * Auto-scroll the event logs
@@ -830,65 +413,6 @@ export function ConsolePage() {
     return !isAvatarStartedRef.current;
   }
 
-  const memoryTool: Function = async ({ key, value }: { [key: string]: any }) => {
-    setMemoryKv((memoryKv) => {
-      const newKv = { ...memoryKv };
-      newKv[key] = value;
-      return newKv;
-    });
-    return { ok: true };
-  };
-
-  const weatherTool: Function = async ({ lat, lng, location }: { [key: string]: any }) => {
-    isAssistant && setLoading(true);
-    setMarker({ lat, lng, location });
-    setCoords({ lat, lng, location });
-    const result = await fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,wind_speed_10m`
-    );
-    const json = await result.json();
-    const temperature = {
-      value: json.current.temperature_2m as number,
-      units: json.current_units.temperature_2m as string
-    };
-    const wind_speed = {
-      value: json.current.wind_speed_10m as number,
-      units: json.current_units.wind_speed_10m as string
-    };
-    setMarker({ lat, lng, location, temperature, wind_speed });
-    isAssistant && setLoading(false);
-    return json;
-  };
-
-  const avatarTool: Function = async ({ on }: { [key: string]: boolean }) => {
-
-    if (on) {
-      const cogSvcSubKey = localStorage.getItem('cogSvcSubKey') || '';
-      const cogSvcRegion = localStorage.getItem('cogSvcRegion') || '';
-
-      if (!cogSvcSubKey || !cogSvcRegion) {
-        return { message: 'Please set your Cognitive Services subscription key and region.' };
-      }
-
-      await startAvatarSession();
-
-      let checkTime = 0;
-
-      while (checkTime < 10) {
-        await delayFunction(1000);
-        checkTime++;
-        if (isAvatarStartedRef.current) {
-          return { message: 'ok' };
-        }
-      }
-
-      return { message: 'Error, please check your error message.' };
-    }
-
-    stopAvatarSession();
-
-    return { message: 'done' };
-  };
 
   const order_get_tool: Function = async () => async () => {
     return {
@@ -905,61 +429,9 @@ export function ConsolePage() {
     };
   };
 
-  const dark_tool: Function = ({ on }: { [on: string]: boolean }) => {
-    setIsNightMode(on);
-    return { ok: true };
-  };
 
 
-  // process and store sentence for speech
-  type SentenceStatus = { sentence: string; exists: boolean };
 
-  function splitTextByFirstPunctuation(text: string): [string, string] {
-    const punctuationRegex = /[,!?:;'"，。！？：；‘’“”（）【】《》]/;
-
-    const match = text.match(punctuationRegex);
-
-    if (match) {
-      const index = match.index!;
-      return [text.slice(0, index + 1), text.slice(index + 1)];
-    }
-
-    return ['', text];
-  }
-
-  function processAndStoreSentence(id: string, input: string): SentenceStatus[] {
-    if (!input) {
-      return [];
-    }
-
-    // remove all url like http, https in input
-    const urlRegex = /https?:\/\/[^\s]+/g;
-    input = input.replace(urlRegex, '');
-
-    const [firstPart, remainingPart] = splitTextByFirstPunctuation(input);
-
-    const sentenceRegex = /.*?[,!?。！？\n]/g;
-    const sentences = remainingPart.match(sentenceRegex)?.map(s => s.trim()).filter(Boolean) || [];
-    // add first part to sentences
-    if (firstPart) {
-      sentences.unshift(firstPart);
-    }
-
-    const existingSentences: string[] = avatarSpeechSentencesArrayRef.current;
-    
-    const result: SentenceStatus[] = sentences.map(sentence => {
-      const sentenceId = `${id}-${sentence}`;
-      const exists = existingSentences.includes(sentenceId);
-      if (!exists) {
-        existingSentences.push(sentenceId);
-      }
-      return { sentence, exists };
-    });
-
-    setAvatarSpeechSentencesArray(existingSentences);
-
-    return result;
-  }
 
 
   /**
@@ -969,7 +441,7 @@ export function ConsolePage() {
   useEffect(() => {
     // Get refs
     const wavStreamPlayer = wavStreamPlayerRef.current;
-    const client = clientRef.current;
+    const client = realtimeClientRef.current;
 
     // Set instructions
     client.updateSession({ instructions: realtimeInstructionsRef.current });
@@ -979,12 +451,12 @@ export function ConsolePage() {
     client.updateSession({ voice: 'echo' });
 
     // Add tools
-    client.addTool(memory.definition, memoryTool);
-    client.addTool(weather.definition, weatherTool);
-    client.addTool(avatar.definition, avatarTool);
+    client.addTool(memory.definition, memory.handler);
+    client.addTool(weather.definition, weather.handler);
+    client.addTool(avatar.definition, avatar.handler);
     client.addTool(order_get.definition, order_get_tool);
     client.addTool(order_return.definition, order_return_tool);
-    client.addTool(dark.definition, dark_tool);
+    client.addTool(dark.definition, dark.handler);
     client.addTool(news.definition, news.handler);
     client.addTool(exchange_rate_aim.definition, exchange_rate_aim.handler);
     client.addTool(exchange_rate_list.definition, exchange_rate_list.handler);
@@ -1012,6 +484,9 @@ export function ConsolePage() {
         }
       });
     });
+
+
+
 
     client.on('error', (event: any) => {
       console.error(event);
@@ -1092,10 +567,7 @@ export function ConsolePage() {
     };
   }, []);
 
-  const memberRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
-
-  const [sttRecognizer, setSttRecognizer] = useState<SpeechSDK.SpeechRecognizer | null>(null);
-  const [sttRecognizerConnecting, setSttRecognizerConnecting] = useState(false);
+  const { sttRecognizerRef, sttRecognizerConnectingRef, sttStartRecognition, sttStopRecognition } = useStt();
 
   const isHiddenTool = (item: ItemType) => {
     if (item?.formatted?.text && notDisplay.includes(item?.formatted?.text)) {
@@ -1129,11 +601,8 @@ export function ConsolePage() {
     return true;
   };
 
-  const [inputValue, setInputValue] = useState('');
 
-  const [messagesAssistant, setMessagesAssistant] = useState<any[]>([]);
-  const [assistantRunning, setAssistantRunning] = useState(false);
-
+  const { messagesAssistant, assistantRunning, setAssistantRunning } = useAssistant();
   // automatically scroll to bottom of chat
   const messagesEndAssistantRef = useRef<HTMLDivElement | null>(null);
   const assistantScrollToBottom = () => {
@@ -1144,42 +613,15 @@ export function ConsolePage() {
   }, [messagesAssistant]);
 
 
-  const stopCurrentStreamJob = async () => {
-    if (!threadJobRef.current) return;
 
-    console.log('stopCurrentStreamJob:', threadJobRef.current);
-
-    try {
-      const cancelJob = await getOpenAIClient().beta.threads.runs.cancel(threadRef.current?.id, threadJobRef.current?.id);
-      console.log('cancelJob', cancelJob);
-    } catch (error) {
-      console.error('cancelJob error', error);
-    }
-
-    setThreadJob(null);
-  };
+  const { setInputValue } = useContexts();
 
   const sendText = async (inputValue: string) => {
     if (!inputValue.trim()) return;
 
-    if (isAssistant) {
-      await stopCurrentStreamJob();
-      setAssistantResponseBuffer('')
-      stopAvatarSpeaking();
-      sendAssistantMessage(inputValue);
-      setMessagesAssistant((prevMessages: any) => [
-        ...prevMessages,
-        { role: 'user', text: inputValue }
-      ]);
-      setAssistantRunning(true);
-      assistantScrollToBottom();
-      setInputValue('');
-      return;
-    }
-
     stopAvatarSpeaking();
     cancleRealtimeResponse();
-    clientRef.current.sendUserMessageContent([
+    realtimeClientRef.current.sendUserMessageContent([
       {
         type: `input_text`,
         text: inputValue
@@ -1189,287 +631,6 @@ export function ConsolePage() {
     console.log('send text', inputValue);
   };
 
-  const sttStartRecognition = () => {
-    cancleRealtimeResponse();
-    setSttRecognizerConnecting(true);
-
-    const cogSvcSubKey = localStorage.getItem('cogSvcSubKey') || '';
-    const cogSvcRegion = localStorage.getItem('cogSvcRegion') || '';
-
-    const autoDetectSourceLanguageConfig = SpeechSDK.AutoDetectSourceLanguageConfig.fromLanguages(['zh-CN', 'en-US']);
-
-    const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(cogSvcSubKey, cogSvcRegion);
-    speechConfig.outputFormat = SpeechSDK.OutputFormat.Simple;
-
-    const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
-
-    const newRecognizer = SpeechSDK.SpeechRecognizer.FromConfig(speechConfig, autoDetectSourceLanguageConfig, audioConfig);
-
-    newRecognizer.recognizing = (s, e) => {
-      console.log(`Recognizing: ${e.result.text}`);
-      setInputValue(e.result.text);
-
-      (async () => {
-        await stopCurrentStreamJob();
-      })();
-
-      stopAvatarSpeaking();
-      cancleRealtimeResponse();
-    };
-
-    newRecognizer.recognized = (s, e) => {
-      if (e.result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
-        console.log(`Final result: ${e.result.text}`);
-        setInputValue(e.result.text);
-        sendText(e.result.text);
-      } else if (e.result.reason === SpeechSDK.ResultReason.NoMatch) {
-        console.log('No speech recognized.');
-      }
-    };
-
-    // Speech Ended / Silence
-    newRecognizer.speechEndDetected = () => {
-      console.log('Silence detected. Stopping recognition.');
-      sttStopRecognition();
-    };
-
-    newRecognizer.canceled = (s, e) => {
-      console.error(`Canceled: ${e.reason}`);
-      newRecognizer.stopContinuousRecognitionAsync();
-    };
-
-    newRecognizer.sessionStopped = () => {
-      console.log('Session stopped.');
-      newRecognizer.stopContinuousRecognitionAsync();
-    };
-
-    newRecognizer.startContinuousRecognitionAsync(
-      () => {
-        console.log('Recognition started.');
-        setSttRecognizer(newRecognizer);
-        setSttRecognizerConnecting(false);
-      },
-      (err) => {
-        console.error('Error starting recognition:', err);
-        setSttRecognizerConnecting(false);
-      }
-    );
-  };
-
-  const sttStopRecognition = () => {
-    if (sttRecognizer) {
-      sttRecognizer.stopContinuousRecognitionAsync(() => {
-        console.log('Recognition stopped.');
-        // setTranscript((prev) => `${prev}\n--- Recognition Stopped ---\n`);
-        setSttRecognizer(null);
-        setSttRecognizerConnecting(false);
-      });
-    }
-
-    setInputValue('');
-  };
-
-  const functionCallHandler = async (call: any) => {
-    const args = JSON.parse(call.function.arguments);
-
-    switch (call?.function?.name) {
-      case 'get_weather':
-        return JSON.stringify(
-          await weatherTool({ lat: args.lat, lng: args.lng, location: args.location })
-        );
-      case 'pronunciation_assessment':
-        return JSON.stringify(
-          await pronunciation_assessment.handler({ sentence: args.sentence })
-        );
-      default:
-        return;
-    }
-
-  };
-
-  const createThread = async () => {
-    const thread = await getOpenAIClient().beta.threads.create();
-    console.log('thread', thread);
-    setThread(thread);
-  };
-
-  const sendAssistantMessage = async (text: string) => {
-    await getOpenAIClient().beta.threads.messages.create(threadRef.current?.id, {
-      role: 'user',
-      content: text
-    });
-
-    const stream = getOpenAIClient().beta.threads.runs.stream(threadRef.current?.id, {
-      assistant_id: assistantIdRef.current
-    });
-
-    const new_stream = AssistantStream.fromReadableStream(stream.toReadableStream());
-
-    handleAssistantReadableStream(new_stream);
-  };
-
-  const submitAssistantActionResult = async (runId: string, toolCallOutputs: {
-    output: string,
-    tool_call_id: string
-  }[]) => {
-    const stream = getOpenAIClient().beta.threads.runs.submitToolOutputsStream(
-      threadRef.current?.id,
-      runId,
-      // { tool_outputs: [{ output: result, tool_call_id: toolCallId }] },
-      { tool_outputs: toolCallOutputs }
-    );
-
-    const new_stream = AssistantStream.fromReadableStream(stream.toReadableStream());
-    handleAssistantReadableStream(new_stream);
-  };
-
-  /* Stream Event Handlers */
-
-  // textCreated - create new assistant message
-  const handleAssistantTextCreated = () => {
-    appendAssistantMessage('assistant', '');
-  };
-
-  // textDelta - append text to last assistant message
-  const handleAssistantTextDelta = (delta: any) => {
-    if (delta.value != null) {
-
-      const latestText = assistantResponseBufferRef.current + delta.value;
-      setAssistantResponseBuffer(latestText);
-
-      const sentences = processAndStoreSentence(threadRef.current?.id, latestText);
-
-      for (const sentence of sentences) {
-        if (sentence.exists === false) {
-          console.log(`Speech Need: ${sentence.sentence}`);
-          if (isAvatarStartedRef.current) {
-            speakAvatar(sentence.sentence);
-          } else {
-            // textToSpeechAndPlay(sentence.sentence);
-          }
-        }
-      }
-
-      appendAssistantToLastMessage(delta.value);
-    }
-
-    if (delta.annotations != null) {
-      annotateAssistantLastMessage(delta.annotations);
-    }
-  };
-
-  // imageFileDone - show image in chat
-  const handleAssistantImageFileDone = (image: any) => {
-    appendAssistantToLastMessage(`\n![${image.file_id}](/api/files/${image.file_id})\n`);
-  };
-
-  // toolCallCreated - log new tool call
-  const toolAssistantCallCreated = (toolCall: any) => {
-    if (toolCall.type != 'code_interpreter') return;
-    appendAssistantMessage('code', '');
-  };
-
-  // toolCallDelta - log delta and snapshot for the tool call
-  const toolAssistantCallDelta = (delta: any, snapshot: any) => {
-    if (delta.type != 'code_interpreter') return;
-    if (!delta.code_interpreter.input) return;
-    appendAssistantToLastMessage(delta.code_interpreter.input);
-  };
-
-  // handleRequiresAction - handle function call
-  const handleAssistantRequiresAction = async (
-    event: AssistantStreamEvent.ThreadRunRequiresAction
-  ) => {
-    const runId = event.data.id;
-    const toolCalls = event.data.required_action.submit_tool_outputs.tool_calls;
-    // loop over tool calls and call function handler
-    const toolCallOutputs = await Promise.all(
-      toolCalls.map(async (toolCall: any) => {
-        const result = await functionCallHandler(toolCall);
-        return { output: result, tool_call_id: toolCall.id };
-      })
-    );
-    setAssistantRunning(true);
-    submitAssistantActionResult(runId, toolCallOutputs);
-  };
-
-  // handleRunCompleted - re-enable the input form
-  const handleAssistantRunCompleted = () => {
-    setAssistantRunning(false);
-    setThreadJob(null);
-  };
-
-  const handleAssistantReadableStream = (stream: AssistantStream) => {
-    // messages
-    stream.on('textCreated', handleAssistantTextCreated);
-    stream.on('textDelta', handleAssistantTextDelta);
-
-    // image
-    stream.on('imageFileDone', handleAssistantImageFileDone);
-
-    // code interpreter
-    stream.on('toolCallCreated', toolAssistantCallCreated);
-    stream.on('toolCallDelta', toolAssistantCallDelta);
-
-    // events without helpers yet (e.g. requires_action and run.done)
-    stream.on('event', (event) => {
-
-      if (event.event === 'thread.run.created') {
-        console.log('thread.run.created', event.data);
-        setThreadJob(event.data);
-      }
-
-      if (event.event === 'thread.run.completed') {
-        setThreadJob(null);
-      }
-
-      if (event.event === 'thread.run.requires_action')
-        handleAssistantRequiresAction(event);
-      if (event.event === 'thread.run.completed') handleAssistantRunCompleted();
-    });
-  };
-
-  /*
-    =======================
-    === Utility Helpers ===
-    =======================
-  */
-
-  const appendAssistantToLastMessage = (text: string) => {
-    setMessagesAssistant((prevMessages: any) => {
-      const lastMessage = prevMessages[prevMessages.length - 1];
-      const latestText = lastMessage.text + text
-      const updatedLastMessage = {
-        ...lastMessage,
-        text: latestText
-      };
-
-      return [...prevMessages.slice(0, -1), updatedLastMessage];
-    });
-  };
-
-  const appendAssistantMessage = (role: string, text: string) => {
-    setMessagesAssistant((prevMessages: any) => [...prevMessages, { role, text }]);
-  };
-
-  const annotateAssistantLastMessage = (annotations: any) => {
-    setMessagesAssistant((prevMessages: any) => {
-      const lastMessage = prevMessages[prevMessages.length - 1];
-      const updatedLastMessage = {
-        ...lastMessage
-      };
-      annotations.forEach((annotation: any) => {
-        if (annotation.type === 'file_path') {
-          updatedLastMessage.text = updatedLastMessage.text.replaceAll(
-            annotation.text,
-            `/api/files/${annotation.file_path.file_id}`
-          );
-        }
-      });
-      return [...prevMessages.slice(0, -1), updatedLastMessage];
-    });
-
-  };
 
   /**
    * Render the application
@@ -1479,7 +640,7 @@ export function ConsolePage() {
 
       <Loading />
 
-      <Painting client={clientRef.current} wavStreamPlayer={wavStreamPlayerRef.current} />
+      <Painting client={realtimeClientRef.current} wavStreamPlayer={wavStreamPlayerRef.current} />
 
       <div className="content-top">
 
@@ -1488,14 +649,11 @@ export function ConsolePage() {
           <h1>AI Agent Playground</h1>
         </div>
 
-
         <span className="copyright">
           PRC STU Azure Team
         </span>
 
-        <span onClick={toggleNightMode} style={{ cursor: 'pointer' }}>
-          {isNightMode ? '☀️' : '🌙'}
-        </span>
+        <NightMode />
 
         <LocalStorageViewer />
 
@@ -1509,20 +667,20 @@ export function ConsolePage() {
 
             <div className="content-block-body" data-conversation-content>
 
-              {isConnecting && (
+              {isConnectingRef.current && (
                 <div className={'waiting'}>
                   Connection...
                 </div>
               )}
 
-              {!isConnecting && !isConnected && (
+              {!isConnectingRef.current && !isConnectedRef.current && (
                 <div className={'waiting'}>
-                  {connectMessage}
+                  {connectMessageRef.current}
                 </div>
               )}
 
               {/* assistant chat */}
-              {isConnected && isAssistant &&
+              {isConnectedRef.current && isAssistant &&
                 <div>
                   {messagesAssistant.map((msg, index) => (
                     <AssistantMessage key={index} role={msg.role} text={msg.text} />
@@ -1532,7 +690,7 @@ export function ConsolePage() {
               }
 
               {/* realtime chat */}
-              {items.map((conversationItem, i) => {
+              {items.map((conversationItem) => {
 
                 if (isHiddenTool(conversationItem)) {
                   return null;
@@ -1672,19 +830,19 @@ export function ConsolePage() {
                 <div className="text-input">
                   <input type="text"
                     placeholder="Type your message here..."
-                    value={inputValue}
+                    value={inputValueRef.current}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
-                        sendText(inputValue);
+                        sendText(inputValueRef.current);
                       }
                       if (e.key === 'Escape') {
                         setInputValue('');
                       }
                     }} onChange={(e) => setInputValue(e.target.value)} />
 
-                  <button onClick={() => sendText(inputValue)}
-                    style={{ display: inputValue ? '' : 'none' }}
-                    disabled={!inputValue}><Send /></button>
+                  <button onClick={() => sendText(inputValueRef.current)}
+                    style={{ display: inputValueRef.current ? '' : 'none' }}
+                    disabled={!inputValueRef.current}><Send /></button>
 
 
                   <button
@@ -1709,20 +867,20 @@ export function ConsolePage() {
                   </button>
 
                   <button
-                    onClick={sttRecognizer ? sttStopRecognition : sttStartRecognition}
+                    onClick={sttRecognizerRef.current ? sttStopRecognition : sttStartRecognition}
                     style={{
                       padding: '5px 8px',
                       fontSize: '12px',
-                      color: sttRecognizer ? '#ffffff' : '',
-                      backgroundColor: sttRecognizer ? '#ff4d4f' : '',
+                      color: sttRecognizerRef.current ? '#ffffff' : '',
+                      backgroundColor: sttRecognizerRef.current ? '#ff4d4f' : '',
                       border: 'none',
                       cursor: 'pointer',
                       borderRadius: '5px',
                       display: isRealtime ? 'none' : ''
                     }}
                   >
-                    {sttRecognizer ? <Mic /> : (
-                      sttRecognizerConnecting ? <Clock /> : <MicOff />
+                    {sttRecognizerRef.current ? <Mic /> : (
+                      sttRecognizerConnectingRef.current ? <Clock /> : <MicOff />
                     )}
                   </button>
 
@@ -1735,33 +893,11 @@ export function ConsolePage() {
 
         <div className="content-right">
 
-          <div className="content-actions container_bg remoteVideo">
-            {
-              isAvatarLoading ? <div className="camLoading">
-                <div className="spinner" key={'avatarLoading'}></div>
-              </div> : null
-            }
-            <button className="content-block-btn"
-              onClick={toggleAvatar}
-              style={{ display: isAvatarLoading ? 'none' : '' }}
-            // disabled={isAvatarLoading}
-            >
-              {isAvatarStartedRef.current ? 'Off' : 'On'}
-            </button>
-            <video ref={avatarVideoRef} style={{ display: isAvatarStartedRef.current ? '' : 'none' }}>Your browser does not support
-              the video tag.
-            </video>
-            <audio ref={avatarAudioRef} style={{ display: isAvatarStartedRef.current ? '' : 'none' }}>Your browser does not support
-              the audio tag.
-            </audio>
-          </div>
+          <Avatar />
 
-          <CameraComponent client={clientRef.current} wavStreamPlayer={wavStreamPlayerRef.current}
-            assistantThreadId={threadRef.current?.id} />
+          <CameraComponent />
 
-          {!isConnected && (
-            <SettingsComponent client={clientRef.current} />
-          )}
+          {!isConnected && <SettingsComponent />}
 
           {isConnected && isRealtime && (
             <div className="content-actions container_bg">
@@ -1775,15 +911,15 @@ export function ConsolePage() {
           )
           }
 
-          {isConnected && isRealtime && canPushToTalk && (
+          {isConnectedRef.current && isRealtime && canPushToTalkRef.current && (
             <div className="content-actions">
               <Button
-                label={isRecording ? 'Release to send' : 'Push to talk'}
+                label={isRecordingRef.current ? 'Release to send' : 'Push to talk'}
                 icon={Mic}
                 className={'container_bg'}
-                buttonStyle={isRecording ? 'alert' : 'regular'}
-                style={isRecording ? { backgroundColor: '#80cc29', color: '#ffffff' } : {}}
-                disabled={!isConnected || !canPushToTalk}
+                buttonStyle={isRecordingRef.current ? 'alert' : 'regular'}
+                style={isRecordingRef.current ? { backgroundColor: '#80cc29', color: '#ffffff' } : {}}
+                disabled={!isConnectedRef.current || !canPushToTalkRef.current}
                 onMouseDown={startRecording}
                 onMouseUp={stopRecording}
                 onTouchStart={startRecording}
@@ -1793,17 +929,17 @@ export function ConsolePage() {
           )}
 
 
-          {isConnected && isRealtime && (<FileUploadComponent client={clientRef.current} />)}
+          {isConnected && isRealtime && (<FileUploadComponent client={realtimeClientRef.current} />)}
 
           {isConnected && isAssistant && (<div className="content-actions container_bg"><FileViewer /></div>)}
 
           <div className="content-actions">
             <Button
-              disabled={isConnecting}
+              disabled={isConnectingRef.current}
               className={'container_bg'}
-              label={isConnected ? 'Disconnect' : (isConnecting ? 'Connecting' : 'Connect')}
-              icon={isConnected ? X : Zap}
-              buttonStyle={isConnected ? 'regular' : 'action'}
+              label={isConnectedRef.current ? 'Disconnect' : (isConnectingRef.current ? 'Connecting' : 'Connect')}
+              icon={isConnectedRef.current ? X : Zap}
+              buttonStyle={isConnectedRef.current ? 'regular' : 'action'}
               onClick={
                 isConnected ? disconnectConversation : connectConversation
               }

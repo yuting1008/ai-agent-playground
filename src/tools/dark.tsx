@@ -1,4 +1,5 @@
 import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
+import { useContexts } from '../providers/AppProvider';
 
 export const definition: ToolDefinitionType = {
   name: 'dark_mode',
@@ -14,3 +15,11 @@ export const definition: ToolDefinitionType = {
     }
   }
 };
+
+
+export const handler: Function = ({ on }: { [on: string]: boolean }) => {
+  const { setIsNightMode } = useContexts();
+  setIsNightMode(on);
+  return { ok: true };
+};
+

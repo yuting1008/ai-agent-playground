@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Webcam from 'react-webcam';
-import { useContexts } from '../AppProvider';
+import { useContexts } from '../providers/AppProvider';
 import { RealtimeClient } from '@theodoreniu/realtime-api-beta';
 import { CAMERA_PHOTO_LIMIT } from '../lib/const';
 
