@@ -26,13 +26,13 @@ import * as stock_recommend from './tools/stock_recommend';
 import * as products_recommend from './tools/products_recommend';
 import * as demo from './tools/demo';
 import * as feishu from './tools/feishu';
+import * as painting from './tools/painting';
 import * as pronunciation_assessment from './tools/pronunciation_assessment';
 import * as quote from './tools/quote';
 import * as exchange_rate_aim from './tools/exchange_rate_aim';
 import * as exchange_rate_list from './tools/exchange_rate_list';
 import * as azure_docs from './tools/azure_docs';
 import * as exchange_rate_configs from './tools/exchange_rate_configs';
-import Painting from './components/Painting';
 import SettingsComponent from './components/Settings';
 import FileUploadComponent from './components/FileUploadComponent';
 import ProductList from './components/ProductList';
@@ -43,7 +43,6 @@ import { useAssistant } from './providers/AssistantProvider';
 import { NightMode } from './components/NightMode';
 import Avatar from './components/Avatar';
 import { useAvatar } from './providers/AvatarProvider';
-import { useStt } from './providers/SttProvider';
 import { useRealtime } from './providers/RealtimeProvider';
 import { InputBar } from './components/InputBar';
 import AudioVisualization from './components/AudioVisualization';
@@ -140,8 +139,6 @@ export function ConsolePage() {
 
 
 
-
-
   const startTimeRef = useRef<string>(new Date().toISOString());
 
 
@@ -159,7 +156,7 @@ export function ConsolePage() {
       setIsConnecting(true);
       setIsConnected(false);
       setConnectMessage('Creating Assistant...');
-      setupAssistant();
+      await setupAssistant();
       setIsConnecting(false);
       setConnectMessage('Creating Thread...');
       await createThread();
@@ -288,12 +285,12 @@ export function ConsolePage() {
     client.addTool(products_recommend.definition, products_recommend.handler);
     client.addTool(location.definition, location.handler);
     client.addTool(feishu.definition, feishu.handler);
+    client.addTool(painting.definition, painting.handler);
     client.addTool(pronunciation_assessment.definition, pronunciation_assessment.handler);
     client.addTool(azure_docs.definition, azure_docs.handler);
     client.addTool(demo.definition, demo.handler);
     client.addTool(quote.definition, quote.handler);
     client.addTool(stock_recommend.definition, stock_recommend.handler);
-    // client.addTool(microsoftgraph.definition, microsoftgraph.handler);
 
     // handle realtime events from client + server for event logging
     client.on('realtime.event', (realtimeEvent: RealtimeEvent) => {
@@ -424,7 +421,6 @@ export function ConsolePage() {
   };
 
 
-
   // automatically scroll to bottom of chat
   const messagesEndAssistantRef = useRef<HTMLDivElement | null>(null);
   const assistantScrollToBottom = () => {
@@ -441,8 +437,6 @@ export function ConsolePage() {
    */
   return (
     <div data-component="ConsolePage">
-
-      <Painting client={realtimeClientRef.current} wavStreamPlayer={wavStreamPlayerRef.current} />
 
       <div className="content-top">
         <div className="content-title"><img src="/logomark.svg" alt="logo" /><h1>AI Agent Playground</h1></div>

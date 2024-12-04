@@ -1,15 +1,8 @@
-import { useState } from 'react';
 
 
 import { Mic, MicOff, Send, StopCircle, Clock } from 'react-feather';
 
 
-import { AssistantStream } from 'openai/lib/AssistantStream';
-// @ts-expect-error - no types for this yet
-import { AssistantStreamEvent } from 'openai/resources/beta/assistants/assistants';
-import { getOpenAIClient } from '../lib/openai';
-
-import * as SpeechSDK from 'microsoft-cognitiveservices-speech-sdk';
 import { useRealtime } from '../providers/RealtimeProvider';
 import { useContexts } from '../providers/AppProvider';
 import { useAvatar } from '../providers/AvatarProvider';
@@ -22,18 +15,17 @@ import { useSettings } from '../providers/SettingsProvider';
 
 export function InputBar() {
 
- const { isRealtime } = useSettings();
- const { isConnectedRef } = useRealtime();
- const { inputValueRef, setInputValue, realtimeClientRef } = useContexts();
- const { cancleRealtimeResponse } = useRealtime();
- const { stopAvatarSpeaking } = useAvatar();
- const { setAssistantRunning, stopCurrentStreamJob, assistantRunningRef } = useAssistant();
- const { sttRecognizerRef, sttRecognizerConnectingRef, sttStartRecognition, sttStopRecognition } = useStt();
+  const { isRealtime } = useSettings();
+  const { isConnectedRef } = useRealtime();
+  const { inputValueRef, setInputValue, realtimeClientRef } = useContexts();
+  const { cancleRealtimeResponse } = useRealtime();
+  const { stopAvatarSpeaking } = useAvatar();
+  const { setAssistantRunning, stopCurrentStreamJob, assistantRunningRef } = useAssistant();
+  const { sttRecognizerRef, sttRecognizerConnectingRef, sttStartRecognition, sttStopRecognition } = useStt();
 
 
- const sendText = async (inputValue: string) => {
+  const sendText = async (inputValue: string) => {
     if (!inputValue.trim()) return;
-
     stopAvatarSpeaking();
     cancleRealtimeResponse();
     realtimeClientRef.current.sendUserMessageContent([
@@ -49,10 +41,11 @@ export function InputBar() {
 
   return (
     <>
-     {
+      {
         isConnectedRef.current && (
 
           <div className="text-input">
+
             <input type="text"
               placeholder="Type your message here..."
               value={inputValueRef.current}
@@ -63,11 +56,16 @@ export function InputBar() {
                 if (e.key === 'Escape') {
                   setInputValue('');
                 }
-              }} onChange={(e) => setInputValue(e.target.value)} />
+              }}
+              onChange={(e) => setInputValue(e.target.value)}
+            />
 
-            <button onClick={() => sendText(inputValueRef.current)}
+            <button
+              onClick={() => sendText(inputValueRef.current)}
               style={{ display: inputValueRef.current ? '' : 'none' }}
-              disabled={!inputValueRef.current}><Send /></button>
+              disabled={!inputValueRef.current}>
+              <Send />
+            </button>
 
 
             <button
@@ -104,9 +102,10 @@ export function InputBar() {
                 display: isRealtime ? 'none' : ''
               }}
             >
-              {sttRecognizerRef.current ? <Mic /> : (
-                sttRecognizerConnectingRef.current ? <Clock /> : <MicOff />
-              )}
+              {sttRecognizerRef.current ? <Mic /> :
+                (
+                  sttRecognizerConnectingRef.current ? <Clock /> : <MicOff />
+                )}
             </button>
 
           </div>
@@ -114,6 +113,6 @@ export function InputBar() {
       }
     </>
   )
-   
-  ;
+
+    ;
 }
