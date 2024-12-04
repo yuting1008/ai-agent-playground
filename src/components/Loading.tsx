@@ -1,5 +1,5 @@
 import React from 'react';
-import { useContexts } from '../context/AppProvider';
+import { useContexts } from '../AppProvider';
 
 const Loading: React.FC = () => {
   const { loadingRef } = useContexts();

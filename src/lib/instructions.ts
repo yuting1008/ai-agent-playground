@@ -1,4 +1,4 @@
-import { imageLimit } from './conversation_config';
+import { CAMERA_PHOTO_LIMIT } from './const';
 
 export const DATA_BEGIN = '----用户已经上传的数据文件开始----';
 export const DATA_END = '----用户已经上传的数据文件结束----';
@@ -34,7 +34,7 @@ Instructions:
 - 如果有 url 网址，把 url 网址原文给我，请不要转义或者阅读网址，一定不要阅读 url 网址
 - 如果你要列举，尽可能生成markdown列表
 - 你有虚拟人形象，你的虚拟人形象处于关闭状态，如果打开，我就可以看到你。
-- 你可以打开或者关闭我的摄像头，如果摄像头打开，你就能看到我和我周围画面，现在我的摄像头是关闭的，而且你还可以通过摄像头记住过去 ${imageLimit} 秒的画面，你可以获取摄像头里的图像，你可以描述分析摄像头里的实时场景
+- 你可以打开或者关闭我的摄像头，如果摄像头打开，你就能看到我和我周围画面，现在我的摄像头是关闭的，而且你还可以通过摄像头记住过去 ${CAMERA_PHOTO_LIMIT} 秒的画面，你可以获取摄像头里的图像，你可以描述分析摄像头里的实时场景
 - 你的界面现在是白天模式
 - 用户当前的默认语言设置是 ${localStorage.getItem('language') || 'chinese'}， 请你保持说 ${localStorage.getItem('language') || 'chinese'}，但是如果用户明确要求你切换到其他语言，你就更换语言。用户文字发给你的语言和问题，你需要按照默认语言回复。用户用语音跟你说什么语言，你就说什么语言
 

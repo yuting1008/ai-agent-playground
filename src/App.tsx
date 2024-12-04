@@ -1,6 +1,6 @@
 import { ConsolePage } from './ConsolePage';
 import './App.scss';
-import { AppProvider } from './context/AppProvider';
+import { AppProvider } from './AppProvider';
 
 function App() {
   return (

@@ -3,8 +3,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { RealtimeClient } from '@theodoreniu/realtime-api-beta';
 import { ItemType } from '@theodoreniu/realtime-api-beta/dist/lib/client.js';
 import { WavRecorder, WavStreamPlayer } from './lib/wavtools';
-import { clientHiChinese, clientHiEnglish, delayFunction, notDisplay, products } from './utils/conversation_config.js';
-import { WavRenderer } from './utils/wav_renderer';
+import { clientHiChinese, clientHiEnglish, notDisplay, products } from './lib/const';
+import { delayFunction } from './lib/helper';
+import { WavRenderer } from './lib/wav_renderer';
 
 import { Mic, MicOff, Send, X, Zap, StopCircle, Clock } from 'react-feather';
 import { Button } from './components/button/Button';
@@ -17,7 +18,7 @@ import CameraComponent from './components/CameraComponent';
 import { AssistantStream } from 'openai/lib/AssistantStream';
 // @ts-expect-error - no types for this yet
 import { AssistantStreamEvent } from 'openai/resources/beta/assistants/assistants';
-import { getOpenAIClient, setupAssistant } from './utils/openai';
+import { createAssistant, getOpenAIClient } from './lib/openai';
 
 import * as memory from './tools/memory';
 import * as order_get from './tools/order_get';
@@ -42,10 +43,10 @@ import Painting from './components/Painting';
 import SettingsComponent from './components/Settings';
 import FileUploadComponent from './components/FileUploadComponent';
 import ProductList from './components/ProductList';
-import { ASSISTENT_TYPE_ASSISTANT, ASSISTENT_TYPE_DEFAULT, ASSISTENT_TYPE_REALTIME } from './utils/const';
+import { ASSISTENT_TYPE_ASSISTANT, ASSISTENT_TYPE_DEFAULT, ASSISTENT_TYPE_REALTIME } from './lib/const';
 import LocalStorageViewer from './components/LocalStorageViewer';
 import FileViewer from './components/FileViewer';
-import { useContexts } from './context/AppProvider';
+import { useContexts } from './AppProvider';
 import Loading from './components/Loading';
 
 /**
@@ -137,7 +138,8 @@ export function ConsolePage() {
     assistantResponseBufferRef, setAssistantResponseBuffer,
     isAvatarStarted, isAvatarStartedRef, setIsAvatarStarted,
     avatarSpeechSentencesArrayRef, setAvatarSpeechSentencesArray,
-    realtimeInstructionsRef, setRealtimeInstructions, replaceInstructions
+    realtimeInstructionsRef, setRealtimeInstructions, replaceInstructions,
+    assistantIdRef, setAssistantId,
   } = useContexts();
 
   const [assistantType, setAssistantType] = useState<string>(localStorage.getItem('assistanType') || ASSISTENT_TYPE_DEFAULT);
@@ -499,6 +501,22 @@ export function ConsolePage() {
     };
     return `${pad(m)}:${pad(s)}.${pad(hs)}`;
   }, []);
+
+  const setupAssistant = async () => {
+    try {
+      // const assistantId = localStorage.getItem('assistantId') || '';
+      // if (assistantId) {
+      //   console.log(`Assistant already exists: ${assistantId}`);
+      //   return;
+      // }
+      const assistantResponse = await createAssistant();
+      console.log(`Assistant created: ${JSON.stringify(assistantResponse)}`);
+      setAssistantId(assistantResponse.id);
+    } catch (error: any) {
+      console.error(`Error creating assistant: ${error.message}`);
+      alert(`Error creating assistant: ${error.message}`);
+    }
+  };
 
   /**
    * Connect to conversation:
@@ -1282,7 +1300,7 @@ export function ConsolePage() {
     });
 
     const stream = getOpenAIClient().beta.threads.runs.stream(threadRef.current?.id, {
-      assistant_id: localStorage.getItem('assistantId') || ''
+      assistant_id: assistantIdRef.current
     });
 
     const new_stream = AssistantStream.fromReadableStream(stream.toReadableStream());

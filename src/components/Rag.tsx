@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Webcam from 'react-webcam';
-import { useContexts } from '../context/AppProvider';
+import { useContexts } from '../AppProvider';
 import { RealtimeClient } from '@theodoreniu/realtime-api-beta';
-import { imageLimit } from '../utils/conversation_config.js';
+import { CAMERA_PHOTO_LIMIT } from '../lib/const';
 
 
 interface ChildComponentProps {
@@ -39,7 +39,7 @@ const RagComponent: React.FC<ChildComponentProps> = ({ client }) => {
       const imageSrc = webcamRef.current.getScreenshot();
       if (imageSrc) {
         setPhotos(prevPhotos => {
-          return [imageSrc, ...prevPhotos].slice(0, imageLimit);
+          return [imageSrc, ...prevPhotos].slice(0, CAMERA_PHOTO_LIMIT);
         });
       }
     }

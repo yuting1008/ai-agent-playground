@@ -1,5 +1,5 @@
 import React, { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { instructions } from '../utils/instructions';
+import { instructions } from './lib/instructions';
 
 interface AppContextType {
   photos: string[];
@@ -38,6 +38,10 @@ interface AppContextType {
   realtimeInstructionsRef: React.MutableRefObject<string>;
   setRealtimeInstructions: React.Dispatch<React.SetStateAction<string>>;
   replaceInstructions: (source: string | RegExp, target: string) => string;
+
+  assistantId: string;
+  assistantIdRef: React.MutableRefObject<string>;
+  setAssistantId: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const IS_DEBUG: boolean = window.location.href.includes('localhost');
@@ -73,6 +77,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   useEffect(() => {
     isAvatarStartedRef.current = isAvatarStarted;
   }, [isAvatarStarted]);
+
+  // assistantId string
+  const [assistantId, setAssistantId] = useState<string>('');
+  const assistantIdRef = useRef(assistantId);
+  useEffect(() => {
+    assistantIdRef.current = assistantId;
+    localStorage.setItem('assistantId', assistantId);
+  }, [assistantId]);
 
   // thread
   const [thread, setThread] = useState<any | null>(null);
@@ -144,6 +156,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       loading, loadingRef, setLoading,
       isAvatarStarted, isAvatarStartedRef, setIsAvatarStarted,
       debug, debugRef, setDebug,
+      assistantId, assistantIdRef, setAssistantId,
       thread, threadRef, setThread,
       threadJob, threadJobRef, setThreadJob,
       assistantResponseBuffer, assistantResponseBufferRef, setAssistantResponseBuffer,

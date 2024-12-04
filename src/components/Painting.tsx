@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { RealtimeClient } from '@theodoreniu/realtime-api-beta';
-import { getImages } from '../utils/openai';
+import { getImages } from '../lib/openai';
 import { WavStreamPlayer } from '../lib/wavtools';
 
 interface ChildComponentProps {

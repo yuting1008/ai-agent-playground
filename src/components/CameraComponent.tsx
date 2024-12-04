@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Webcam from 'react-webcam';
-import { useContexts } from '../context/AppProvider';
+import { useContexts } from '../AppProvider';
 import { RealtimeClient } from '@theodoreniu/realtime-api-beta';
-import { imageLimit } from '../utils/conversation_config.js';
-import { getCompletion } from '../utils/openai';
+import { CAMERA_PHOTO_LIMIT } from '../lib/const';
+import { getCompletion } from '../lib/openai';
 import { WavStreamPlayer } from '../lib/wavtools';
 import './CameraComponent.scss';
 import { Camera, CameraOff, RefreshCw } from 'react-feather';
@@ -88,7 +88,7 @@ const CameraComponent: React.FC<ChildComponentProps> = ({ client, wavStreamPlaye
       const imageSrc = webcamRef.current.getScreenshot();
       if (imageSrc) {
         setPhotos(prevPhotos => {
-          return [imageSrc, ...prevPhotos].slice(0, imageLimit);
+          return [imageSrc, ...prevPhotos].slice(0, CAMERA_PHOTO_LIMIT);
         });
       }
     }
@@ -126,14 +126,14 @@ const CameraComponent: React.FC<ChildComponentProps> = ({ client, wavStreamPlaye
           seconds: {
             type: 'number',
             description: 'how many seconds to record past',
-            default: imageLimit
+            default: CAMERA_PHOTO_LIMIT
           }
         }
       }
     }, async ({ prompt, seconds }: { [key: string]: any }) => {
 
-      if (seconds > imageLimit) {
-        return { error: `The maximum number of seconds is ${imageLimit}` };
+      if (seconds > CAMERA_PHOTO_LIMIT) {
+        return { error: `The maximum number of seconds is ${CAMERA_PHOTO_LIMIT}` };
       }
 
       console.log('photosList', photosRef.current);

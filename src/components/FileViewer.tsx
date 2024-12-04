@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import styles from './FileViewer.module.css';
-import { getOpenAIClient } from '../utils/openai';
+import { getOpenAIClient } from '../lib/openai';
+import { useContexts } from '../AppProvider';
 
 const TrashIcon = () => (
   <svg
@@ -19,12 +20,11 @@ const TrashIcon = () => (
   </svg>
 );
 
-const getOrCreateVectorStore = async () => {
-  const assistantId = localStorage.getItem('assistantId') || '';
+const getOrCreateVectorStore = async (assistantId: string) => {
+
   if (!assistantId) {
     alert('No assistant ID found');
   }
-
 
   const assistant = await getOpenAIClient().beta.assistants.retrieve(assistantId);
 
@@ -50,18 +50,20 @@ const getOrCreateVectorStore = async () => {
 const FileViewer = () => {
   const [files, setFiles] = useState<any[]>([]);
 
+  const { assistantIdRef } = useContexts();
+
   useEffect(() => {
     const interval = setInterval(() => {
-      fetchFiles();
+      fetchFiles(assistantIdRef.current);
     }, 1000);
 
     return () => clearInterval(interval);
   }, []);
 
   // list files in assistant's vector store
-  const fetchFiles = async () => {
+  const fetchFiles = async (assistantId: string) => {
 
-    const vectorStoreId = await getOrCreateVectorStore(); // get or create vector store
+    const vectorStoreId = await getOrCreateVectorStore(assistantId); // get or create vector store
     const fileList = await getOpenAIClient().beta.vectorStores.files.list(vectorStoreId);
 
     const filesArray = await Promise.all(
@@ -84,7 +86,7 @@ const FileViewer = () => {
 
   // delete file from assistant's vector store
   const handleFileDelete = async (fileId: string) => {
-    const vectorStoreId = await getOrCreateVectorStore(); // get or create vector store
+    const vectorStoreId = await getOrCreateVectorStore(assistantIdRef.current); // get or create vector store
     await getOpenAIClient().beta.vectorStores.files.del(vectorStoreId, fileId); // delete file from vector store
   };
 
@@ -94,7 +96,7 @@ const FileViewer = () => {
     const file = event.target.files[0];
 
     try {
-      const vectorStoreId = await getOrCreateVectorStore();
+      const vectorStoreId = await getOrCreateVectorStore(assistantIdRef.current);
 
       // upload using the file stream
       const openaiFile = await getOpenAIClient().files.create({

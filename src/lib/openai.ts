@@ -44,21 +44,6 @@ export const createAssistant = async () => {
   return assistant;
 };
 
-export const setupAssistant = async () => {
-  try {
-    // const assistantId = localStorage.getItem('assistantId') || '';
-    // if (assistantId) {
-    //   console.log(`Assistant already exists: ${assistantId}`);
-    //   return;
-    // }
-    const assistantResponse = await createAssistant();
-    console.log(`Assistant created: ${JSON.stringify(assistantResponse)}`);
-    localStorage.setItem('assistantId', assistantResponse.id);
-  } catch (error: any) {
-    console.error(`Error creating assistant: ${error.message}`);
-    alert(`Error creating assistant: ${error.message}`);
-  }
-};
 
 const getAssistantFileById = async (fileId: string) => {
   const [file, fileContent] = await Promise.all([

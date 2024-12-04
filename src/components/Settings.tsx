@@ -6,8 +6,8 @@ import './Settings.scss';
 import { RealtimeClient } from '@theodoreniu/realtime-api-beta';
 import Dropdown from './Dropdown';
 import { GRAPHRAG_ABOUT } from '../tools/azure_docs';
-import { ASSISTENT_TYPE_ASSISTANT, ASSISTENT_TYPE_DEFAULT, ASSISTENT_TYPE_REALTIME } from '../utils/const';
-import { useContexts } from '../context/AppProvider';
+import { ASSISTENT_TYPE_ASSISTANT, ASSISTENT_TYPE_DEFAULT, ASSISTENT_TYPE_REALTIME } from '../lib/const';
+import { useContexts } from '../AppProvider';
 
 interface ChildComponentProps {
   client: RealtimeClient;
