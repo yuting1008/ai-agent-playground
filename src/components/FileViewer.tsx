@@ -119,39 +119,41 @@ const FileViewer = () => {
   };
 
   return (
-    <div className={styles.fileViewer}>
-      <div
-        className={`${styles.filesList} ${files.length !== 0 ? styles.grow : ''
-          }`}
-      >
-        {files.length === 0 ? (
-          <div className={styles.title}>Test file search</div>
-        ) : (
-          files.map((file: any) => (
-            <div key={file.file_id} className={styles.fileEntry}>
-              <div className={styles.fileName}>
-                <span className={styles.fileName}>{file.filename}</span>
-                <span className={styles.fileStatus}>{file.status}</span>
+    <div className="content-actions container_bg">
+      <div className={styles.fileViewer}>
+        <div
+          className={`${styles.filesList} ${files.length !== 0 ? styles.grow : ''
+            }`}
+        >
+          {files.length === 0 ? (
+            <div className={styles.title}>Test file search</div>
+          ) : (
+            files.map((file: any) => (
+              <div key={file.file_id} className={styles.fileEntry}>
+                <div className={styles.fileName}>
+                  <span className={styles.fileName}>{file.filename}</span>
+                  <span className={styles.fileStatus}>{file.status}</span>
+                </div>
+                <span onClick={() => handleFileDelete(file.file_id)}>
+                  <TrashIcon />
+                </span>
               </div>
-              <span onClick={() => handleFileDelete(file.file_id)}>
-                <TrashIcon />
-              </span>
-            </div>
-          ))
-        )}
-      </div>
-      <div className={styles.fileUploadContainer}>
-        <label htmlFor="file-upload" className={styles.fileUploadBtn}>
-          Attach files
-        </label>
-        <input
-          type="file"
-          id="file-upload"
-          name="file-upload"
-          className={styles.fileUploadInput}
-          multiple
-          onChange={handleFileUpload}
-        />
+            ))
+          )}
+        </div>
+        <div className={styles.fileUploadContainer}>
+          <label htmlFor="file-upload" className={styles.fileUploadBtn}>
+            Attach files
+          </label>
+          <input
+            type="file"
+            id="file-upload"
+            name="file-upload"
+            className={styles.fileUploadInput}
+            multiple
+            onChange={handleFileUpload}
+          />
+        </div>
       </div>
     </div>
   );

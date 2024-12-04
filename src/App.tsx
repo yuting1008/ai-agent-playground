@@ -6,6 +6,8 @@ import { AssistantProvider } from './providers/AssistantProvider';
 import { AvatarProvider } from './providers/AvatarProvider';
 import { SttProvider } from './providers/SttProvider';
 import { RealtimeProvider } from './providers/RealtimeProvider';
+import Loading from './pages/Loading';
+import LocalStorageViewer from './pages/LocalStorageViewer';
 
 function App() {
   return (
@@ -16,6 +18,8 @@ function App() {
             <AssistantProvider>
               <SttProvider>
                 <RealtimeProvider>
+                  <Loading />
+                  <LocalStorageViewer />
                   <ConsolePage />
                 </RealtimeProvider>
               </SttProvider>

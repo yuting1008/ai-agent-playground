@@ -10,3 +10,12 @@ export const definition: ToolDefinitionType = {
     required: []
   }
 };
+
+export const handler: Function = async () => async () => {
+  return {
+    orders: [
+      { id: 11, name: 'Order 11', status: 'pending', created_at: '2024-01-01 12:00:00' },
+      { id: 22, name: 'Order 22', status: 'completed', created_at: '2024-01-01 12:00:00' }
+    ]
+  };
+};

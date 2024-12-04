@@ -7,11 +7,11 @@ import { Button } from '../components/button/Button';
 import { DATA_BEGIN, DATA_END } from '../lib/instructions';
 import { useContexts } from '../providers/AppProvider';
 
-interface ChildComponentProps {
-  client: RealtimeClient;
-}
 
-const FileUploadComponent: React.FC<ChildComponentProps> = ({ client }) => {
+
+const FileUploadComponent: React.FC = () => {
+
+  const { realtimeClientRef } = useContexts();
 
   const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState<string>('Upload File');
@@ -54,10 +54,10 @@ const FileUploadComponent: React.FC<ChildComponentProps> = ({ client }) => {
 
   const updateSession = (content: string) => {
 
-    if (client.isConnected()) {
+    if (realtimeClientRef?.current.isConnected()) {
 
       if (content.length > 20000) {
-        client.sendUserMessageContent([
+        realtimeClientRef?.current.sendUserMessageContent([
           {
             type: `input_text`,
             text: fileUploadTooBig
@@ -68,12 +68,12 @@ const FileUploadComponent: React.FC<ChildComponentProps> = ({ client }) => {
 
       console.log('content', content.length);
 
-      client.updateSession({
+      realtimeClientRef?.current.updateSession({
         instructions: updateDataFile(content)
       });
       console.log('update instructions');
 
-      client.sendUserMessageContent([
+      realtimeClientRef?.current.sendUserMessageContent([
         {
           type: `input_text`,
           text: fileUploadInstructions

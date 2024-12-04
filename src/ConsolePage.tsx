@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { ItemType } from '@theodoreniu/realtime-api-beta/dist/lib/client.js';
-import { WavRecorder, WavStreamPlayer } from './lib/wavtools';
+import { WavRecorder } from './lib/wavtools';
 import { clientHiChinese, clientHiEnglish, notDisplay, products } from './lib/const';
-import { WavRenderer } from './lib/wav_renderer';
 
-import { Mic, MicOff, Send, X, Zap, StopCircle, Clock } from 'react-feather';
+
+import { Mic, X, Zap } from 'react-feather';
 import { Button } from './components/button/Button';
 import { Toggle } from './components/toggle/Toggle';
 import './ConsolePage.scss';
@@ -36,10 +36,8 @@ import Painting from './components/Painting';
 import SettingsComponent from './components/Settings';
 import FileUploadComponent from './components/FileUploadComponent';
 import ProductList from './components/ProductList';
-import LocalStorageViewer from './components/LocalStorageViewer';
 import FileViewer from './components/FileViewer';
 import { useContexts } from './providers/AppProvider';
-import Loading from './components/Loading';
 import { useSettings } from './providers/SettingsProvider';
 import { useAssistant } from './providers/AssistantProvider';
 import { NightMode } from './components/NightMode';
@@ -47,6 +45,8 @@ import Avatar from './components/Avatar';
 import { useAvatar } from './providers/AvatarProvider';
 import { useStt } from './providers/SttProvider';
 import { useRealtime } from './providers/RealtimeProvider';
+import { InputBar } from './components/InputBar';
+import AudioVisualization from './components/AudioVisualization';
 
 
 type AssistantMessageProps = {
@@ -113,74 +113,40 @@ interface RealtimeEvent {
 
 export function ConsolePage() {
 
+
+  const { messagesAssistant } = useAssistant();
   const { wavRecorderRef, wavStreamPlayerRef } = useRealtime();
-  const { isConnected, isConnectedRef, setIsConnected } = useRealtime();
+  const { isConnectedRef, setIsConnected } = useRealtime();
   const { setIsConnecting } = useRealtime();
-  const { cancleRealtimeResponse, isConnectingRef, connectMessageRef, setConnectMessage, deleteConversationItem, changeTurnEndType, isRecordingRef, canPushToTalkRef, startRecording, stopRecording } = useRealtime();
-
+  const { isConnectingRef, connectMessageRef, setConnectMessage, deleteConversationItem, changeTurnEndType, isRecordingRef, canPushToTalkRef, startRecording, stopRecording } = useRealtime();
 
 
   const {
-
-
-
     isAvatarStartedRef,
-
     realtimeInstructionsRef,
-
-    realtimeClientRef,
-    inputValueRef } = useContexts();
+    realtimeClientRef } = useContexts();
 
   const {
-    isAssistant,
-    isRealtime,
+    isAssistantRef,
+    isRealtimeRef,
     endpointRef,
     keyRef,
     languageRef,
   } = useSettings();
 
-  const {
-    setupAssistant,
-    stopCurrentStreamJob,
-    createThread } = useAssistant();
+  const { setupAssistant, createThread } = useAssistant();
 
   const { speakAvatar, processAndStoreSentence, stopAvatarSpeaking } = useAvatar();
 
 
-  // ----------------- avatar speech -----------------
 
 
 
-  /**
-   * References for
-   * - Rendering audio visualization (canvas)
-   * - Autoscaling event logs
-   * - Timing delta for event log displays
-   */
-  const clientCanvasRef = useRef<HTMLCanvasElement>(null);
-  const serverCanvasRef = useRef<HTMLCanvasElement>(null);
-  const eventsScrollHeightRef = useRef(0);
-  const eventsScrollRef = useRef<HTMLDivElement>(null);
   const startTimeRef = useRef<string>(new Date().toISOString());
 
-  /**
-   * All of our variables for displaying application state
-   * - items are all conversation items (dialog)
-   * - realtimeEvents are event logs, which can be expanded
-   * - memoryKv is for set_memory() function
-   * - coords, marker are for get_weather() function
-   */
-  const [items, setItems] = useState<ItemType[]>([]);
-  const [realtimeEvents, setRealtimeEvents] = useState<RealtimeEvent[]>([]);
 
+  const { itemsRef, setItems, setRealtimeEvents } = useRealtime();
 
-
-  // if connected is false, clear all items
-  useEffect(() => {
-    if (isConnectedRef.current == false) {
-      setItems([]);
-    }
-  }, [isConnected]);
 
   /**
    * Connect to conversation:
@@ -189,7 +155,7 @@ export function ConsolePage() {
   const connectConversation = useCallback(async () => {
 
 
-    if (isAssistant) {
+    if (isAssistantRef.current) {
       setIsConnecting(true);
       setIsConnected(false);
       setConnectMessage('Creating Assistant...');
@@ -280,131 +246,9 @@ export function ConsolePage() {
    * Disconnect and reset conversation state
    */
   const disconnectConversation = useCallback(async () => {
-
-    window.location.href = '/';
-
-    // stopAvatarSession();
-    // setIsConnected(false);
-    // setIsConnecting(false);
-    // setRealtimeEvents([]);
-    // setItems([]);
-
-
-    // setMarker(null);
-
-    // const client = clientRef.current;
-    // client.disconnect();
-
-    // const wavRecorder = wavRecorderRef.current;
-    // await wavRecorder.end();
-
-    // const wavStreamPlayer = wavStreamPlayerRef.current;
-    // await wavStreamPlayer.interrupt();
-
-
+    window.location.reload();
   }, []);
 
-
-
-
-
-  /**
-   * Auto-scroll the event logs
-   */
-  useEffect(() => {
-    if (eventsScrollRef.current) {
-      const eventsEl = eventsScrollRef.current;
-      const scrollHeight = eventsEl.scrollHeight;
-      // Only scroll if height has just changed
-      if (scrollHeight !== eventsScrollHeightRef.current) {
-        eventsEl.scrollTop = scrollHeight;
-        eventsScrollHeightRef.current = scrollHeight;
-      }
-    }
-  }, [realtimeEvents]);
-
-  /**
-   * Auto-scroll the conversation logs
-   */
-  useEffect(() => {
-    const conversationEls = [].slice.call(
-      document.body.querySelectorAll('[data-conversation-content]')
-    );
-    for (const el of conversationEls) {
-      const conversationEl = el as HTMLDivElement;
-      conversationEl.scrollTop = conversationEl.scrollHeight;
-    }
-  }, [items]);
-
-  /**
-   * Set up render loops for the visualization canvas
-   */
-  useEffect(() => {
-    let isLoaded = true;
-
-    const wavRecorder = wavRecorderRef.current;
-    const clientCanvas = clientCanvasRef.current;
-    let clientCtx: CanvasRenderingContext2D | null = null;
-
-    const wavStreamPlayer = wavStreamPlayerRef.current;
-    const serverCanvas = serverCanvasRef.current;
-    let serverCtx: CanvasRenderingContext2D | null = null;
-
-    const render = () => {
-      if (isLoaded) {
-        if (clientCanvas) {
-          if (!clientCanvas.width || !clientCanvas.height) {
-            clientCanvas.width = clientCanvas.offsetWidth;
-            clientCanvas.height = clientCanvas.offsetHeight;
-          }
-          clientCtx = clientCtx || clientCanvas.getContext('2d');
-          if (clientCtx) {
-            clientCtx.clearRect(0, 0, clientCanvas.width, clientCanvas.height);
-            const result = wavRecorder.recording
-              ? wavRecorder.getFrequencies('voice')
-              : { values: new Float32Array([0]) };
-            WavRenderer.drawBars(
-              clientCanvas,
-              clientCtx,
-              result.values,
-              '#80cc29',
-              20,
-              0,
-              8
-            );
-          }
-        }
-        if (serverCanvas) {
-          if (!serverCanvas.width || !serverCanvas.height) {
-            serverCanvas.width = serverCanvas.offsetWidth;
-            serverCanvas.height = serverCanvas.offsetHeight;
-          }
-          serverCtx = serverCtx || serverCanvas.getContext('2d');
-          if (serverCtx) {
-            serverCtx.clearRect(0, 0, serverCanvas.width, serverCanvas.height);
-            const result = wavStreamPlayer.analyser
-              ? wavStreamPlayer.getFrequencies('voice')
-              : { values: new Float32Array([0]) };
-            WavRenderer.drawBars(
-              serverCanvas,
-              serverCtx,
-              result.values,
-              '#ffffff',
-              20,
-              0,
-              8
-            );
-          }
-        }
-        window.requestAnimationFrame(render);
-      }
-    };
-    render();
-
-    return () => {
-      isLoaded = false;
-    };
-  }, []);
 
   /**
    * Whether to use the avatar
@@ -412,26 +256,6 @@ export function ConsolePage() {
   function shouldUseRealTimeAudio() {
     return !isAvatarStartedRef.current;
   }
-
-
-  const order_get_tool: Function = async () => async () => {
-    return {
-      orders: [
-        { id: 11, name: 'Order 11', status: 'pending', created_at: '2024-01-01 12:00:00' },
-        { id: 22, name: 'Order 22', status: 'completed', created_at: '2024-01-01 12:00:00' }
-      ]
-    };
-  };
-
-  const order_return_tool: Function = async ({ order_id }: { [order_id: string]: string }) => {
-    return {
-      message: `return of goods for order ${order_id} is completed`
-    };
-  };
-
-
-
-
 
 
   /**
@@ -454,8 +278,8 @@ export function ConsolePage() {
     client.addTool(memory.definition, memory.handler);
     client.addTool(weather.definition, weather.handler);
     client.addTool(avatar.definition, avatar.handler);
-    client.addTool(order_get.definition, order_get_tool);
-    client.addTool(order_return.definition, order_return_tool);
+    client.addTool(order_get.definition, order_get.handler);
+    client.addTool(order_return.definition, order_return.handler);
     client.addTool(dark.definition, dark.handler);
     client.addTool(news.definition, news.handler);
     client.addTool(exchange_rate_aim.definition, exchange_rate_aim.handler);
@@ -484,8 +308,6 @@ export function ConsolePage() {
         }
       });
     });
-
-
 
 
     client.on('error', (event: any) => {
@@ -567,7 +389,7 @@ export function ConsolePage() {
     };
   }, []);
 
-  const { sttRecognizerRef, sttRecognizerConnectingRef, sttStartRecognition, sttStopRecognition } = useStt();
+
 
   const isHiddenTool = (item: ItemType) => {
     if (item?.formatted?.text && notDisplay.includes(item?.formatted?.text)) {
@@ -602,7 +424,7 @@ export function ConsolePage() {
   };
 
 
-  const { messagesAssistant, assistantRunning, setAssistantRunning } = useAssistant();
+
   // automatically scroll to bottom of chat
   const messagesEndAssistantRef = useRef<HTMLDivElement | null>(null);
   const assistantScrollToBottom = () => {
@@ -614,55 +436,23 @@ export function ConsolePage() {
 
 
 
-  const { setInputValue } = useContexts();
-
-  const sendText = async (inputValue: string) => {
-    if (!inputValue.trim()) return;
-
-    stopAvatarSpeaking();
-    cancleRealtimeResponse();
-    realtimeClientRef.current.sendUserMessageContent([
-      {
-        type: `input_text`,
-        text: inputValue
-      }
-    ]);
-    setInputValue('');
-    console.log('send text', inputValue);
-  };
-
-
   /**
    * Render the application
    */
   return (
     <div data-component="ConsolePage">
 
-      <Loading />
-
       <Painting client={realtimeClientRef.current} wavStreamPlayer={wavStreamPlayerRef.current} />
 
       <div className="content-top">
-
-        <div className="content-title">
-          <img src="/logomark.svg" alt="logo" />
-          <h1>AI Agent Playground</h1>
-        </div>
-
-        <span className="copyright">
-          PRC STU Azure Team
-        </span>
-
+        <div className="content-title"><img src="/logomark.svg" alt="logo" /><h1>AI Agent Playground</h1></div>
+        <span className="copyright">PRC STU Azure Team</span>
         <NightMode />
-
-        <LocalStorageViewer />
-
       </div>
+
       <div className="content-main">
 
         <div className="content-logs container_bg">
-
-
           <div className="content-block conversation">
 
             <div className="content-block-body" data-conversation-content>
@@ -680,7 +470,7 @@ export function ConsolePage() {
               )}
 
               {/* assistant chat */}
-              {isConnectedRef.current && isAssistant &&
+              {isConnectedRef.current && isAssistantRef.current &&
                 <div>
                   {messagesAssistant.map((msg, index) => (
                     <AssistantMessage key={index} role={msg.role} text={msg.text} />
@@ -690,7 +480,7 @@ export function ConsolePage() {
               }
 
               {/* realtime chat */}
-              {items.map((conversationItem) => {
+              {itemsRef.current.map((conversationItem) => {
 
                 if (isHiddenTool(conversationItem)) {
                   return null;
@@ -823,70 +613,7 @@ export function ConsolePage() {
 
             </div>
 
-            {/* text input */}
-            {
-              isConnected && (
-
-                <div className="text-input">
-                  <input type="text"
-                    placeholder="Type your message here..."
-                    value={inputValueRef.current}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        sendText(inputValueRef.current);
-                      }
-                      if (e.key === 'Escape') {
-                        setInputValue('');
-                      }
-                    }} onChange={(e) => setInputValue(e.target.value)} />
-
-                  <button onClick={() => sendText(inputValueRef.current)}
-                    style={{ display: inputValueRef.current ? '' : 'none' }}
-                    disabled={!inputValueRef.current}><Send /></button>
-
-
-                  <button
-                    onClick={
-                      () => {
-                        setAssistantRunning(false);
-                        (async () => {
-                          await stopCurrentStreamJob();
-                        })();
-                      }
-                    }
-                    style={{
-                      padding: '5px 5px',
-                      fontSize: '12px',
-                      border: 'none',
-                      cursor: 'pointer',
-                      borderRadius: '5px',
-                      display: assistantRunning ? '' : 'none'
-                    }}
-                  >
-                    <StopCircle />
-                  </button>
-
-                  <button
-                    onClick={sttRecognizerRef.current ? sttStopRecognition : sttStartRecognition}
-                    style={{
-                      padding: '5px 8px',
-                      fontSize: '12px',
-                      color: sttRecognizerRef.current ? '#ffffff' : '',
-                      backgroundColor: sttRecognizerRef.current ? '#ff4d4f' : '',
-                      border: 'none',
-                      cursor: 'pointer',
-                      borderRadius: '5px',
-                      display: isRealtime ? 'none' : ''
-                    }}
-                  >
-                    {sttRecognizerRef.current ? <Mic /> : (
-                      sttRecognizerConnectingRef.current ? <Clock /> : <MicOff />
-                    )}
-                  </button>
-
-                </div>
-              )
-            }
+            <InputBar />
 
           </div>
         </div>
@@ -897,9 +624,9 @@ export function ConsolePage() {
 
           <CameraComponent />
 
-          {!isConnected && <SettingsComponent />}
+          {!isConnectedRef.current && <SettingsComponent />}
 
-          {isConnected && isRealtime && (
+          {isConnectedRef.current && isRealtimeRef.current && (
             <div className="content-actions container_bg">
               <Toggle
                 defaultValue={false}
@@ -911,7 +638,7 @@ export function ConsolePage() {
           )
           }
 
-          {isConnectedRef.current && isRealtime && canPushToTalkRef.current && (
+          {isConnectedRef.current && isRealtimeRef.current && canPushToTalkRef.current && (
             <div className="content-actions">
               <Button
                 label={isRecordingRef.current ? 'Release to send' : 'Push to talk'}
@@ -928,10 +655,9 @@ export function ConsolePage() {
             </div>
           )}
 
+          {isConnectedRef.current && isRealtimeRef.current && (<FileUploadComponent />)}
 
-          {isConnected && isRealtime && (<FileUploadComponent client={realtimeClientRef.current} />)}
-
-          {isConnected && isAssistant && (<div className="content-actions container_bg"><FileViewer /></div>)}
+          {isConnectedRef.current && isAssistantRef.current && (<FileViewer />)}
 
           <div className="content-actions">
             <Button
@@ -941,23 +667,12 @@ export function ConsolePage() {
               icon={isConnectedRef.current ? X : Zap}
               buttonStyle={isConnectedRef.current ? 'regular' : 'action'}
               onClick={
-                isConnected ? disconnectConversation : connectConversation
+                isConnectedRef.current ? disconnectConversation : connectConversation
               }
             />
           </div>
 
-          <div className="visualization" style={{ display: (isConnected && isRealtime) ? '' : 'none' }}>
-            <div className="visualization-entry server">
-              <canvas ref={serverCanvasRef} />
-            </div>
-            <div className="visualization-entry client">
-              <canvas ref={clientCanvasRef} />
-            </div>
-          </div>
-
-          <span className="copyright-bottom">
-            PRC STU Azure Team
-          </span>
+          <AudioVisualization />
 
         </div>
 

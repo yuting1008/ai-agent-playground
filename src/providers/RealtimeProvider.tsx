@@ -3,6 +3,7 @@ import { useContexts } from './AppProvider';
 import { htmlEncodeAvatar } from '../lib/helper';
 import * as SpeechSDK from 'microsoft-cognitiveservices-speech-sdk';
 import { WavRecorder, WavStreamPlayer } from '../lib/wavtools';
+import { ItemType } from '@theodoreniu/realtime-api-beta/dist/lib/client.js';
 
 interface RealtimeContextType {
 
@@ -36,12 +37,32 @@ interface RealtimeContextType {
   canPushToTalk: boolean;
   canPushToTalkRef: React.MutableRefObject<boolean>;
   setCanPushToTalk: React.Dispatch<React.SetStateAction<boolean>>;
+
+  items: ItemType[];
+  itemsRef: React.MutableRefObject<ItemType[]>;
+  setItems: React.Dispatch<React.SetStateAction<ItemType[]>>;
+
+  realtimeEvents: RealtimeEvent[];
+  realtimeEventsRef: React.MutableRefObject<RealtimeEvent[]>;
+  setRealtimeEvents: React.Dispatch<React.SetStateAction<RealtimeEvent[]>>;
 }
 
 const RealtimeContext = createContext<RealtimeContextType | undefined>(undefined);
 
+/**
+ * Type for all event logs
+ */
+interface RealtimeEvent {
+  time: string;
+  source: 'client' | 'server';
+  count?: number;
+  event: { [key: string]: any };
+}
+
+
 export const RealtimeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { realtimeClientRef } = useContexts();
+
 
   /**
  * Instantiate:
@@ -56,6 +77,37 @@ export const RealtimeProvider: React.FC<{ children: ReactNode }> = ({ children }
     new WavStreamPlayer({ sampleRate: 24000 })
   );
 
+
+  
+  /**
+   * All of our variables for displaying application state
+   * - items are all conversation items (dialog)
+   * - realtimeEvents are event logs, which can be expanded
+   * - memoryKv is for set_memory() function
+   * - coords, marker are for get_weather() function
+   */
+  const [items, setItems] = useState<ItemType[]>([]);
+  const itemsRef = useRef<ItemType[]>([]);
+  useEffect(() => {
+    itemsRef.current = items;
+
+    // Auto-scroll the conversation logs
+    const conversationEls = [].slice.call(
+      document.body.querySelectorAll('[data-conversation-content]')
+    );
+    for (const el of conversationEls) {
+      const conversationEl = el as HTMLDivElement;
+      conversationEl.scrollTop = conversationEl.scrollHeight;
+    }
+
+  }, [items]);
+
+  const [realtimeEvents, setRealtimeEvents] = useState<RealtimeEvent[]>([]);
+  const realtimeEventsRef = useRef<RealtimeEvent[]>([]);
+  useEffect(() => {
+    realtimeEventsRef.current = realtimeEvents;
+  }, [realtimeEvents]);
+
   // isRecording boolean
   const [isRecording, setIsRecording] = useState(false);
   const isRecordingRef = useRef(false);
@@ -68,6 +120,10 @@ export const RealtimeProvider: React.FC<{ children: ReactNode }> = ({ children }
   const isConnectedRef = useRef(false);
   useEffect(() => {
     isConnectedRef.current = isConnected;
+    // if connected is false, clear all items
+    if (isConnectedRef.current == false) {
+      setItems([]);
+    }
   }, [isConnected]);
 
   // isConnecting boolean
@@ -196,6 +252,12 @@ export const RealtimeProvider: React.FC<{ children: ReactNode }> = ({ children }
       canPushToTalk,
       canPushToTalkRef,
       setCanPushToTalk,
+      items,
+      itemsRef,
+      setItems,
+      realtimeEvents,
+      realtimeEventsRef,
+      setRealtimeEvents,
     }}>
       {children}
     </RealtimeContext.Provider>

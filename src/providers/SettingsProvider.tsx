@@ -88,9 +88,11 @@ interface SettingsContextType {
   setMxnzpAppSecret: React.Dispatch<React.SetStateAction<string>>;
 
   isAssistant: boolean;
+  isAssistantRef: React.MutableRefObject<boolean>;
   setIsAssistant: React.Dispatch<React.SetStateAction<boolean>>;
 
   isRealtime: boolean;
+  isRealtimeRef: React.MutableRefObject<boolean>;
   setIsRealtime: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
@@ -110,10 +112,20 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   // assistanType string
   const [assistanType, setAssistanType] = useState<string>(localStorage.getItem('assistanType') || ASSISTENT_TYPE_DEFAULT);
   const assistanTypeRef = useRef(assistanType);
+
   // isAssistant boolean
   const [isAssistant, setIsAssistant] = useState<boolean>(assistanTypeRef.current === ASSISTENT_TYPE_ASSISTANT);
+  const isAssistantRef = useRef(isAssistant);
+  useEffect(() => {
+    isAssistantRef.current = isAssistant;
+  }, [isAssistant]);
+
   // isRealtime boolean
   const [isRealtime, setIsRealtime] = useState<boolean>(assistanTypeRef.current === ASSISTENT_TYPE_REALTIME);
+  const isRealtimeRef = useRef(isRealtime);
+  useEffect(() => {
+    isRealtimeRef.current = isRealtime;
+  }, [isRealtime]);
 
   useEffect(() => {
     assistanTypeRef.current = assistanType;
@@ -299,6 +311,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       newsKey, newsKeyRef, setNewsKey,
       mxnzpAppId, mxnzpAppIdRef, setMxnzpAppId,
       mxnzpAppSecret, mxnzpAppSecretRef, setMxnzpAppSecret,
+      isAssistantRef, isRealtimeRef,
     }}>
       {children}
     </SettingsContext.Provider>
