@@ -1,0 +1,191 @@
+.settings-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 990000;
+
+  a {
+    color: #18181b;
+  }
+}
+
+.settings-modal-content {
+  background-color: #ededed;
+  padding: 20px;
+  border-radius: 8px;
+  width: 80%;
+  max-width: 900px;
+  max-height: 80%;
+  overflow-y: auto;
+}
+
+.settings-modal-header {
+  font-size: 20px;
+  margin-bottom: 14px;
+}
+
+.settings-modal-close {
+  margin-bottom: 10px;
+  cursor: pointer;
+  border: none;
+  float: right;
+  font-size: 14px;
+  background-color: transparent;
+
+  &:hover {
+    color: #515050;
+  }
+}
+
+.settings-modal-image-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.settings-modal-image {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+}
+
+.settings-tab-buttons {
+  display: flex;
+  gap: -1px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+
+  button {
+    background-color: #f0f0f0;
+    border: 1px solid #b2b1b1;
+    padding: 8px 10px;
+    cursor: pointer;
+    margin: 0;
+
+    border-right: none;
+
+    &:last-child {
+      border-right: 1px solid #b2b1b1;
+    }
+
+    &.active {
+      background-color: #ccc;
+    }
+
+    &:hover {
+      background-color: #e0e0e0;
+      transition-duration: 0.2s;
+    }
+  }
+}
+
+.settings-label {
+  padding: 10px 0;
+  font-size: 12px;
+  text-align: left;
+}
+
+.settings-label-tip {
+  font-size: 10px;
+  text-align: right;
+  display: inline;
+  margin-left: 10px;
+  bottom: 0;
+}
+
+.settings-label-show {
+  font-size: 13px;
+  text-align: right;
+  display: inline;
+  float: right;
+  position: relative;
+  cursor: pointer;
+}
+
+.settings-input {
+  padding: 10px;
+  border: 0px solid #ccc;
+  border-radius: 4px;
+  width: 97%;
+  font-size: 12px;
+  margin: 0;
+  background-color: rgba(255, 255, 255, 0.7);
+  color: #3e3e47;
+}
+
+
+// night mode
+.night-mode {
+  .settings-modal-content {
+    background-color: #262525;
+
+    a {
+      color: #dddddf;
+    }
+  }
+
+  .settings-input {
+    background-color: rgba(0, 0, 0, 0.3) !important;
+    color: #ababab;
+
+  }
+
+  .settings-modal-close {
+    background-color: transparent;
+
+    &:hover {
+      color: #a8a7a7;
+    }
+  }
+
+  .settings-tab-buttons {
+    button {
+      background-color: transparent;
+      border: 1px solid #3a3a3a;
+
+      border-right: none;
+
+      &:last-child {
+        border-right: 1px solid #3a3a3a;
+      }
+
+      &.active {
+        background-color: #0a0909;
+      }
+
+      &:hover {
+        background-color: #040404;
+      }
+    }
+  }
+}
+
+.settings_inline {
+  display: flex;
+  gap: 40px;
+
+  .block {
+    display: inline-block;
+    width: 50%;
+  }
+}
+
+.export_settings {
+  border: 1px solid #b2b1b1;
+  background: transparent;
+}
+
+.settings-tip {
+  margin-bottom: 10px;
+  color: #666 !important;
+
+  a {
+    color: #666 !important;
+  }
+}
