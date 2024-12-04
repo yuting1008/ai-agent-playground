@@ -1,17 +1,13 @@
-name: Azure Static Web Apps CI/CD
+name: Insider
 
 on:
   push:
     branches:
       - insider
-  pull_request:
-    types: [opened, synchronize, reopened, closed]
-    branches:
-      - insider
 
 jobs:
   build_and_deploy_job:
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     name: Build and Deploy Job
     permissions:
