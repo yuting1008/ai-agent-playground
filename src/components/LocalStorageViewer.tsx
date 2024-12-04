@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { IS_DEBUG } from '../pages/ConsolePage';
+import { IS_DEBUG } from '../ConsolePage';
 import { X } from 'react-feather';
 
 interface LocalStorageItem {

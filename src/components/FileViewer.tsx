@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import styles from './file-viewer.module.css';
+import styles from './FileViewer.module.css';
 import { getOpenAIClient } from '../utils/openai';
 
 const TrashIcon = () => (
