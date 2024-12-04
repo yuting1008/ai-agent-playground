@@ -46,7 +46,7 @@ const SettingsComponent: React.FC<ChildComponentProps> = ({ client }) => {
 
   const DefaultSettings = () => {
     const [language, setSelected] = useState<string>(localStorage.getItem('language') || 'chinese');
-    const [assistanType, setAssistanType] = useState<string>(localStorage.getItem('assistanType') || 'realtime');
+    const [assistanType, setAssistanType] = useState<string>(localStorage.getItem('assistanType') || ASSISTENT_TYPE_DEFAULT);
 
     const handleDropdownChange = (value: string) => {
       setSelected(value);
