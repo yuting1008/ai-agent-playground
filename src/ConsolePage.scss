@@ -238,7 +238,7 @@
         height: 230px;
         max-height: 230px;
         white-space: pre;
-        background-image: url('../static/camera-light.svg');
+        background-image: url('static/camera-light.svg');
         background-repeat: no-repeat;
         background-position: center;
         background-size: 64px;
@@ -357,7 +357,7 @@
       background-color: #d9d9d9;
 
       &.user {
-        background-image: url('../static/user5.svg');
+        background-image: url('static/user5.svg');
         object-fit: cover;
         background-repeat: no-repeat;
         background-size: cover;
@@ -366,7 +366,7 @@
 
       &.assistant {
         margin-left: 15px;
-        background-image: url('../static/assistant6.svg');
+        background-image: url('static/assistant6.svg');
         object-fit: contain;
         background-repeat: no-repeat;
         background-size: contain;
@@ -582,7 +582,7 @@
 
 
 .remoteVideo {
-  background-image: url('../static/avatar.svg');
+  background-image: url('static/avatar.svg');
   background-repeat: no-repeat;
   background-position: center;
   background-size: 64px;
@@ -599,7 +599,7 @@
 
 body.night-mode {
   .remoteVideo {
-    background-image: url('../static/avatar-light.svg');
+    background-image: url('static/avatar-light.svg');
   }
 }
 
