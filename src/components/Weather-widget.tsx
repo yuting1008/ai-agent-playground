@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "./weather-widget.module.css";
+import styles from "./Weather-widget.module.css";
 
 const WeatherWidget = ({
   location = "---",

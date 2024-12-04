@@ -1,4 +1,4 @@
-import { ConsolePage } from './pages/ConsolePage';
+import { ConsolePage } from './ConsolePage';
 import './App.scss';
 import { AppProvider } from './context/AppProvider';
 

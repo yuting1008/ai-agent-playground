@@ -2,7 +2,7 @@ import 'isomorphic-fetch';
 import { Client } from '@microsoft/microsoft-graph-client';
 
 import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
-import { MS_GRAPH_TOKEN } from '../pages/ConsolePage';
+import { MS_GRAPH_TOKEN } from '../ConsolePage';
 
 export const definition: ToolDefinitionType = {
   name: 'microsoft_graph',

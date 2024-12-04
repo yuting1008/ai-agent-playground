@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import styles from "./warnings.module.css";
+import styles from "./Warnings.module.css";
 
 const Warnings = () => {
   const assistantId = localStorage.getItem('assistantId') || '';
