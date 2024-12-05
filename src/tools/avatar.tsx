@@ -25,13 +25,9 @@ export const handler: Function = async ({ on }: { [key: string]: boolean }) => {
     cogSvcSubKeyRef,
     cogSvcRegionRef,
   } = useSettings();
-  
+
   const {
-  
-    
-    isAvatarStartedRef, 
-  
-    stopAvatarSession, startAvatarSession
+    isAvatarStartedRef, stopAvatarSession, startAvatarSession
   } = useContexts();
 
   if (on) {

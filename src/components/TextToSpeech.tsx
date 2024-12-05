@@ -13,9 +13,6 @@ export function textToSpeechAndPlay(text: string) {
 
   const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(cogSvcSubKey, cogSvcRegion);
 
-  // speechConfig.speechSynthesisVoiceName = "en-US-AriaNeural";
-  // speechConfig.speechSynthesisLanguage = "en-US";
-
   const audioConfig = SpeechSDK.AudioConfig.fromDefaultSpeakerOutput();
 
   const synthesizer = new SpeechSDK.SpeechSynthesizer(speechConfig, audioConfig);

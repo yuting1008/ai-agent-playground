@@ -1,9 +1,8 @@
-import { RealtimeClient } from '@theodoreniu/realtime-api-beta';
 import React, { useRef, useState } from 'react';
 import { fileUploadInstructions, fileUploadTooBig } from '../lib/const';
 import './FileUploadComponent.scss';
 import { Upload } from 'react-feather';
-import { Button } from '../components/button/Button';
+import { Button } from './button/Button';
 import { DATA_BEGIN, DATA_END } from '../lib/instructions';
 import { useContexts } from '../providers/AppProvider';
 

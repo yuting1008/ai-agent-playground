@@ -20,7 +20,9 @@ const LocalStorageViewer: React.FC = () => {
     avatarSpeechSentencesArrayRef,
     isAvatarStartedRef,
     realtimeInstructionsRef,
-    assistantRef
+    assistantRef,
+    isCameraOnRef,
+    isWebcamReadyRef
   } = useContexts();
 
   const fetchLocalStorageData = useCallback(() => {
@@ -111,6 +113,9 @@ const LocalStorageViewer: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
+                <tr key='isCameraOnRef'><td className={styles.tdKey}>isCameraOnRef</td><td className={styles.tdValue}>{JSON.stringify(isCameraOnRef.current)}</td></tr>
+                <tr key='isWebcamReadyRef'><td className={styles.tdKey}>isWebcamReadyRef</td><td className={styles.tdValue}>{JSON.stringify(isWebcamReadyRef.current)}</td></tr>
+                
                 <tr key='photosRef'><td className={styles.tdKey}>photosRef</td><td className={styles.tdValue}>{photosRef.current.length}</td></tr>
                 <tr key='photosRefSize'><td className={styles.tdKey}>photosRefSize</td><td className={styles.tdValue}>{getStringArraySizeUtf8InMB(photosRef.current)} MB</td></tr>
                 

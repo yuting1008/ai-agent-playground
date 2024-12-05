@@ -4,7 +4,33 @@ import { RealtimeClient } from '@theodoreniu/realtime-api-beta';
 import { useSettings } from './SettingsProvider';
 import * as SpeechSDK from 'microsoft-cognitiveservices-speech-sdk';
 
+import * as memory from '../tools/memory';
+import * as weather from '../tools/weather';
+import * as avatar from '../tools/avatar';
+import * as order_get from '../tools/order_get';
+import * as order_return from '../tools/order_return';
+import * as dark from '../tools/dark';
+import * as news from '../tools/news';
+import * as location from '../tools/location';
+import * as stock_recommend from '../tools/stock_recommend';
+import * as products_recommend from '../tools/products_recommend';
+import * as demo from '../tools/demo';
+import * as feishu from '../tools/feishu';
+import * as camera_current from '../tools/camera_current';
+import * as camera_on from '../tools/camera_on';
+import * as camera_video from '../tools/camera_video';
+import * as painting from '../tools/painting';
+import * as pronunciation_assessment from '../tools/pronunciation_assessment';
+import * as azure_docs from '../tools/azure_docs';
+import * as quote from '../tools/quote';
+import * as exchange_rate_aim from '../tools/exchange_rate_aim';
+import * as exchange_rate_list from '../tools/exchange_rate_list';
+import * as exchange_rate_configs from '../tools/exchange_rate_configs';
+import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
+
+
 interface AppContextType {
+
   photos: string[];
   photosRef: React.MutableRefObject<string[]>;
   setPhotos: React.Dispatch<React.SetStateAction<string[]>>;
@@ -74,6 +100,16 @@ interface AppContextType {
   inputValue: string;
   inputValueRef: React.MutableRefObject<string>;
   setInputValue: React.Dispatch<React.SetStateAction<string>>;
+
+  isCameraOn: boolean;
+  isCameraOnRef: React.MutableRefObject<boolean>;
+  setIsCameraOn: React.Dispatch<React.SetStateAction<boolean>>;
+
+  isWebcamReady: boolean;
+  isWebcamReadyRef: React.MutableRefObject<boolean>;
+  setIsWebcamReady: React.Dispatch<React.SetStateAction<boolean>>;
+
+  functions_tools_ref: React.MutableRefObject<any>;
 }
 
 const IS_DEBUG: boolean = window.location.href.includes('localhost');
@@ -84,6 +120,37 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const { keyRef, endpointRef } = useSettings();
   const { cogSvcSubKeyRef, cogSvcRegionRef } = useSettings();
+
+  // isCameraOn boolean
+  const [isCameraOn, setIsCameraOn] = useState(false);
+  const isCameraOnRef = useRef(isCameraOn);
+  useEffect(() => {
+    console.log(`isCameraOn: ${isCameraOn}`);
+    isCameraOnRef.current = isCameraOn;
+    if (!isCameraOn) {
+      setIsWebcamReady(false);
+      setPhotos([]);
+    }
+  }, [isCameraOn]);
+
+  // isWebcamReady boolean
+  const [isWebcamReady, setIsWebcamReady] = useState(false);
+  const isWebcamReadyRef = useRef(isWebcamReady);
+  useEffect(() => {
+    isWebcamReadyRef.current = isWebcamReady;
+
+    console.log(`iseWebcamReady: ${isWebcamReadyRef?.current}`);
+
+    if (realtimeClientRef?.current?.isConnected()) {
+      console.log('update instructions');
+      realtimeClientRef?.current.updateSession({
+        instructions: isCameraOnRef?.current ? replaceInstructions('现在我的摄像头是关闭的', '现在我的摄像头打开的') : replaceInstructions('现在我的摄像头打开的', '现在我的摄像头是关闭的')
+      });
+    } else {
+      console.log('client is not connected, not update instructions');
+    }
+
+  }, [isWebcamReady]);
 
   // input string
   const [inputValue, setInputValue] = useState('');
@@ -241,6 +308,32 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       avatarAudioRef.current.srcObject = null;
     }
   };
+
+  // functions_tools array
+  const functions_tools_ref = useRef<[ToolDefinitionType, Function][]>([
+    [memory.definition, memory.handler],
+    [weather.definition, weather.handler],
+    [avatar.definition, avatar.handler],
+    [order_get.definition, order_get.handler],
+    [order_return.definition, order_return.handler],
+    [dark.definition, dark.handler],
+    [news.definition, news.handler],
+    [exchange_rate_aim.definition, exchange_rate_aim.handler],
+    [exchange_rate_list.definition, exchange_rate_list.handler],
+    [exchange_rate_configs.definition, exchange_rate_configs.handler],
+    [products_recommend.definition, products_recommend.handler],
+    [location.definition, location.handler],
+    [feishu.definition, feishu.handler],
+    [camera_on.definition, camera_on.handler],
+    [camera_current.definition, camera_current.handler],
+    [camera_video.definition, camera_video.handler],
+    [painting.definition, painting.handler],
+    [pronunciation_assessment.definition, pronunciation_assessment.handler],
+    [azure_docs.definition, azure_docs.handler],
+    [demo.definition, demo.handler],
+    [quote.definition, quote.handler],
+    [stock_recommend.definition, stock_recommend.handler],
+  ]);
 
   const startAvatarSession = async () => {
     try {
@@ -437,6 +530,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       startAvatarSession,
       memoryKv, memoryKvRef, setMemoryKv,
       inputValue, inputValueRef, setInputValue,
+      isCameraOn, isCameraOnRef, setIsCameraOn,
+      isWebcamReady, isWebcamReadyRef, setIsWebcamReady,
+      functions_tools_ref
     }}>
       {children}
     </AppContext.Provider>

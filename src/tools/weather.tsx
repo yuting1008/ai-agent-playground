@@ -28,15 +28,10 @@ export const definition: ToolDefinitionType = {
 
 
 export const handler: Function = async ({ lat, lng, location }: { [key: string]: any }) => {
-  const { setLoading } = useContexts();
-  const { isAssistant } = useSettings();
-  setLoading(true);
 
   const result = await fetch(
     `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,wind_speed_10m`
   );
-  const json = await result.json();
 
-  isAssistant && setLoading(false);
-  return json;
+  return await result.json();
 };

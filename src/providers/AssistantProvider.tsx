@@ -1,13 +1,12 @@
 import React, { createContext, ReactNode, useContext, useEffect, useRef, useState } from 'react';
-import { useSettings } from './SettingsProvider';
-import * as weather from '../tools/weather';
-import * as pronunciation_assessment from '../tools/pronunciation_assessment';
 import { useContexts } from './AppProvider';
-import { createAssistant, getOpenAIClient } from '../lib/openai';
+import { getOpenAIClient } from '../lib/openai';
 import { AssistantStream } from 'openai/lib/AssistantStream';
 // @ts-expect-error - no types for this yet
 import { AssistantStreamEvent } from 'openai/resources/beta/assistants/assistants';
 import { useAvatar } from './AvatarProvider';
+import { AssistantCreateParams } from 'openai/resources/beta/assistants';
+import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
 
 interface AssistantContextType {
   messagesAssistant: any[];
@@ -29,8 +28,7 @@ const AssistantContext = createContext<AssistantContextType | undefined>(undefin
 
 export const AssistantProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
-  useSettings();
-  const { assistantRef, setAssistant, threadRef, threadJobRef, setThreadJob, setThread, isAvatarStartedRef } = useContexts();
+  const { assistantRef, setAssistant, setLoading, threadRef, threadJobRef, setThreadJob, setThread, isAvatarStartedRef } = useContexts();
   const { speakAvatar, processAndStoreSentence } = useAvatar();
 
   const {
@@ -54,6 +52,7 @@ export const AssistantProvider: React.FC<{ children: ReactNode }> = ({ children 
     assistantRunningRef.current = assistantRunning;
   }, [assistantRunning]);
 
+  const { functions_tools_ref } = useContexts();
 
   // ------------------------ functions ------------------------
   const setupAssistant = async () => {
@@ -63,9 +62,26 @@ export const AssistantProvider: React.FC<{ children: ReactNode }> = ({ children 
       //   console.log(`Assistant already exists: ${assistantId}`);
       //   return;
       // }
-      const assistantResponse = await createAssistant();
-      console.log(`Assistant created: ${JSON.stringify(assistantResponse)}`);
-      setAssistant(assistantResponse);
+      const prompt = localStorage.getItem('prompt') || 'You are a helpful assistant.';
+      const params: AssistantCreateParams = {
+        instructions: prompt,
+        name: 'Quickstart Assistant',
+        temperature: 1,
+        top_p: 1,
+        model: 'gpt-4o-mini',
+        tools: [
+          { type: 'code_interpreter' },
+          { type: 'file_search' },
+        ]
+      };
+
+      functions_tools_ref.current.forEach(([definition, handler]: [ToolDefinitionType, Function]) => {
+        params.tools?.push({ type: 'function', function: definition });
+      });
+
+      const assistant = await getOpenAIClient().beta.assistants.create(params);
+      console.log(`Assistant created: ${JSON.stringify(assistant)}`);
+      setAssistant(assistant);
     } catch (error: any) {
       console.error(`Error creating assistant: ${error.message}`);
       alert(`Error creating assistant: ${error.message}`);
@@ -73,20 +89,17 @@ export const AssistantProvider: React.FC<{ children: ReactNode }> = ({ children 
   };
 
   const functionCallHandler = async (call: any) => {
+    console.log('function call', call);
     const args = JSON.parse(call.function.arguments);
+    const tools = functions_tools_ref.current;
 
-    switch (call?.function?.name) {
-      case 'get_weather':
-        return JSON.stringify(
-          await weather.handler({ lat: args.lat, lng: args.lng, location: args.location })
-        );
-      case 'pronunciation_assessment':
-        return JSON.stringify(
-          await pronunciation_assessment.handler({ sentence: args.sentence })
-        );
-      default:
-        return;
+    for (const [definition, handler] of tools) {
+      if (definition.name === call?.function?.name) {
+        return JSON.stringify(await handler({ ...args }));
+      }
     }
+
+    return JSON.stringify({ error: `Function ${call?.function?.name} not found` });
   };
 
   const stopCurrentStreamJob = async () => {
@@ -174,7 +187,9 @@ export const AssistantProvider: React.FC<{ children: ReactNode }> = ({ children 
     // loop over tool calls and call function handler
     const toolCallOutputs = await Promise.all(
       toolCalls.map(async (toolCall: any) => {
+        setLoading(true);
         const result = await functionCallHandler(toolCall);
+        setLoading(false);
         return { output: result, tool_call_id: toolCall.id };
       })
     );
@@ -187,8 +202,6 @@ export const AssistantProvider: React.FC<{ children: ReactNode }> = ({ children 
     setAssistantRunning(false);
     setThreadJob(null);
   };
-
-
 
   /*
     =======================

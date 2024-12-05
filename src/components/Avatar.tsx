@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useContexts } from '../providers/AppProvider';
-import './CameraComponent.scss';
+import './Camera.scss';
 
 const Avatar: React.FC = () => {
-  const { isAvatarStartedRef, isAvatarLoadingRef } = useContexts();
+  const { isAvatarStarted, isAvatarLoading } = useContexts();
   const { avatarVideoRef, avatarAudioRef, stopAvatarSession, startAvatarSession } = useContexts();
 
   const toggleAvatar = async () => {
-    if (isAvatarStartedRef.current) {
+    if (isAvatarStarted) {
       stopAvatarSession();
     } else {
       await startAvatarSession();
@@ -16,23 +16,25 @@ const Avatar: React.FC = () => {
 
   return (
     <div className="content-actions container_bg remoteVideo">
+      
       {
-        isAvatarLoadingRef.current ? <div className="camLoading">
+        isAvatarLoading && <div className="camLoading">
           <div className="spinner" key={'avatarLoading'}></div>
-        </div> : null
+        </div>
       }
+
       <button className="content-block-btn"
         onClick={toggleAvatar}
-        style={{ display: isAvatarLoadingRef.current ? 'none' : '' }}
+        style={{ display: isAvatarLoading ? 'none' : '' }}
       >
-        {isAvatarStartedRef.current ? 'Off' : 'On'}
+        {isAvatarStarted ? 'Off' : 'On'}
       </button>
 
-      <video ref={avatarVideoRef} style={{ display: isAvatarStartedRef.current ? '' : 'none' }}>Your browser does not support
+      <video ref={avatarVideoRef} style={{ display: isAvatarStarted ? '' : 'none' }}>Your browser does not support
         the video tag.
       </video>
 
-      <audio ref={avatarAudioRef} style={{ display: isAvatarStartedRef.current ? '' : 'none' }}>Your browser does not support
+      <audio ref={avatarAudioRef} style={{ display: isAvatarStarted ? '' : 'none' }}>Your browser does not support
         the audio tag.
       </audio>
       

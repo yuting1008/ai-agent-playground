@@ -7,9 +7,9 @@ interface SettingsContextType {
   languageRef: React.MutableRefObject<string>;
   setLanguage: React.Dispatch<React.SetStateAction<string>>;
 
-  assistanType: string;
-  assistanTypeRef: React.MutableRefObject<string>;
-  setAssistanType: React.Dispatch<React.SetStateAction<string>>;
+  assistantType: string;
+  assistantTypeRef: React.MutableRefObject<string>;
+  setAssistantType: React.Dispatch<React.SetStateAction<string>>;
 
   dallTargetUri: string;
   dallTargetUriRef: React.MutableRefObject<string>;
@@ -109,30 +109,30 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   }, [language]);
 
 
-  // assistanType string
-  const [assistanType, setAssistanType] = useState<string>(localStorage.getItem('assistanType') || ASSISTENT_TYPE_DEFAULT);
-  const assistanTypeRef = useRef(assistanType);
+  // assistantType string
+  const [assistantType, setAssistantType] = useState<string>(localStorage.getItem('assistantType') || ASSISTENT_TYPE_DEFAULT);
+  const assistantTypeRef = useRef(assistantType);
 
   // isAssistant boolean
-  const [isAssistant, setIsAssistant] = useState<boolean>(assistanTypeRef.current === ASSISTENT_TYPE_ASSISTANT);
+  const [isAssistant, setIsAssistant] = useState<boolean>(assistantTypeRef.current === ASSISTENT_TYPE_ASSISTANT);
   const isAssistantRef = useRef(isAssistant);
   useEffect(() => {
     isAssistantRef.current = isAssistant;
   }, [isAssistant]);
 
   // isRealtime boolean
-  const [isRealtime, setIsRealtime] = useState<boolean>(assistanTypeRef.current === ASSISTENT_TYPE_REALTIME);
+  const [isRealtime, setIsRealtime] = useState<boolean>(assistantTypeRef.current === ASSISTENT_TYPE_REALTIME);
   const isRealtimeRef = useRef(isRealtime);
   useEffect(() => {
     isRealtimeRef.current = isRealtime;
   }, [isRealtime]);
 
   useEffect(() => {
-    assistanTypeRef.current = assistanType;
-    localStorage.setItem('assistanType', assistanType);
-    setIsAssistant(assistanTypeRef.current === ASSISTENT_TYPE_ASSISTANT);
-    setIsRealtime(assistanTypeRef.current === ASSISTENT_TYPE_REALTIME);
-  }, [assistanType]);
+    assistantTypeRef.current = assistantType;
+    localStorage.setItem('assistantType', assistantType);
+    setIsAssistant(assistantTypeRef.current === ASSISTENT_TYPE_ASSISTANT);
+    setIsRealtime(assistantTypeRef.current === ASSISTENT_TYPE_REALTIME);
+  }, [assistantType]);
 
   // dallTargetUri string
   const [dallTargetUri, setDallTargetUri] = useState<string>(localStorage.getItem('dallTargetUri') || '');
@@ -289,7 +289,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   return (
     <SettingsContext.Provider value={{
       language, languageRef, setLanguage,
-      assistanType, assistanTypeRef, setAssistanType,
+      assistantType, assistantTypeRef, setAssistantType,
       isAssistant, setIsAssistant,
       isRealtime, setIsRealtime,
       dallTargetUri, dallTargetUriRef, setDallTargetUri,

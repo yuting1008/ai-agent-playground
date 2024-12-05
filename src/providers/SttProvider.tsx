@@ -63,7 +63,7 @@ export const SttProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
 
-  // ------------------------ functioon ------------------------
+  // ------------------------ functions ------------------------
 
   const sttStartRecognition = () => {
 

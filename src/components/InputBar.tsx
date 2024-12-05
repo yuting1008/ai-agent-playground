@@ -11,47 +11,63 @@ import { useStt } from '../providers/SttProvider';
 import { useSettings } from '../providers/SettingsProvider';
 
 
-
-
 export function InputBar() {
 
   const { isRealtime } = useSettings();
-  const { isConnectedRef } = useRealtime();
-  const { inputValueRef, setInputValue, realtimeClientRef } = useContexts();
-  const { cancleRealtimeResponse } = useRealtime();
+  const { isConnected } = useRealtime();
+  const { inputValue, setInputValue, realtimeClientRef } = useContexts();
+  const { cancelRealtimeResponse } = useRealtime();
   const { stopAvatarSpeaking } = useAvatar();
-  const { setAssistantRunning, stopCurrentStreamJob, assistantRunningRef } = useAssistant();
-  const { sttRecognizerRef, sttRecognizerConnectingRef, sttStartRecognition, sttStopRecognition } = useStt();
-
+  const {  stopCurrentStreamJob, assistantRunning } = useAssistant();
+  const { sttRecognizerRef, sttRecognizerConnecting, sttStartRecognition, sttStopRecognition } = useStt();
+  const {setAssistantResponseBuffer} = useContexts();
+  const {  setMessagesAssistant, setAssistantRunning,sendAssistantMessage } = useAssistant();
 
   const sendText = async (inputValue: string) => {
     if (!inputValue.trim()) return;
+
     stopAvatarSpeaking();
-    cancleRealtimeResponse();
-    realtimeClientRef.current.sendUserMessageContent([
-      {
-        type: `input_text`,
-        text: inputValue
-      }
+
+    if (isRealtime){
+      cancelRealtimeResponse();
+      realtimeClientRef?.current.sendUserMessageContent([
+        {
+          type: `input_text`,
+          text: inputValue
+        }
+      ]);
+      setInputValue('');
+      console.log('send text', inputValue);
+      return;
+    }
+
+    await stopCurrentStreamJob();
+    setAssistantResponseBuffer('')
+    stopAvatarSpeaking();
+    sendAssistantMessage(inputValue);
+    setMessagesAssistant((prevMessages: any) => [
+      ...prevMessages,
+      { role: 'user', text: inputValue }
     ]);
+    setAssistantRunning(true);
     setInputValue('');
-    console.log('send text', inputValue);
+   
   };
 
 
   return (
     <>
       {
-        isConnectedRef.current && (
+        isConnected && (
 
           <div className="text-input">
 
             <input type="text"
               placeholder="Type your message here..."
-              value={inputValueRef.current}
+              value={inputValue}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
-                  sendText(inputValueRef.current);
+                  sendText(inputValue);
                 }
                 if (e.key === 'Escape') {
                   setInputValue('');
@@ -61,9 +77,9 @@ export function InputBar() {
             />
 
             <button
-              onClick={() => sendText(inputValueRef.current)}
-              style={{ display: inputValueRef.current ? '' : 'none' }}
-              disabled={!inputValueRef.current}>
+              onClick={() => sendText(inputValue)}
+              style={{ display: inputValue ? '' : 'none' }}
+              disabled={!inputValue}>
               <Send />
             </button>
 
@@ -83,7 +99,7 @@ export function InputBar() {
                 border: 'none',
                 cursor: 'pointer',
                 borderRadius: '5px',
-                display: assistantRunningRef.current ? '' : 'none'
+                display: assistantRunning ? '' : 'none'
               }}
             >
               <StopCircle />
@@ -104,7 +120,7 @@ export function InputBar() {
             >
               {sttRecognizerRef.current ? <Mic /> :
                 (
-                  sttRecognizerConnectingRef.current ? <Clock /> : <MicOff />
+                  sttRecognizerConnecting ? <Clock /> : <MicOff />
                 )}
             </button>
 

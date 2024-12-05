@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useRealtime } from '../providers/RealtimeProvider';
 import { WavRenderer } from '../lib/wav_renderer';
 import { useSettings } from '../providers/SettingsProvider';

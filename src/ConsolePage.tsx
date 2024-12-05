@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
-import { ItemType } from '@theodoreniu/realtime-api-beta/dist/lib/client.js';
+import { ItemType, ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client.js';
 import { WavRecorder } from './lib/wavtools';
 import { clientHiChinese, clientHiEnglish, notDisplay, products } from './lib/const';
 
@@ -11,28 +11,9 @@ import { Toggle } from './components/toggle/Toggle';
 import './ConsolePage.scss';
 import ReactMarkdown from 'react-markdown';
 import Markdown from 'react-markdown';
-import CameraComponent from './components/CameraComponent';
+import Camera from './components/Camera';
 
 
-import * as memory from './tools/memory';
-import * as order_get from './tools/order_get';
-import * as order_return from './tools/order_return';
-import * as avatar from './tools/avatar';
-import * as dark from './tools/dark';
-import * as weather from './tools/weather';
-import * as news from './tools/news';
-import * as location from './tools/location';
-import * as stock_recommend from './tools/stock_recommend';
-import * as products_recommend from './tools/products_recommend';
-import * as demo from './tools/demo';
-import * as feishu from './tools/feishu';
-import * as painting from './tools/painting';
-import * as pronunciation_assessment from './tools/pronunciation_assessment';
-import * as quote from './tools/quote';
-import * as exchange_rate_aim from './tools/exchange_rate_aim';
-import * as exchange_rate_list from './tools/exchange_rate_list';
-import * as azure_docs from './tools/azure_docs';
-import * as exchange_rate_configs from './tools/exchange_rate_configs';
 import SettingsComponent from './components/Settings';
 import FileUploadComponent from './components/FileUploadComponent';
 import ProductList from './components/ProductList';
@@ -46,6 +27,7 @@ import { useAvatar } from './providers/AvatarProvider';
 import { useRealtime } from './providers/RealtimeProvider';
 import { InputBar } from './components/InputBar';
 import AudioVisualization from './components/AudioVisualization';
+import Loading from './pages/Loading';
 
 
 type AssistantMessageProps = {
@@ -115,22 +97,23 @@ export function ConsolePage() {
 
   const { messagesAssistant } = useAssistant();
   const { wavRecorderRef, wavStreamPlayerRef } = useRealtime();
-  const { isConnectedRef, setIsConnected } = useRealtime();
+  const { isConnected, setIsConnected } = useRealtime();
   const { setIsConnecting } = useRealtime();
-  const { isConnectingRef, connectMessageRef, setConnectMessage, deleteConversationItem, changeTurnEndType, isRecordingRef, canPushToTalkRef, startRecording, stopRecording } = useRealtime();
+  const { functions_tools_ref } = useContexts();
+  const { isConnecting, connectMessage, setConnectMessage, deleteConversationItem, changeTurnEndType, isRecording, canPushToTalk, startRecording, stopRecording } = useRealtime();
 
 
   const {
-    isAvatarStartedRef,
-    realtimeInstructionsRef,
+    isAvatarStarted,
+    realtimeInstructions,
     realtimeClientRef } = useContexts();
 
   const {
-    isAssistantRef,
-    isRealtimeRef,
-    endpointRef,
-    keyRef,
-    languageRef,
+    isAssistant,
+    isRealtime,
+    endpoint,
+    key,
+    language,
   } = useSettings();
 
   const { setupAssistant, createThread } = useAssistant();
@@ -142,7 +125,7 @@ export function ConsolePage() {
   const startTimeRef = useRef<string>(new Date().toISOString());
 
 
-  const { itemsRef, setItems, setRealtimeEvents } = useRealtime();
+  const { items, setItems, setRealtimeEvents } = useRealtime();
 
 
   /**
@@ -152,7 +135,7 @@ export function ConsolePage() {
   const connectConversation = useCallback(async () => {
 
 
-    if (isAssistantRef.current) {
+    if (isAssistant) {
       setIsConnecting(true);
       setIsConnected(false);
       setConnectMessage('Creating Assistant...');
@@ -175,14 +158,14 @@ export function ConsolePage() {
 
 
 
-    if (!endpointRef.current) {
+    if (!endpoint) {
       setIsConnected(false);
       setIsConnecting(false);
       setConnectMessage('Please set your Target URI.');
       return;
     }
 
-    if (!keyRef.current) {
+    if (!key) {
       setIsConnected(false);
       setIsConnecting(false);
       setConnectMessage('Please set your Key.');
@@ -207,7 +190,7 @@ export function ConsolePage() {
       setIsConnected(false);
       setIsConnecting(false);
       setConnectMessage(tip);
-      alert(`${tip}\n${e}\n\nKey is "${keyRef.current}"`);
+      alert(`${tip}\n${e}\n\nKey is "${key}"`);
       window.location.href = '/';
       return;
     }
@@ -230,7 +213,7 @@ export function ConsolePage() {
     client.sendUserMessageContent([
       {
         type: `input_text`,
-        text: languageRef.current === 'chinese' ? clientHiChinese : clientHiEnglish
+        text: language === 'chinese' ? clientHiChinese : clientHiEnglish
       }
     ]);
 
@@ -251,8 +234,9 @@ export function ConsolePage() {
    * Whether to use the avatar
    */
   function shouldUseRealTimeAudio() {
-    return !isAvatarStartedRef.current;
+    return !isAvatarStarted;
   }
+
 
 
   /**
@@ -265,32 +249,16 @@ export function ConsolePage() {
     const client = realtimeClientRef.current;
 
     // Set instructions
-    client.updateSession({ instructions: realtimeInstructionsRef.current });
+    client.updateSession({ instructions: realtimeInstructions });
     // Set transcription, otherwise we don't get user transcriptions back
     client.updateSession({ input_audio_transcription: { model: 'whisper-1' } });
     // Set voice
     client.updateSession({ voice: 'echo' });
 
     // Add tools
-    client.addTool(memory.definition, memory.handler);
-    client.addTool(weather.definition, weather.handler);
-    client.addTool(avatar.definition, avatar.handler);
-    client.addTool(order_get.definition, order_get.handler);
-    client.addTool(order_return.definition, order_return.handler);
-    client.addTool(dark.definition, dark.handler);
-    client.addTool(news.definition, news.handler);
-    client.addTool(exchange_rate_aim.definition, exchange_rate_aim.handler);
-    client.addTool(exchange_rate_list.definition, exchange_rate_list.handler);
-    client.addTool(exchange_rate_configs.definition, exchange_rate_configs.handler);
-    client.addTool(products_recommend.definition, products_recommend.handler);
-    client.addTool(location.definition, location.handler);
-    client.addTool(feishu.definition, feishu.handler);
-    client.addTool(painting.definition, painting.handler);
-    client.addTool(pronunciation_assessment.definition, pronunciation_assessment.handler);
-    client.addTool(azure_docs.definition, azure_docs.handler);
-    client.addTool(demo.definition, demo.handler);
-    client.addTool(quote.definition, quote.handler);
-    client.addTool(stock_recommend.definition, stock_recommend.handler);
+    functions_tools_ref.current.forEach(([definition, handler]: [ToolDefinitionType, Function]) => {
+      client.addTool(definition, handler);
+    });
 
     // handle realtime events from client + server for event logging
     client.on('realtime.event', (realtimeEvent: RealtimeEvent) => {
@@ -387,7 +355,6 @@ export function ConsolePage() {
   }, []);
 
 
-
   const isHiddenTool = (item: ItemType) => {
     if (item?.formatted?.text && notDisplay.includes(item?.formatted?.text)) {
       return true;
@@ -438,6 +405,8 @@ export function ConsolePage() {
   return (
     <div data-component="ConsolePage">
 
+      <Loading />
+      
       <div className="content-top">
         <div className="content-title"><img src="/logomark.svg" alt="logo" /><h1>AI Agent Playground</h1></div>
         <span className="copyright">PRC STU Azure Team</span>
@@ -451,20 +420,20 @@ export function ConsolePage() {
 
             <div className="content-block-body" data-conversation-content>
 
-              {isConnectingRef.current && (
+              {isConnecting && (
                 <div className={'waiting'}>
                   Connection...
                 </div>
               )}
 
-              {!isConnectingRef.current && !isConnectedRef.current && (
+              {!isConnecting && !isConnected && (
                 <div className={'waiting'}>
-                  {connectMessageRef.current}
+                  {connectMessage}
                 </div>
               )}
 
               {/* assistant chat */}
-              {isConnectedRef.current && isAssistantRef.current &&
+              {isConnected && isAssistant &&
                 <div>
                   {messagesAssistant.map((msg, index) => (
                     <AssistantMessage key={index} role={msg.role} text={msg.text} />
@@ -474,7 +443,7 @@ export function ConsolePage() {
               }
 
               {/* realtime chat */}
-              {itemsRef.current.map((conversationItem) => {
+              {items.map((conversationItem) => {
 
                 if (isHiddenTool(conversationItem)) {
                   return null;
@@ -593,7 +562,7 @@ export function ConsolePage() {
                         )}
 
                       {/*file message*/}
-                      {conversationItem.formatted.file && (conversationItem.role === 'user' || !isAvatarStartedRef.current) && (
+                      {conversationItem.formatted.file && (conversationItem.role === 'user' || !isAvatarStarted) && (
                         <audio
                           src={conversationItem.formatted.file.url}
                           controls
@@ -616,11 +585,11 @@ export function ConsolePage() {
 
           <Avatar />
 
-          <CameraComponent />
+          <Camera />
 
-          {!isConnectedRef.current && <SettingsComponent />}
+          {!isConnected && <SettingsComponent />}
 
-          {isConnectedRef.current && isRealtimeRef.current && (
+          {isConnected && isRealtime && (
             <div className="content-actions container_bg">
               <Toggle
                 defaultValue={false}
@@ -632,15 +601,15 @@ export function ConsolePage() {
           )
           }
 
-          {isConnectedRef.current && isRealtimeRef.current && canPushToTalkRef.current && (
+          {isConnected && isRealtime && canPushToTalk && (
             <div className="content-actions">
               <Button
-                label={isRecordingRef.current ? 'Release to send' : 'Push to talk'}
+                label={isRecording ? 'Release to send' : 'Push to talk'}
                 icon={Mic}
                 className={'container_bg'}
-                buttonStyle={isRecordingRef.current ? 'alert' : 'regular'}
-                style={isRecordingRef.current ? { backgroundColor: '#80cc29', color: '#ffffff' } : {}}
-                disabled={!isConnectedRef.current || !canPushToTalkRef.current}
+                buttonStyle={isRecording ? 'alert' : 'regular'}
+                style={isRecording ? { backgroundColor: '#80cc29', color: '#ffffff' } : {}}
+                disabled={!isConnected || !canPushToTalk}
                 onMouseDown={startRecording}
                 onMouseUp={stopRecording}
                 onTouchStart={startRecording}
@@ -649,19 +618,19 @@ export function ConsolePage() {
             </div>
           )}
 
-          {isConnectedRef.current && isRealtimeRef.current && (<FileUploadComponent />)}
+          {isConnected && isRealtime && (<FileUploadComponent />)}
 
-          {isConnectedRef.current && isAssistantRef.current && (<FileViewer />)}
+          {isConnected && isAssistant && (<FileViewer />)}
 
           <div className="content-actions">
             <Button
-              disabled={isConnectingRef.current}
+              disabled={isConnecting}
               className={'container_bg'}
-              label={isConnectedRef.current ? 'Disconnect' : (isConnectingRef.current ? 'Connecting' : 'Connect')}
-              icon={isConnectedRef.current ? X : Zap}
-              buttonStyle={isConnectedRef.current ? 'regular' : 'action'}
+              label={isConnected ? 'Disconnect' : (isConnecting ? 'Connecting' : 'Connect')}
+              icon={isConnected ? X : Zap}
+              buttonStyle={isConnected ? 'regular' : 'action'}
               onClick={
-                isConnectedRef.current ? disconnectConversation : connectConversation
+                isConnected ? disconnectConversation : connectConversation
               }
             />
           </div>

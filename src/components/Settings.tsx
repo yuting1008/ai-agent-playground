@@ -3,7 +3,6 @@ import { FaRegEye, FaRegEyeSlash } from 'react-icons/fa';
 import { Download, Settings, Upload, X } from 'react-feather';
 import { Button } from './button/Button';
 import './Settings.scss';
-import { RealtimeClient } from '@theodoreniu/realtime-api-beta';
 import Dropdown from './Dropdown';
 import { GRAPHRAG_ABOUT } from '../tools/azure_docs';
 import { ALLOW_PROMPT_CHARACTERS, ASSISTENT_TYPE_ASSISTANT, ASSISTENT_TYPE_REALTIME } from '../lib/const';
@@ -18,7 +17,7 @@ const SettingsComponent: React.FC = () => {
 
   const { 
     languageRef, setLanguage,
-    assistanTypeRef, setAssistanType,
+    assistantTypeRef, setAssistantType,
     dallTargetUriRef, setDallTargetUri,
     dallApiKeyRef, setDallApiKey,
     graphragUrlRef, setGraphragUrl,
@@ -48,7 +47,7 @@ const SettingsComponent: React.FC = () => {
     { value: 'english', label: 'English' }
   ];
 
-  const supportedAssistanTypes = debug ? [
+  const supportedAssistantTypes = debug ? [
     { value: ASSISTENT_TYPE_REALTIME, label: 'Realtime' },
     { value: ASSISTENT_TYPE_ASSISTANT, label: 'STT -> Assistant -> TTS' }
   ] : [
@@ -76,8 +75,8 @@ const SettingsComponent: React.FC = () => {
       setLanguage(value);
     };
 
-    const handleAssistanTypeChange = (value: string) => {
-      setAssistanType(value);
+    const handleAssistantTypeChange = (value: string) => {
+      setAssistantType(value);
     };
 
 
@@ -85,7 +84,7 @@ const SettingsComponent: React.FC = () => {
     return <div>
 
       <div className="settings-label">Assistant Type</div>
-      <Dropdown options={supportedAssistanTypes} selectedValue={assistanTypeRef.current} onChange={handleAssistanTypeChange} />
+      <Dropdown options={supportedAssistantTypes} selectedValue={assistantTypeRef.current} onChange={handleAssistantTypeChange} />
 
       <div className="settings-label">Default Language</div>
       <Dropdown options={supportedLanguages} selectedValue={languageRef.current} onChange={handleDropdownChange} />
@@ -347,7 +346,7 @@ const SettingsComponent: React.FC = () => {
       graphragCache: graphragCacheRef.current,
       graphragAbout: graphragAboutRef.current,
 
-      assistanTypeRef: assistanTypeRef.current,
+      assistantTypeRef: assistantTypeRef.current,
       language: languageRef.current,
       prompt: promptRef.current,
 
@@ -412,7 +411,7 @@ const SettingsComponent: React.FC = () => {
         setMxnzpAppId(settings.mxnzpAppId);
         setMxnzpAppSecret(settings.mxnzpAppSecret);
         setLanguage(settings.language);
-        setAssistanType(settings.assistanType);
+        setAssistantType(settings.assistantType);
 
         setPrompt(settings.prompt);
 

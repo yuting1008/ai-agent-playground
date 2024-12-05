@@ -1,7 +1,5 @@
 import React, { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useContexts } from './AppProvider';
-import { htmlEncodeAvatar } from '../lib/helper';
-import * as SpeechSDK from 'microsoft-cognitiveservices-speech-sdk';
 import { WavRecorder, WavStreamPlayer } from '../lib/wavtools';
 import { ItemType } from '@theodoreniu/realtime-api-beta/dist/lib/client.js';
 
@@ -27,7 +25,7 @@ interface RealtimeContextType {
   setIsConnecting: React.Dispatch<React.SetStateAction<boolean>>;
 
   deleteConversationItem: (id: string) => Promise<void>;
-  cancleRealtimeResponse: () => Promise<void>;
+  cancelRealtimeResponse: () => Promise<void>;
   startRecording: () => Promise<void>;
 
   connectMessage: string;
@@ -121,7 +119,7 @@ export const RealtimeProvider: React.FC<{ children: ReactNode }> = ({ children }
   useEffect(() => {
     isConnectedRef.current = isConnected;
     // if connected is false, clear all items
-    if (isConnectedRef.current == false) {
+    if (!isConnectedRef.current) {
       setItems([]);
     }
   }, [isConnected]);
@@ -153,7 +151,7 @@ export const RealtimeProvider: React.FC<{ children: ReactNode }> = ({ children }
     client.deleteItem(id);
   }, []);
 
-  const cancleRealtimeResponse = async () => {
+  const cancelRealtimeResponse = async () => {
     const client = realtimeClientRef.current;
     const wavStreamPlayer = wavStreamPlayerRef.current;
     const trackSampleOffset = await wavStreamPlayer.interrupt();
@@ -244,7 +242,7 @@ export const RealtimeProvider: React.FC<{ children: ReactNode }> = ({ children }
       setIsConnected,
       setIsConnecting,
       deleteConversationItem,
-      cancleRealtimeResponse,
+      cancelRealtimeResponse,
       startRecording,
       connectMessage,
       connectMessageRef,
