@@ -142,15 +142,6 @@ export function ConsolePage() {
       setConnectMessage('Creating Thread...');
       await createThread();
       setIsConnected(true);
-
-      // start avatar
-      // if (localStorage.getItem('cogSvcSubKey') && localStorage.getItem('cogSvcRegion')  ) {
-      //   await startAvatarSession();
-      // }
-
-      // setInputValue('Hello, how are you?');
-      // await delayFunction(2000);
-      // await sendText('Hello, how are you?');
       return;
     }
 

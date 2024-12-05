@@ -12,7 +12,6 @@ import { useSettings } from '../providers/SettingsProvider';
 
 const SettingsComponent: React.FC = () => {
   const { debug } = useContexts();
-
   const { realtimeClientRef } = useContexts();
 
   const { 
@@ -78,7 +77,6 @@ const SettingsComponent: React.FC = () => {
     const handleAssistantTypeChange = (value: string) => {
       setAssistantType(value);
     };
-
 
 
     return <div>
@@ -608,6 +606,7 @@ const SettingsComponent: React.FC = () => {
 
   const closeModal = () => {
     setIsModalOpen(false);
+    window.location.reload();
   };
 
   return (

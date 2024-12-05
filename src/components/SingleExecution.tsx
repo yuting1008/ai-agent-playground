@@ -19,13 +19,16 @@ const SingleExecutionComponent: React.FC = () => {
         if (!cogSvcSubKey || !cogSvcRegion) {
             return null;
         }
+
         const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(cogSvcSubKey, cogSvcRegion);
 
-        //  audioStream = SpeechSDK.AudioOutputStream.createPullStream();
-        // const audioConfig = SpeechSDK.AudioConfig.fromStreamOutput(audioStream);
-        audioOutputStreamRef.current = SpeechSDK.AudioConfig.fromDefaultSpeakerOutput();
+        const browserSound = new SpeechSDK.SpeakerAudioDestination();
+        browserSound.volume = 0;
+        browserSound.mute();
 
-        return new SpeechSDK.SpeechSynthesizer(speechConfig,audioOutputStreamRef.current);
+        const audioConfig = SpeechSDK.AudioConfig.fromSpeakerOutput(browserSound);
+
+        return new SpeechSDK.SpeechSynthesizer(speechConfig, audioConfig);
     }
 
     const textToSpeechAndPlay = async (text: string) => {
@@ -33,19 +36,10 @@ const SingleExecutionComponent: React.FC = () => {
             return;
         }
 
-      
-        const audioContext = new (window.AudioContext)();
+        // remove * from text
+        text = text.replaceAll('*', '')
 
-        function playAudioData(arrayBuffer: ArrayBuffer) {
-            audioContext.decodeAudioData(arrayBuffer, (audioBuffer) => {
-                const source = audioContext.createBufferSource();
-                source.buffer = audioBuffer;
-                source.connect(audioContext.destination);
-                source.start();
-            });
-        }
-
-        speechClientRef.current.synthesizing =async (s, e) => {
+        speechClientRef.current.synthesizing = async (s, e) => {
             // console.log('synthesizing', e.result.audioData);
             // play the audio data
             // get e.result.audioData size
@@ -54,28 +48,25 @@ const SingleExecutionComponent: React.FC = () => {
             // console.log('audioDuration', e.result.audioDuration);
             // console.log('properties', e.result.properties);
 
-        
-                //   const audio = new Audio();
-                //   audio.src = URL.createObjectURL(new Blob([e.result.audioData], { type: "audio/mp3" }));
-                //   audio.play();
-  
-                //   audio.addEventListener("ended", () => {
-                //       console.log("Playback completed!");
-                //   });
-          };
-      
-          speechClientRef.current.synthesisStarted = (s, e) => {
-            // console.log('synthesized', e);
-          };
-      
 
-          speechClientRef.current.speakTextAsync(
+            //   const audio = new Audio();
+            //   audio.src = URL.createObjectURL(new Blob([e.result.audioData], { type: "audio/mp3" }));
+            //   audio.play();
+
+            //   audio.addEventListener("ended", () => {
+            //       console.log("Playback completed!");
+            //   });
+        };
+
+        speechClientRef.current.synthesisStarted = (s, e) => {
+            // console.log('synthesized', e);
+        };
+
+        speechClientRef.current.speakTextAsync(
             text,
             (result) => {
                 if (result.reason === SpeechSDK.ResultReason.SynthesizingAudioCompleted) {
                     console.log("Synthesis completed.");
-    
-        
 
                 } else {
                     console.error("Speech synthesis failed:", result.errorDetails);
@@ -114,16 +105,19 @@ const SingleExecutionComponent: React.FC = () => {
     }
 
 
-
     useEffect(() => {
         if (needSpeechQueue.length === 0) {
             return;
         }
 
+        // if (IS_DEBUG) {
+        //     textToSpeech(needSpeechQueue[0]);
+        // }
+
         const executeTask = async (value: string, signal: AbortSignal): Promise<void> => {
             if (isRunning.current) {
                 console.log("A task is already running. Skipping new task.");
-                await new Promise(resolve => setTimeout(resolve, 100));
+                await new Promise(resolve => setTimeout(resolve, 10000));
                 return;
             }
             isRunning.current = true;
@@ -134,21 +128,21 @@ const SingleExecutionComponent: React.FC = () => {
 
                 await textToSpeech(value);
 
-   
+
                 const delay = value.length * 260;
-      
-                
+
+
                 console.log('will delay', delay);
 
                 // Simulate async task with abort support
                 const result = await new Promise<string>((resolve, reject) => {
-                    const timeout = setTimeout(() => resolve(`Processed: ${value}`), 10);
+                    const timeout = setTimeout(() => resolve(`Processed: ${value}`), 10000);
                     signal.addEventListener("abort", () => {
                         clearTimeout(timeout);
                         reject(new Error("Task aborted"));
                     });
                 });
-             
+
                 setOutput(result);
                 setNeedSpeechQueue(needSpeechQueue.slice(1));
                 // console.log("Task completed:", result);
@@ -164,28 +158,30 @@ const SingleExecutionComponent: React.FC = () => {
             }
         };
 
+        setNeedSpeechQueue(needSpeechQueue.slice(1));
+
         // Abort the previous task if a new value is provided
-        if (controllerRef.current) {
-            controllerRef.current.abort();
-        }
+        // if (controllerRef.current) {
+        //     controllerRef.current.abort();
+        // }
 
         // Create a new AbortController for the new task
-        const controller = new AbortController();
-        controllerRef.current = controller;
+        // const controller = new AbortController();
+        // controllerRef.current = controller;
 
         // Start the new task
-        executeTask(needSpeechQueue[0], controller.signal);
+        // executeTask(needSpeechQueue[0], controller.signal);
 
         // Cleanup: Abort the task when the component unmounts or the value changes
-        return () => {
-            controller.abort();
-        };
+        // return () => {
+        //     controller.abort();
+        // };
     }, [needSpeechQueue]);
 
     return (
-        <div style={{color: 'white'}}>
-            <h3>Watched Value: {JSON.stringify(needSpeechQueue)}</h3>
-            <h4>Output: {output || "Processing..."}</h4>
+        <div style={{ color: 'white', display: 'none' }}>
+            <h3>Queue: {JSON.stringify(needSpeechQueue)}</h3>
+            <h4>{output || "Processing..."}</h4>
         </div>
     );
 };
