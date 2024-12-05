@@ -9,7 +9,7 @@ const Camera: React.FC = () => {
   const webcamRef = React.useRef<Webcam>(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { photos, isCameraOn, isCameraOnRef,setPhotos, setIsCameraOn, isWebcamReady, isWebcamReadyRef,setIsWebcamReady } = useContexts();
+  const { photos, isCameraOn, isCameraOnRef, setPhotos, setIsCameraOn, isWebcamReady, isWebcamReadyRef, setIsWebcamReady } = useContexts();
   const [facingMode, setFacingMode] = useState('user');
   const [cameraCount, setCameraCount] = useState(0);
 
@@ -47,20 +47,20 @@ const Camera: React.FC = () => {
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-        if (webcamRef.current && isCameraOnRef.current && isWebcamReadyRef.current) {
-          const imageSrc = webcamRef.current.getScreenshot();
-          if (imageSrc) {
-            setPhotos(prevPhotos => {
-              return [imageSrc, ...prevPhotos].slice(0, CAMERA_PHOTO_LIMIT);
-            });
-          }
+      if (webcamRef.current && isCameraOnRef.current && isWebcamReadyRef.current) {
+        const imageSrc = webcamRef.current.getScreenshot();
+        if (imageSrc) {
+          setPhotos(prevPhotos => {
+            return [imageSrc, ...prevPhotos].slice(0, CAMERA_PHOTO_LIMIT);
+          });
         }
+      }
     }, CAMERA_PHOTO_INTERVAL_MS);
 
     return () => {
-        clearInterval(intervalId);
+      clearInterval(intervalId);
     };
-}, []);
+  }, []);
 
   const toggleCamera = () => {
     setIsCameraOn(prev => !prev);

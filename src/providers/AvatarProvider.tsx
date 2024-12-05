@@ -1,4 +1,4 @@
-import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import React, { createContext, ReactNode, useContext, useEffect, useRef, useState } from 'react';
 import { useContexts } from './AppProvider';
 import { htmlEncodeAvatar } from '../lib/helper';
 import * as SpeechSDK from 'microsoft-cognitiveservices-speech-sdk';
@@ -10,6 +10,7 @@ interface AvatarContextType {
   stopAvatarSpeaking: () => Promise<void>;
   needSpeechQueue: string[];
   setNeedSpeechQueue: (queue: string[]) => void;
+  needSpeechQueueRef: React.MutableRefObject<string[]>;
 }
 
 const AvatarContext = createContext<AvatarContextType | undefined>(undefined);
@@ -20,7 +21,10 @@ export const AvatarProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     assistantResponseBuffer } = useContexts();
 
   const [needSpeechQueue, setNeedSpeechQueue] = useState<string[]>([]);
-
+  const needSpeechQueueRef = useRef<string[]>([]);
+  useEffect(() => {
+    needSpeechQueueRef.current = needSpeechQueue;
+  }, [needSpeechQueue]);
 
   useEffect(() => {
 
@@ -134,7 +138,8 @@ export const AvatarProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       speakAvatar,
       stopAvatarSpeaking,
       needSpeechQueue,
-      setNeedSpeechQueue
+      setNeedSpeechQueue,
+      needSpeechQueueRef
     }}>
       {children}
     </AvatarContext.Provider>

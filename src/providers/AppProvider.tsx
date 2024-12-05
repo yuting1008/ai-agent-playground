@@ -145,9 +145,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   useEffect(() => {
     isWebcamReadyRef.current = isWebcamReady;
 
-    console.log(`iseWebcamReady:`, isWebcamReadyRef?.current);
+    console.log(`iseWebcamReady:`, isWebcamReadyRef.current);
 
-    isCameraOnRef?.current ? replaceInstructions('现在我的摄像头是关闭的', '现在我的摄像头打开的')
+    isWebcamReady ? replaceInstructions('现在我的摄像头是关闭的', '现在我的摄像头打开的')
       : replaceInstructions('现在我的摄像头打开的', '现在我的摄像头是关闭的')
 
   }, [isWebcamReady]);

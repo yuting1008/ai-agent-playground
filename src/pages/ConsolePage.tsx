@@ -25,9 +25,7 @@ import { useAvatar } from '../providers/AvatarProvider';
 import { useRealtime } from '../providers/RealtimeProvider';
 import { InputBar } from '../components/InputBar';
 import AudioVisualization from '../components/AudioVisualization';
-import SingleExecutionComponent from '../components/SingleExecution';
-
-
+import OpenAITTS from '../components/OpenAITTS';
 
 type AssistantMessageProps = {
   role: 'user' | 'assistant' | 'code';
@@ -368,6 +366,8 @@ export function ConsolePage() {
   return (
     <div data-component="ConsolePage">
 
+      <OpenAITTS/>
+
       
 
       <div className="content-top">
@@ -600,11 +600,13 @@ export function ConsolePage() {
 
           <AudioVisualization />
 
-          <SingleExecutionComponent />
 
         </div>
 
+
       </div>
+
+    
     </div>
   );
 }
