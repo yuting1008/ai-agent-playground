@@ -4,8 +4,8 @@ export const ASSISTENT_TYPE_REALTIME = 'realtime';
 export const ASSISTENT_TYPE_DEFAULT = ASSISTENT_TYPE_REALTIME;
 
 export const ALLOW_PROMPT_CHARACTERS = 1500;
-export const CAMERA_PHOTO_LIMIT = 60;
-
+export const CAMERA_PHOTO_LIMIT = 50; // gpt limit 50 images
+export const CAMERA_PHOTO_INTERVAL_MS = 1000;
 
 export const clientHiEnglish = `Hi!`;
 export const clientHiChinese = `你好！`;

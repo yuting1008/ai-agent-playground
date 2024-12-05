@@ -1,30 +1,32 @@
 import { useCallback, useEffect, useRef } from 'react';
 
 import { ItemType, ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client.js';
-import { WavRecorder } from './lib/wavtools';
-import { clientHiChinese, clientHiEnglish, notDisplay, products } from './lib/const';
+import { WavRecorder } from '../lib/wavtools';
+import { clientHiChinese, clientHiEnglish, notDisplay, products } from '../lib/const';
 
 import { Mic, X, Zap } from 'react-feather';
-import { Button } from './components/button/Button';
-import { Toggle } from './components/toggle/Toggle';
+import { Button } from '../components/button/Button';
+import { Toggle } from '../components/toggle/Toggle';
 import './ConsolePage.scss';
 import ReactMarkdown from 'react-markdown';
 import Markdown from 'react-markdown';
-import Camera from './components/Camera';
+import Camera from '../components/Camera';
 
-import SettingsComponent from './components/Settings';
-import FileUploadComponent from './components/FileUploadComponent';
-import ProductList from './components/ProductList';
-import FileViewer from './components/FileViewer';
-import { useContexts } from './providers/AppProvider';
-import { useSettings } from './providers/SettingsProvider';
-import { useAssistant } from './providers/AssistantProvider';
-import { NightMode } from './components/NightMode';
-import Avatar from './components/Avatar';
-import { useAvatar } from './providers/AvatarProvider';
-import { useRealtime } from './providers/RealtimeProvider';
-import { InputBar } from './components/InputBar';
-import AudioVisualization from './components/AudioVisualization';
+import SettingsComponent from '../components/Settings';
+import FileUploadComponent from '../components/FileUploadComponent';
+import ProductList from '../components/ProductList';
+import FileViewer from '../components/FileViewer';
+import { useContexts } from '../providers/AppProvider';
+import { useSettings } from '../providers/SettingsProvider';
+import { useAssistant } from '../providers/AssistantProvider';
+import { NightMode } from '../components/NightMode';
+import Avatar from '../components/Avatar';
+import { useAvatar } from '../providers/AvatarProvider';
+import { useRealtime } from '../providers/RealtimeProvider';
+import { InputBar } from '../components/InputBar';
+import AudioVisualization from '../components/AudioVisualization';
+import SingleExecutionComponent from '../components/SingleExecution';
+
 
 
 type AssistantMessageProps = {
@@ -108,6 +110,7 @@ export function ConsolePage() {
   const {
     isAvatarStarted, isAvatarStartedRef,
     realtimeInstructions,
+    setAssistantResponseBuffer,
     functionsToolsRef,
     realtimeClientRef } = useContexts();
 
@@ -120,7 +123,7 @@ export function ConsolePage() {
   } = useSettings();
 
   const { setupAssistant, createThread, messagesAssistant } = useAssistant();
-  const { speakAvatar, processAndStoreSentence, stopAvatarSpeaking } = useAvatar();
+  const { stopAvatarSpeaking } = useAvatar();
 
   const startTimeRef = useRef<string>(new Date().toISOString());
 
@@ -276,13 +279,7 @@ export function ConsolePage() {
     client.on('conversation.updated', async ({ item, delta }: any) => {
 
       if (item.object === 'realtime.item' && item.type === 'message' && item.role === 'assistant' && isAvatarStartedRef.current) {
-        const sentences = processAndStoreSentence(item.id, item.formatted.transcript);
-        for (const sentence of sentences) {
-          if (sentence.exists === false) {
-            console.log(`Speech Need: ${sentence.sentence}`);
-            speakAvatar(sentence.sentence);
-          }
-        }
+        setAssistantResponseBuffer(item.formatted.transcript);
       }
 
       const items = client.conversation.getItems();
@@ -380,7 +377,7 @@ export function ConsolePage() {
   return (
     <div data-component="ConsolePage">
 
-    
+      <SingleExecutionComponent />
 
       <div className="content-top">
         <div className="content-title"><img src="/logomark.svg" alt="logo" /><h1>AI Agent Playground</h1></div>

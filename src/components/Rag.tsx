@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import Webcam from 'react-webcam';
 import { useContexts } from '../providers/AppProvider';
 import { RealtimeClient } from '@theodoreniu/realtime-api-beta';
-import { CAMERA_PHOTO_LIMIT } from '../lib/const';
+import { CAMERA_PHOTO_INTERVAL_MS, CAMERA_PHOTO_LIMIT } from '../lib/const';
 
 
 interface ChildComponentProps {
@@ -14,7 +14,6 @@ const RagComponent: React.FC<ChildComponentProps> = ({ client }) => {
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [isUploadedRag, setIsUploadedRag] = useState(false);
   const { setPhotos, replaceInstructions } = useContexts();
-  const photoInterval = 1000;
 
 
   useEffect(() => {
@@ -38,7 +37,7 @@ const RagComponent: React.FC<ChildComponentProps> = ({ client }) => {
 
     let intervalId: NodeJS.Timeout | null = null;
     if (isCameraOn) {
-      intervalId = setInterval(capture, photoInterval);
+      intervalId = setInterval(capture, CAMERA_PHOTO_INTERVAL_MS);
     }
     return () => {
       if (intervalId) clearInterval(intervalId);

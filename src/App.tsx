@@ -1,4 +1,4 @@
-import { ConsolePage } from './ConsolePage';
+import { ConsolePage } from './pages/ConsolePage';
 import './App.scss';
 import { AppProvider } from './providers/AppProvider';
 import { SettingsProvider } from './providers/SettingsProvider';

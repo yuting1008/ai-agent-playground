@@ -1,11 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Webcam from 'react-webcam';
 import { useContexts } from '../providers/AppProvider';
-import { CAMERA_PHOTO_LIMIT } from '../lib/const';
+import { CAMERA_PHOTO_INTERVAL_MS, CAMERA_PHOTO_LIMIT } from '../lib/const';
 import './Camera.scss';
 import { Camera as CameraIcon, CameraOff, RefreshCw } from 'react-feather';
-
-const photoInterval = 500;
 
 const Camera: React.FC = () => {
   const webcamRef = React.useRef<Webcam>(null);
@@ -57,7 +55,7 @@ const Camera: React.FC = () => {
             });
           }
         }
-    }, photoInterval);
+    }, CAMERA_PHOTO_INTERVAL_MS);
 
     return () => {
         clearInterval(intervalId);

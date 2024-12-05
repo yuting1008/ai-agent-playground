@@ -1,4 +1,4 @@
-import React, { createContext, ReactNode, useContext } from 'react';
+import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { useContexts } from './AppProvider';
 import { htmlEncodeAvatar } from '../lib/helper';
 import * as SpeechSDK from 'microsoft-cognitiveservices-speech-sdk';
@@ -7,14 +7,41 @@ type SentenceStatus = { sentence: string; exists: boolean };
 
 interface AvatarContextType {
   speakAvatar: (spokenText: string) => Promise<void>;
-  processAndStoreSentence: (id: string, input: string) => SentenceStatus[];
   stopAvatarSpeaking: () => Promise<void>;
+  needSpeechQueue: string[];
+  setNeedSpeechQueue: (queue: string[]) => void;
 }
 
 const AvatarContext = createContext<AvatarContextType | undefined>(undefined);
 
 export const AvatarProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { avatarSynthesizerRef, setIsAvatarSpeaking, avatarSpeechSentencesArrayRef, setAvatarSpeechSentencesArray } = useContexts();
+  const { avatarSynthesizerRef, isAvatarStarted,
+    setIsAvatarSpeaking, avatarSpeechSentencesArrayRef,
+    assistantResponseBuffer } = useContexts();
+
+  const [needSpeechQueue, setNeedSpeechQueue] = useState<string[]>([]);
+
+
+  useEffect(() => {
+
+  
+
+    const sentences = processAndStoreSentence(assistantResponseBuffer);
+
+    for (const sentence of sentences) {
+      if (sentence.exists === false) {
+
+        if (isAvatarStarted) {
+          console.log(`avatar need speak: ${sentence.sentence}`);
+          speakAvatar(sentence.sentence);
+        } else {
+          console.log(`tts need speak: ${sentence.sentence}`);
+          setNeedSpeechQueue([...needSpeechQueue, sentence.sentence]);
+        }
+      }
+    }
+
+  }, [assistantResponseBuffer]);
 
   const speakAvatar = async (spokenText: string) => {
     if (!avatarSynthesizerRef.current) return;
@@ -56,7 +83,6 @@ export const AvatarProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     }
   };
 
-
   function splitTextByFirstPunctuation(text: string): [string, string] {
     const punctuationRegex = /[,!?:;'"，。！？：；‘’“”（）【】《》]/;
 
@@ -70,7 +96,9 @@ export const AvatarProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     return ['', text];
   }
 
-  function processAndStoreSentence(id: string, input: string): SentenceStatus[] {
+
+  function processAndStoreSentence(input: string): SentenceStatus[] {
+
     if (!input) {
       return [];
     }
@@ -91,15 +119,12 @@ export const AvatarProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     const existingSentences: string[] = avatarSpeechSentencesArrayRef.current;
 
     const result: SentenceStatus[] = sentences.map(sentence => {
-      const sentenceId = `${id}-${sentence}`;
-      const exists = existingSentences.includes(sentenceId);
+      const exists = existingSentences.includes(sentence);
       if (!exists) {
-        existingSentences.push(sentenceId);
+        existingSentences.push(sentence);
       }
       return { sentence, exists };
     });
-
-    setAvatarSpeechSentencesArray(existingSentences);
 
     return result;
   }
@@ -107,8 +132,9 @@ export const AvatarProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   return (
     <AvatarContext.Provider value={{
       speakAvatar,
-      processAndStoreSentence,
       stopAvatarSpeaking,
+      needSpeechQueue,
+      setNeedSpeechQueue
     }}>
       {children}
     </AvatarContext.Provider>

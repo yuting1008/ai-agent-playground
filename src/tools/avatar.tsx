@@ -1,7 +1,4 @@
 import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
-import { useSettings } from '../providers/SettingsProvider';
-import { useContexts } from '../providers/AppProvider';
-import { delayFunction } from '../lib/helper';
 
 export const definition: ToolDefinitionType = {
   name: 'turn_on_off_avatar',

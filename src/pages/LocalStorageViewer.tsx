@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { X } from 'react-feather';
 import { useContexts } from '../providers/AppProvider';
 import styles from './LocalStorageViewer.module.css';
+import { CAMERA_PHOTO_LIMIT } from '../lib/const';
 
 interface LocalStorageItem {
   key: string;
@@ -22,7 +23,7 @@ const LocalStorageViewer: React.FC = () => {
     realtimeInstructionsRef,
     assistantRef,
     isCameraOnRef,
-    isWebcamReadyRef
+    isWebcamReadyRef,
   } = useContexts();
 
   const fetchLocalStorageData = useCallback(() => {
@@ -115,8 +116,8 @@ const LocalStorageViewer: React.FC = () => {
               <tbody>
                 <tr key='isCameraOnRef'><td className={styles.tdKey}>isCameraOnRef</td><td className={styles.tdValue}>{JSON.stringify(isCameraOnRef.current)}</td></tr>
                 <tr key='isWebcamReadyRef'><td className={styles.tdKey}>isWebcamReadyRef</td><td className={styles.tdValue}>{JSON.stringify(isWebcamReadyRef.current)}</td></tr>
-                
-                <tr key='photosRef'><td className={styles.tdKey}>photosRef</td><td className={styles.tdValue}>{photosRef.current.length}</td></tr>
+       
+                <tr key='photosRefLength'><td className={styles.tdKey}>photosRef.length</td><td className={styles.tdValue}>{photosRef.current.length} / {CAMERA_PHOTO_LIMIT}</td></tr>
                 <tr key='photosRefSize'><td className={styles.tdKey}>photosRefSize</td><td className={styles.tdValue}>{getStringArraySizeUtf8InMB(photosRef.current)} MB</td></tr>
                 
                 <tr key='assistantRef.id'><td className={styles.tdKey}>assistantRef</td><td className={styles.tdValue}>{assistantRef?.current?.id}</td></tr>

@@ -15,7 +15,7 @@ export function InputBar() {
 
   const { isRealtime } = useSettings();
   const { isConnected } = useRealtime();
-  const { inputValue, setInputValue, realtimeClientRef } = useContexts();
+  const { inputValue, setInputValue, realtimeClientRef,setAvatarSpeechSentencesArray } = useContexts();
   const { cancelRealtimeResponse } = useRealtime();
   const { stopAvatarSpeaking } = useAvatar();
   const {  stopCurrentStreamJob, assistantRunning } = useAssistant();
@@ -27,6 +27,7 @@ export function InputBar() {
     if (!inputValue.trim()) return;
 
     stopAvatarSpeaking();
+    setAvatarSpeechSentencesArray([]);
 
     if (isRealtime){
       cancelRealtimeResponse();

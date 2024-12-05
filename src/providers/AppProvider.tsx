@@ -115,6 +115,7 @@ interface AppContextType {
   setIsWebcamReady: React.Dispatch<React.SetStateAction<boolean>>;
 
   functionsToolsRef: React.MutableRefObject<[ToolDefinitionType, Function][]>;
+
 }
 
 const IS_DEBUG: boolean = window.location.href.includes('localhost');
@@ -130,7 +131,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [isCameraOn, setIsCameraOn] = useState(false);
   const isCameraOnRef = useRef(isCameraOn);
   useEffect(() => {
-    console.log(`isCameraOn: ${isCameraOn}`);
+    console.log('isCameraOn:', isCameraOn);
     isCameraOnRef.current = isCameraOn;
     if (!isCameraOn) {
       setIsWebcamReady(false);
@@ -144,10 +145,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   useEffect(() => {
     isWebcamReadyRef.current = isWebcamReady;
 
-    console.log(`iseWebcamReady: ${isWebcamReadyRef?.current}`);
+    console.log(`iseWebcamReady:`, isWebcamReadyRef?.current);
 
-    isCameraOnRef?.current ? replaceInstructions('现在我的摄像头是关闭的', '现在我的摄像头打开的') 
-        : replaceInstructions('现在我的摄像头打开的', '现在我的摄像头是关闭的')
+    isCameraOnRef?.current ? replaceInstructions('现在我的摄像头是关闭的', '现在我的摄像头打开的')
+      : replaceInstructions('现在我的摄像头打开的', '现在我的摄像头是关闭的')
 
   }, [isWebcamReady]);
 
@@ -222,6 +223,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const avatarSpeechSentencesArrayRef = useRef(avatarSpeechSentencesArray);
   useEffect(() => {
     avatarSpeechSentencesArrayRef.current = avatarSpeechSentencesArray;
+    if (avatarSpeechSentencesArray.length ===0) {
+      setAssistantResponseBuffer('');
+    }
   }, [avatarSpeechSentencesArray]);
 
   const prompt = localStorage.getItem('prompt') || '';
@@ -232,12 +236,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const realtimeInstructionsRef = useRef(realtimeInstructions);
   useEffect(() => {
     realtimeInstructionsRef.current = realtimeInstructions;
-    
+
     if (assistant) {
       assistant.instructions = realtimeInstructions;
       (async () => {
         try {
-         const res = await getOpenAIClient().beta.assistants.update(assistant.id, {
+          const res = await getOpenAIClient().beta.assistants.update(assistant.id, {
             instructions: realtimeInstructions
           });
           console.log('assistant instructions updated', res);
@@ -329,50 +333,53 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setIsCameraOn(true);
       return { message: 'The camera is starting, please wait a moment to turn on.' };
     }
-  
+
     setPhotos([]);
     setIsCameraOn(false);
-  
+
     return { message: 'The camera has been turned off' };
   };
 
-  const camera_current_handler: Function = async ({ prompt }: { [key: string]: any }) => {
+  const camera_current_handler: Function = async ({ prompt = '' }: { [key: string]: string | undefined }) => {
     try {
-  
+
+      if (prompt) {
+        prompt = `User questions about these frames are: ${prompt}`;
+      }
+
       console.log('prompt', prompt);
-      
-      if (photos.length === 0) {
+
+      if (photosRef.current && photosRef.current.length === 0) {
+        console.log('no photos, please turn on your camera');
         return { error: 'no photos, please turn on your camera' };
       }
-    
+
       let content: any = [
         {
           type: 'text',
-          text: `Can you describe what you saw? User questions about these frames are: ${prompt}`
+          text: `Can you describe what you saw? ${prompt}`
         }
       ];
-    
-      const photoIndex = photos.length >= 1 ? 1 : 0;
-    
+
+      const photoIndex = photosRef.current.length >= 1 ? 1 : 0;
+
       content.push({
         type: 'image_url',
         image_url: {
-          url: photos[photoIndex]
+          url: photosRef.current[photoIndex]
         }
       });
-    
-   
-  
+
       const messages = [
         {
           role: 'user',
           content: content
         }
       ];
-      console.log('vision content', content);
+
       const resp = await getCompletion(messages);
       console.log('vision resp', resp);
-   
+
       return { message: resp };
     } catch (error) {
       console.error('vision error', error);
@@ -380,33 +387,33 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
-  const camera_video_handler: Function = async ({ prompt, seconds }: { [key: string]: any }) => {
+  const camera_video_handler: Function = async ({ prompt = '', seconds = CAMERA_PHOTO_LIMIT }: { [key: string]: any }) => {
 
     console.log('prompt', prompt);
     console.log('seconds', seconds);
-    
-  
-    console.log('photos.length', photos.length);
-    console.log('photosRef.current.length', photosRef.current.length);
-  
-    if (seconds > CAMERA_PHOTO_LIMIT) {
+
+    if (seconds && seconds > CAMERA_PHOTO_LIMIT) {
       return { error: `The maximum number of seconds is ${CAMERA_PHOTO_LIMIT}` };
     }
-  
-    if (photos.length === 0) {
+
+    if (photosRef.current && photosRef.current.length === 0) {
       return { error: 'no photos, please turn on your camera' };
     }
-  
+
+    if (prompt) {
+      prompt = `User questions about these frames are: ${prompt}`;
+    }
+
     let content: any = [
       {
         type: 'text',
-        text: `I'm going to give you a set of video frames from the video head capture, just captured. The images are displayed in reverse chronological order. Can you describe what you saw? If there are more pictures, it is continuous, please tell me the complete event that happened just now. User questions about these frames are: ${prompt}`
+        text: `I'm going to give you a set of video frames from the video head capture, just captured. The images are displayed in reverse chronological order. Can you describe what you saw? If there are more pictures, it is continuous, please tell me the complete event that happened just now. ${prompt}`
       }
     ];
-  
+
     // for photos
     let photoCount = 0;
-    photos.forEach((photo: string) => {
+    photosRef.current.forEach((photo: string) => {
       if (photoCount < seconds) {
         content.push({
           type: 'image_url',
@@ -415,31 +422,31 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           }
         });
       }
-  
+
       photoCount++;
-  
+
     });
-  
-  
+
+
     try {
-      console.log('vision content', content);
+
       const messages = [
         {
           role: 'user',
           content: content
         }
       ];
-      console.log('vision content', content);
+
       const resp = await getCompletion(messages);
       console.log('vision resp', resp);
-    
+
       return { message: resp };
     } catch (error) {
       console.error('vision error', error);
-  
+
       return { error: error };
     }
-  
+
   };
 
   const memory_handler: Function = async ({ key, value }: { [key: string]: any }) => {
@@ -451,20 +458,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return { ok: true };
   };
 
-
-
   const avatar_handler: Function = async ({ on }: { [key: string]: boolean }) => {
     if (on) {
-  
-  
+
       if (!cogSvcSubKeyRef.current || !cogSvcRegionRef.current) {
         return { message: 'Please set your Cognitive Services subscription key and region.' };
       }
-  
+
       await startAvatarSession();
-  
+
       let checkTime = 0;
-  
+
       while (checkTime < 10) {
         await delayFunction(1000);
         checkTime++;
@@ -472,21 +476,21 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           return { message: 'ok' };
         }
       }
-  
+
       return { message: 'Error, please check your error message.' };
     }
-  
+
     stopAvatarSession();
-  
+
     return { message: 'done' };
   };
 
-  
- const dark_handler: Function = ({ on }: { [on: string]: boolean }) => {
-  setIsNightMode(on);
-  return { ok: true };
-};
-  
+
+  const dark_handler: Function = ({ on }: { [on: string]: boolean }) => {
+    setIsNightMode(on);
+    return { ok: true };
+  };
+
   // functions_tools array
   const functionsToolsRef = useRef<[ToolDefinitionType, Function][]>([
     [camera_on.definition, camera_on_handler],
@@ -711,7 +715,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       inputValue, inputValueRef, setInputValue,
       isCameraOn, isCameraOnRef, setIsCameraOn,
       isWebcamReady, isWebcamReadyRef, setIsWebcamReady,
-      functionsToolsRef
+      functionsToolsRef,
     }}>
       {children}
     </AppContext.Provider>

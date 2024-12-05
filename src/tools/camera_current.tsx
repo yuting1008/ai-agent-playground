@@ -1,6 +1,4 @@
 import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
-import { useContexts } from '../providers/AppProvider';
-import { getCompletion } from '../lib/openai';
 
 export const definition: ToolDefinitionType = {
   name: 'camera_current',
@@ -10,8 +8,9 @@ export const definition: ToolDefinitionType = {
     properties: {
       prompt: {
         type: 'string',
-        description: 'prompt of the camera'
+        description: 'prompt of the camera',
+        default: ''
       }
-    }
+    },
   }
 };

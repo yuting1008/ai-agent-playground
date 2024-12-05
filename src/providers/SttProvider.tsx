@@ -22,15 +22,12 @@ const SttContext = createContext<SttContextType | undefined>(undefined);
 
 export const SttProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
-  const { setInputValue } = useContexts();
+  const { setInputValue,setAvatarSpeechSentencesArray} = useContexts();
   const { cogSvcSubKeyRef,cogSvcRegionRef } = useSettings();
   const { stopAvatarSpeaking } = useAvatar();
   const { stopCurrentStreamJob } = useAssistant();
   const {  setMessagesAssistant, setAssistantRunning,sendAssistantMessage } = useAssistant();
   const {setAssistantResponseBuffer} = useContexts();
-
-
-
 
   // ------------------------ vars ------------------------
   // sttRecognizer SpeechRecognizer
@@ -50,6 +47,7 @@ export const SttProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const sendText = async (inputValue: string) => {
     if (!inputValue.trim()) return;
 
+    setAvatarSpeechSentencesArray([]);
     await stopCurrentStreamJob();
     setAssistantResponseBuffer('')
     stopAvatarSpeaking();

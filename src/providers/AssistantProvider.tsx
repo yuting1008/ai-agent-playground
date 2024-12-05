@@ -29,13 +29,10 @@ const AssistantContext = createContext<AssistantContextType | undefined>(undefin
 
 export const AssistantProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
-  const { assistantRef, setAssistant, setLoading, threadRef, threadJobRef, setThreadJob, setThread, isAvatarStartedRef } = useContexts();
-  const { speakAvatar, processAndStoreSentence } = useAvatar();
+  const { assistantRef, setAssistant, setLoading, threadRef, threadJobRef, setThreadJob, setThread } = useContexts();
 
   const {
-
-    assistantResponseBufferRef, setAssistantResponseBuffer
-
+    setAssistantResponseBuffer
   } = useContexts();
 
   // ------------------------ vars ------------------------
@@ -77,12 +74,12 @@ export const AssistantProvider: React.FC<{ children: ReactNode }> = ({ children 
         ]
       };
 
-      functionsToolsRef.current.forEach(([definition, handler]: [ToolDefinitionType, Function]) => {
+      functionsToolsRef.current.forEach(([definition]: [ToolDefinitionType, Function]) => {
         params.tools?.push({ type: 'function', function: definition });
       });
 
       const assistant: Assistant = await getOpenAIClient().beta.assistants.create(params);
-      console.log(`Assistant created: ${JSON.stringify(assistant)}`);
+      console.log(`Assistant created:`, assistant);
       setAssistant(assistant);
     } catch (error: any) {
       console.error(`Error creating assistant: ${error.message}`);
@@ -112,7 +109,7 @@ export const AssistantProvider: React.FC<{ children: ReactNode }> = ({ children 
       const cancelJob = await getOpenAIClient().beta.threads.runs.cancel(threadRef.current?.id, threadJobRef.current?.id);
       console.log('cancelJob', cancelJob);
     } catch (error) {
-      console.error('cancelJob error', error);
+      console.log('cancelJob error', error);
     }
 
     setThreadJob(null);
@@ -130,27 +127,10 @@ export const AssistantProvider: React.FC<{ children: ReactNode }> = ({ children 
     appendAssistantMessage('assistant', '');
   };
 
-
   // textDelta - append text to last assistant message
   const handleAssistantTextDelta = (delta: any) => {
     if (delta.value != null) {
-
-      const latestText = assistantResponseBufferRef.current + delta.value;
-      setAssistantResponseBuffer(latestText);
-
-      const sentences = processAndStoreSentence(threadRef.current?.id, latestText);
-
-      for (const sentence of sentences) {
-        if (sentence.exists === false) {
-          console.log(`Speech Need: ${sentence.sentence}`);
-          if (isAvatarStartedRef.current) {
-            speakAvatar(sentence.sentence);
-          } else {
-            // textToSpeechAndPlay(sentence.sentence);
-          }
-        }
-      }
-
+      setAssistantResponseBuffer(latestText => latestText + delta.value);
       appendAssistantToLastMessage(delta.value);
     }
 
@@ -209,7 +189,6 @@ export const AssistantProvider: React.FC<{ children: ReactNode }> = ({ children 
     === Utility Helpers ===
     =======================
   */
-
   const appendAssistantToLastMessage = (text: string) => {
     setMessagesAssistant((prevMessages: any) => {
       const lastMessage = prevMessages[prevMessages.length - 1];

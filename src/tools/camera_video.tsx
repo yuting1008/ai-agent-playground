@@ -11,13 +11,14 @@ export const definition: ToolDefinitionType = {
     properties: {
       prompt: {
         type: 'string',
-        description: 'prompt of the camera'
+        description: 'prompt of the camera',
+        default: ''
       },
       seconds: {
         type: 'number',
         description: 'how many seconds to record past',
         default: CAMERA_PHOTO_LIMIT
       }
-    }
+    },
   }
 };
