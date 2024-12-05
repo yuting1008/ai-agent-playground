@@ -94,6 +94,14 @@ interface SettingsContextType {
   isRealtime: boolean;
   isRealtimeRef: React.MutableRefObject<boolean>;
   setIsRealtime: React.Dispatch<React.SetStateAction<boolean>>;
+
+  ttsTargetUri: string;
+  ttsTargetUriRef: React.MutableRefObject<string>;
+  setTtsTargetUri: React.Dispatch<React.SetStateAction<string>>;
+
+  ttsApiKey: string;
+  ttsApiKeyRef: React.MutableRefObject<string>;
+  setTtsApiKey: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -133,6 +141,22 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     setIsAssistant(assistantTypeRef.current === ASSISTENT_TYPE_ASSISTANT);
     setIsRealtime(assistantTypeRef.current === ASSISTENT_TYPE_REALTIME);
   }, [assistantType]);
+
+  // ttsTargetUri string
+  const [ttsTargetUri, setTtsTargetUri] = useState<string>(localStorage.getItem('ttsTargetUri') || '');
+  const ttsTargetUriRef = useRef(ttsTargetUri);
+  useEffect(() => {
+    ttsTargetUriRef.current = ttsTargetUri;
+    localStorage.setItem('ttsTargetUri', ttsTargetUri);
+  }, [ttsTargetUri]);
+
+  // ttsApiKey string
+  const [ttsApiKey, setTtsApiKey] = useState<string>(localStorage.getItem('ttsApiKey') || '');
+  const ttsApiKeyRef = useRef(ttsApiKey);
+  useEffect(() => {
+    ttsApiKeyRef.current = ttsApiKey;
+    localStorage.setItem('ttsApiKey', ttsApiKey);
+  }, [ttsApiKey]);
 
   // dallTargetUri string
   const [dallTargetUri, setDallTargetUri] = useState<string>(localStorage.getItem('dallTargetUri') || '');
@@ -312,6 +336,8 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       mxnzpAppId, mxnzpAppIdRef, setMxnzpAppId,
       mxnzpAppSecret, mxnzpAppSecretRef, setMxnzpAppSecret,
       isAssistantRef, isRealtimeRef,
+      ttsTargetUri, ttsTargetUriRef, setTtsTargetUri,
+      ttsApiKey, ttsApiKeyRef, setTtsApiKey,
     }}>
       {children}
     </SettingsContext.Provider>

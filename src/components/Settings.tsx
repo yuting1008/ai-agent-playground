@@ -9,33 +9,34 @@ import { ALLOW_PROMPT_CHARACTERS, ASSISTENT_TYPE_ASSISTANT, ASSISTENT_TYPE_REALT
 import { useContexts } from '../providers/AppProvider';
 import { useSettings } from '../providers/SettingsProvider';
 
-
 const SettingsComponent: React.FC = () => {
   const { debug } = useContexts();
   const { realtimeClientRef } = useContexts();
 
-  const { 
-    languageRef, setLanguage,
-    assistantTypeRef, setAssistantType,
-    dallTargetUriRef, setDallTargetUri,
-    dallApiKeyRef, setDallApiKey,
-    graphragUrlRef, setGraphragUrl,
-    graphragApiKeyRef, setGraphragApiKey,
-    graphragProjectNameRef, setGraphragProjectName,
-    graphragAboutRef, setGraphragAbout,
-    graphragCacheRef, setGraphragCache,
-    cogSvcRegionRef, setCogSvcRegion,
-    cogSvcSubKeyRef, setCogSvcSubKey,
-    completionTargetUriRef, setCompletionTargetUri,
-    completionApiKeyRef, setCompletionApiKey,
-    promptRef, setPrompt,
-    endpointRef, setEndpoint,
-    keyRef, setKey,
-    feishuHookRef, setFeishuHook,
-    quoteTokenRef, setQuoteToken,
-    newsKeyRef, setNewsKey,
-    mxnzpAppIdRef, setMxnzpAppId,
-    mxnzpAppSecretRef, setMxnzpAppSecret
+  const {
+    setLanguage, language,
+    setAssistantType, assistantType,
+    setDallTargetUri, dallTargetUri,
+    setDallApiKey, dallApiKey,
+    setGraphragUrl, graphragUrl,
+    setGraphragApiKey, graphragApiKey,
+    setGraphragProjectName, graphragProjectName,
+    setGraphragAbout, graphragAbout,
+    setGraphragCache, graphragCache,
+    setCogSvcRegion, cogSvcRegion,
+    setCogSvcSubKey, cogSvcSubKey,
+    setCompletionTargetUri, completionTargetUri,
+    setCompletionApiKey, completionApiKey,
+    setPrompt, prompt,
+    setEndpoint, endpoint,
+    setKey, key,
+    setFeishuHook, feishuHook,
+    setQuoteToken, quoteToken,
+    setNewsKey, newsKey,
+    setMxnzpAppId, mxnzpAppId,
+    setMxnzpAppSecret, mxnzpAppSecret,
+    setTtsTargetUri, ttsTargetUri,
+    setTtsApiKey, ttsApiKey,
   } = useSettings();
 
   const [isVisible, setIsVisible] = useState(false);
@@ -69,6 +70,15 @@ const SettingsComponent: React.FC = () => {
 
   const DefaultSettings = () => {
 
+    const [language, setLanguage] = useState(localStorage.getItem('language') || 'chinese');
+    useEffect(() => {
+      localStorage.setItem('language', language);
+    }, [language]);
+
+    const [assistantType, setAssistantType] = useState(localStorage.getItem('assistantType') || ASSISTENT_TYPE_REALTIME);
+    useEffect(() => {
+      localStorage.setItem('assistantType', assistantType);
+    }, [assistantType]);
 
     const handleDropdownChange = (value: string) => {
       setLanguage(value);
@@ -82,16 +92,25 @@ const SettingsComponent: React.FC = () => {
     return <div>
 
       <div className="settings-label">Assistant Type</div>
-      <Dropdown options={supportedAssistantTypes} selectedValue={assistantTypeRef.current} onChange={handleAssistantTypeChange} />
+      <Dropdown options={supportedAssistantTypes} selectedValue={assistantType} onChange={handleAssistantTypeChange} />
 
       <div className="settings-label">Default Language</div>
-      <Dropdown options={supportedLanguages} selectedValue={languageRef.current} onChange={handleDropdownChange} />
+      <Dropdown options={supportedLanguages} selectedValue={language} onChange={handleDropdownChange} />
 
     </div>;
   };
 
   const SettingsRealtime = () => {
 
+    const [endpoint, setEndpoint] = useState(localStorage.getItem('endpoint') || '');
+    useEffect(() => {
+      localStorage.setItem('endpoint', endpoint);
+    }, [endpoint]);
+
+    const [key, setKey] = useState(localStorage.getItem('key') || '');
+    useEffect(() => {
+      localStorage.setItem('key', key);
+    }, [key]);
 
     const handleEndpointChange = (e: any) => {
       setEndpoint(e.target.value);
@@ -105,7 +124,7 @@ const SettingsComponent: React.FC = () => {
       <div className="settings-label">Target URI</div>
       <input type={'text'}
         className="settings-input"
-        value={endpointRef.current}
+        value={endpoint}
         placeholder={'https://xxx.openai.azure.com/openai/realtime?api-version=2024-10-01-preview&deployment=xxx'}
         onChange={handleEndpointChange} />
 
@@ -117,15 +136,67 @@ const SettingsComponent: React.FC = () => {
       </div>
       <input type={isVisible ? 'text' : 'password'}
         className="settings-input"
-        value={keyRef.current}
+        value={key}
         placeholder={''}
         onChange={handleKeyChange} />
 
     </div>;
   };
 
+  const SettingsTTS = () => {
+
+    const [ttsTargetUri, setTtsTargetUri] = useState(localStorage.getItem('ttsTargetUri') || '');
+    useEffect(() => {
+      localStorage.setItem('ttsTargetUri', ttsTargetUri);
+    }, [ttsTargetUri]);
+
+    const [ttsApiKey, setTtsApiKey] = useState(localStorage.getItem('ttsApiKey') || '');
+    useEffect(() => {
+      localStorage.setItem('ttsApiKey', ttsApiKey);
+    }, [ttsApiKey]);
+
+    const handleTtsTargetUriChange = (e: any) => {
+      setTtsTargetUri(e.target.value);
+    };
+
+    const handleTtsApiKeyChange = (e: any) => {
+      setTtsApiKey(e.target.value);
+    };
+
+    return <div>
+      <div className="settings-label">Target URI</div>
+      <input type={'text'}
+        className="settings-input"
+        value={ttsTargetUri}
+        placeholder={'https://xxxx.openai.azure.com/openai/deployments/tts/audio/speech?api-version=2024-05-01-preview'}
+        onChange={handleTtsTargetUriChange} />
+
+      <div className="settings-label">Key
+        <span
+          className="settings-label-show"
+          onClick={toggleVisibility}
+        >{isVisible ? <FaRegEye /> : <FaRegEyeSlash />}</span>
+      </div>
+      <input type={isVisible ? 'text' : 'password'}
+        className="settings-input"
+        value={ttsApiKey}
+        placeholder={''}
+        onChange={handleTtsApiKeyChange} />
+
+    </div>;
+  };
+
   const DALLE = () => {
 
+    const [dallTargetUri, setDallTargetUri] = useState(localStorage.getItem('dallTargetUri') || '');
+    useEffect(() => {
+      localStorage.setItem('dallTargetUri', dallTargetUri);
+    }, [dallTargetUri]);
+
+    const [dallApiKey, setDallApiKey] = useState(localStorage.getItem('dallApiKey') || '');
+    useEffect(() => {
+      localStorage.setItem('dallApiKey', dallApiKey);
+    }, [dallApiKey]);
 
     const handleDallTargetUriChange = (e: any) => {
       setDallTargetUri(e.target.value);
@@ -139,7 +210,7 @@ const SettingsComponent: React.FC = () => {
       <div className="settings-label">Target URI</div>
       <input type={'text'}
         className="settings-input"
-        value={dallTargetUriRef.current}
+        value={dallTargetUri}
         placeholder={'https://xxx.openai.azure.com/openai/deployments/dall-e-3/images/generations?api-version=2024-02-01'}
         onChange={handleDallTargetUriChange} />
 
@@ -151,7 +222,7 @@ const SettingsComponent: React.FC = () => {
       </div>
       <input type={isVisible ? 'text' : 'password'}
         className="settings-input"
-        value={dallApiKeyRef.current}
+        value={dallApiKey}
         placeholder={''}
         onChange={handleDallApiKeyChange} />
 
@@ -159,7 +230,32 @@ const SettingsComponent: React.FC = () => {
   };
 
   const GraphRAG = () => {
-  
+
+    const [graphragUrl, setGraphragUrl] = useState(localStorage.getItem('graphragUrl') || '');
+    useEffect(() => {
+      localStorage.setItem('graphragUrl', graphragUrl);
+    }, [graphragUrl]);
+
+    const [graphragApiKey, setGraphragApiKey] = useState(localStorage.getItem('graphragApiKey') || '');
+    useEffect(() => {
+      localStorage.setItem('graphragApiKey', graphragApiKey);
+    }, [graphragApiKey]);
+
+    const [graphragProjectName, setGraphragProjectName] = useState(localStorage.getItem('graphragProjectName') || '');
+    useEffect(() => {
+      localStorage.setItem('graphragProjectName', graphragProjectName);
+    }, [graphragProjectName]);
+
+    const [graphragAbout, setGraphragAbout] = useState(localStorage.getItem('graphragAbout') || '');
+    useEffect(() => {
+      localStorage.setItem('graphragAbout', graphragAbout);
+    }, [graphragAbout]);
+
+    const [graphragCache, setGraphragCache] = useState(localStorage.getItem('graphragCache') || 'Enable');
+    useEffect(() => {
+      localStorage.setItem('graphragCache', graphragCache);
+    }, [graphragCache]);
+
     const graphragCacheOptions = [
       { value: 'Enable', label: 'Enable' },
       { value: 'Disable', label: 'Disable' }
@@ -194,7 +290,7 @@ const SettingsComponent: React.FC = () => {
       <div className="settings-label">API URL</div>
       <input type={'text'}
         className="settings-input"
-        value={graphragUrlRef.current}
+        value={graphragUrl}
         placeholder={'https://xxx.xxx.xxx.azurecontainerapps.io'}
         onChange={handleGraphragUrlChange} />
 
@@ -206,30 +302,40 @@ const SettingsComponent: React.FC = () => {
       </div>
       <input type={isVisible ? 'text' : 'password'}
         className="settings-input"
-        value={graphragApiKeyRef.current}
+        value={graphragApiKey}
         placeholder={''}
         onChange={handleGraphragApiKeyChange} />
 
       <div className="settings-label">Project Name</div>
       <input type={'text'}
         className="settings-input"
-        value={graphragProjectNameRef.current}
+        value={graphragProjectName}
         placeholder={''}
         onChange={handleGraphragProjectNameChange} />
 
       <div className="settings-label">About</div>
       <input type={'text'}
         className="settings-input"
-        value={graphragAboutRef.current}
+        value={graphragAbout}
         placeholder={GRAPHRAG_ABOUT}
         onChange={handleGraphragAboutChange} />
 
       <div className="settings-label">API Cache</div>
-      <Dropdown options={graphragCacheOptions} selectedValue={graphragCacheRef.current} onChange={handleGraphragCacheChange} />
+      <Dropdown options={graphragCacheOptions} selectedValue={graphragCache} onChange={handleGraphragCacheChange} />
     </div>;
   };
 
   const Speech = () => {
+
+    const [cogSvcRegion, setCogSvcRegion] = useState(localStorage.getItem('cogSvcRegion') || '');
+    useEffect(() => {
+      localStorage.setItem('cogSvcRegion', cogSvcRegion);
+    }, [cogSvcRegion]);
+
+    const [cogSvcSubKey, setCogSvcSubKey] = useState(localStorage.getItem('cogSvcSubKey') || '');
+    useEffect(() => {
+      localStorage.setItem('cogSvcSubKey', cogSvcSubKey);
+    }, [cogSvcSubKey]);
 
     const handleCogSvcSubKeyChange = (e: any) => {
       setCogSvcSubKey(e.target.value);
@@ -239,13 +345,11 @@ const SettingsComponent: React.FC = () => {
       setCogSvcRegion(e.target.value);
     };
 
-
-
     return <div>
       <div className="settings-label">Region</div>
       <input type={'text'}
         className="settings-input"
-        value={cogSvcRegionRef.current}
+        value={cogSvcRegion}
         placeholder={'westus2'}
         onChange={handleCogSvcRegionChange} />
 
@@ -257,7 +361,7 @@ const SettingsComponent: React.FC = () => {
       </div>
       <input type={isVisible ? 'text' : 'password'}
         className="settings-input"
-        value={cogSvcSubKeyRef.current}
+        value={cogSvcSubKey}
         placeholder={''}
         onChange={handleCogSvcSubKeyChange} />
 
@@ -274,6 +378,16 @@ const SettingsComponent: React.FC = () => {
 
   const SettingsCompletion = () => {
 
+    const [completionTargetUri, setCompletionTargetUri] = useState(localStorage.getItem('completionTargetUri') || '');
+    useEffect(() => {
+      localStorage.setItem('completionTargetUri', completionTargetUri);
+    }, [completionTargetUri]);
+
+    const [completionApiKey, setCompletionApiKey] = useState(localStorage.getItem('completionApiKey') || '');
+    useEffect(() => {
+      localStorage.setItem('completionApiKey', completionApiKey);
+    }, [completionApiKey]);
+
     const handleCompletionTargetUriChange = (e: any) => {
       setCompletionTargetUri(e.target.value);
     };
@@ -286,7 +400,7 @@ const SettingsComponent: React.FC = () => {
       <div className="settings-label">Target URI</div>
       <input type={'text'}
         className="settings-input"
-        value={completionTargetUriRef.current}
+        value={completionTargetUri}
         placeholder={'https://xxxx.openai.azure.com/openai/deployments/gpt-4o-mini/chat/completions?api-version=2024-08-01-preview'}
         onChange={handleCompletionTargetUriChange} />
 
@@ -298,7 +412,7 @@ const SettingsComponent: React.FC = () => {
       </div>
       <input type={isVisible ? 'text' : 'password'}
         className="settings-input"
-        value={completionApiKeyRef.current}
+        value={completionApiKey}
         placeholder={''}
         onChange={handleCompletionApiKeyChange} />
 
@@ -306,16 +420,20 @@ const SettingsComponent: React.FC = () => {
   };
 
   const Prompt = () => {
-  
+
+    const [prompt, setPrompt] = useState(localStorage.getItem('prompt') || '');
+    useEffect(() => {
+      localStorage.setItem('prompt', prompt);
+    }, [prompt]);
+
     const handlePromptChange = (e: any) => {
       setPrompt(e.target.value);
     };
 
-
-    return <div>
+    return (<div>
       <textarea
         className="settings-input"
-        value={promptRef.current}
+        value={prompt}
         style={{ fontSize: '12px' }}
         placeholder={''}
         rows={20}
@@ -323,37 +441,162 @@ const SettingsComponent: React.FC = () => {
         onChange={handlePromptChange}
       />
       <div className="settings-label">Remaining Characters: {ALLOW_PROMPT_CHARACTERS - prompt.length}</div>
+    </div>);
+  };
+
+  const SettingsTokens = () => {
+
+    const [feishuHook, setFeishuHook] = useState(localStorage.getItem('feishuHook') || '');
+    useEffect(() => {
+      localStorage.setItem('feishuHook', feishuHook);
+    }, [feishuHook]);
+
+    const [quoteToken, setQuoteToken] = useState(localStorage.getItem('quoteToken') || '');
+    useEffect(() => {
+      localStorage.setItem('quoteToken', quoteToken);
+    }, [quoteToken]);
+
+    const [newsKey, setNewsKey] = useState(localStorage.getItem('newsKey') || '');
+    useEffect(() => {
+      localStorage.setItem('newsKey', newsKey);
+    }, [newsKey]);
+
+    const [mxnzpAppId, setMxnzpAppId] = useState(localStorage.getItem('mxnzpAppId') || '');
+    useEffect(() => {
+      localStorage.setItem('mxnzpAppId', mxnzpAppId);
+    }, [mxnzpAppId]);
+
+    const [mxnzpAppSecret, setMxnzpAppSecret] = useState(localStorage.getItem('mxnzpAppSecret') || '');
+    useEffect(() => {
+      localStorage.setItem('mxnzpAppSecret', mxnzpAppSecret);
+    }, [mxnzpAppSecret]);
+
+    const handleFeishuHookChange = (e: any) => {
+      setFeishuHook(e.target.value);
+    };
+
+    const handleQuoteTokenChange = (e: any) => {
+      setQuoteToken(e.target.value);
+    };
+
+    const handleNewsKeyChange = (e: any) => {
+      setNewsKey(e.target.value);
+    };
+
+
+
+    const handleMxnzpAppIdChange = (e: any) => {
+      setMxnzpAppId(e.target.value);
+    };
+
+    const handleMxnzpAppSecretChange = (e: any) => {
+      setMxnzpAppSecret(e.target.value);
+    };
+
+
+    return <div>
+
+      <div className="settings-label">
+        <a href="https://open.feishu.cn/open-apis/bot/v2/hook/xxx" target="_blank">Feishu Bot</a>
+        <span
+          className="settings-label-show"
+          onClick={toggleVisibility}
+        >{isVisible ? <FaRegEye /> : <FaRegEyeSlash />}</span>
+      </div>
+      <input type={isVisible ? 'text' : 'password'}
+        className="settings-input"
+        value={feishuHook}
+        placeholder={''}
+        onChange={handleFeishuHookChange} />
+
+      <div className="settings-label">
+        <a href="https://finnhub.io/" target="_blank">Finnhub</a>
+        <span
+          className="settings-label-show"
+          onClick={toggleVisibility}
+        >{isVisible ? <FaRegEye /> : <FaRegEyeSlash />}</span>
+      </div>
+      <input type={isVisible ? 'text' : 'password'}
+        className="settings-input"
+        value={quoteToken}
+        placeholder={''}
+        onChange={handleQuoteTokenChange} />
+
+      <div className="settings-label">
+        <a href="https://www.showapi.com/" target="_blank">News</a>
+        <span
+          className="settings-label-show"
+          onClick={toggleVisibility}
+        >{isVisible ? <FaRegEye /> : <FaRegEyeSlash />}</span>
+      </div>
+      <input type={isVisible ? 'text' : 'password'}
+        className="settings-input"
+        value={newsKey}
+        placeholder={''}
+        onChange={handleNewsKeyChange} />
+
+      <div className="settings_inline">
+
+        <div className="block">
+          <div className="settings-label">
+            <a href="https://www.mxnzp.com/" target="_blank">Mxnzp AppId</a>
+          </div>
+          <input type={'text'}
+            className="settings-input"
+            value={mxnzpAppId}
+            placeholder={''}
+            onChange={handleMxnzpAppIdChange} />
+        </div>
+
+        <div className="block">
+          <div className="settings-label">
+            <a href="https://www.mxnzp.com/" target="_blank">Mxnzp AppSecret</a>
+            <span
+              className="settings-label-show"
+              onClick={toggleVisibility}
+            >{isVisible ? <FaRegEye /> : <FaRegEyeSlash />}</span>
+          </div>
+          <input type={isVisible ? 'text' : 'password'}
+            className="settings-input"
+            value={mxnzpAppSecret}
+            placeholder={''}
+            onChange={handleMxnzpAppSecretChange} />
+        </div>
+
+      </div>
     </div>;
+
   };
 
   const handleExport = () => {
     // get all settings to json obejct and base64 encode
     const settings = {
-      endpoint: endpointRef.current,
-      key: keyRef.current,
-      completionTargetUri: completionTargetUriRef.current,
-      completionApiKey: completionApiKeyRef.current,
-      cogSvcRegion: cogSvcRegionRef.current,
-      cogSvcSubKey: cogSvcSubKeyRef.current,
-      dallTargetUri: dallTargetUriRef.current,
-      dallApiKey: dallApiKeyRef.current,
+      endpoint: endpoint,
+      key: key,
+      completionTargetUri: completionTargetUri,
+      completionApiKey: completionApiKey,
+      cogSvcRegion: cogSvcRegion,
+      cogSvcSubKey: cogSvcSubKey,
+      dallTargetUri: dallTargetUri,
+      dallApiKey: dallApiKey,
+      graphragUrl: graphragUrl,
+      graphragApiKey: graphragApiKey,
+      graphragProjectName: graphragProjectName,
+      graphragCache: graphragCache,
+      graphragAbout: graphragAbout,
 
-      graphragUrl: graphragUrlRef.current,
-      graphragApiKey: graphragApiKeyRef.current,
-      graphragProjectName: graphragProjectNameRef.current,
-      graphragCache: graphragCacheRef.current,
-      graphragAbout: graphragAboutRef.current,
+      assistantType: assistantType,
+      language: language,
+      prompt: prompt,
 
-      assistantTypeRef: assistantTypeRef.current,
-      language: languageRef.current,
-      prompt: promptRef.current,
+      feishuHook: feishuHook,
+      quoteToken: quoteToken,
+      newsKey: newsKey,
+      mxnzpAppId: mxnzpAppId,
+      mxnzpAppSecret: mxnzpAppSecret,
 
-      feishuHook: feishuHookRef.current,
-      quoteToken: quoteTokenRef.current,
-      newsKey: newsKeyRef.current,
-      mxnzpAppId: mxnzpAppIdRef.current,
-      mxnzpAppSecret: mxnzpAppSecretRef.current,
-      
+      ttsTargetUri: ttsTargetUri,
+      ttsApiKey: ttsApiKey,
     };
     const content = JSON.stringify(settings, null, 2);
     const blob = new Blob([content], { type: 'application/json' });
@@ -413,8 +656,13 @@ const SettingsComponent: React.FC = () => {
 
         setPrompt(settings.prompt);
 
+        setTtsApiKey(settings.ttsApiKey);
+        setTtsTargetUri(settings.ttsTargetUri);
+
         alert('Import success, Page will reload.');
-     
+
+        window.location.reload();
+
       } catch (error) {
         console.error(`import error: ${error}`);
       }
@@ -459,111 +707,12 @@ const SettingsComponent: React.FC = () => {
     </div>;
   };
 
-  const SettingsTokens = () => {
-   
-
-    const handleFeishuHookChange = (e: any) => {
-      setFeishuHook(e.target.value);
-    };
-
-    const handleQuoteTokenChange = (e: any) => {
-      setQuoteToken(e.target.value);
-    };
-
-    const handleNewsKeyChange = (e: any) => {
-      setNewsKey(e.target.value);
-    };
-
-
-
-    const handleMxnzpAppIdChange = (e: any) => {
-      setMxnzpAppId(e.target.value);
-    };
-
-    const handleMxnzpAppSecretChange = (e: any) => {
-      setMxnzpAppSecret(e.target.value);
-    };
-
-
-    return <div>
-
-      <div className="settings-label">
-        <a href="https://open.feishu.cn/open-apis/bot/v2/hook/xxx" target="_blank">Feishu Bot</a>
-        <span
-          className="settings-label-show"
-          onClick={toggleVisibility}
-        >{isVisible ? <FaRegEye /> : <FaRegEyeSlash />}</span>
-      </div>
-      <input type={isVisible ? 'text' : 'password'}
-        className="settings-input"
-        value={feishuHookRef.current}
-        placeholder={''}
-        onChange={handleFeishuHookChange} />
-
-      <div className="settings-label">
-        <a href="https://finnhub.io/" target="_blank">Finnhub</a>
-        <span
-          className="settings-label-show"
-          onClick={toggleVisibility}
-        >{isVisible ? <FaRegEye /> : <FaRegEyeSlash />}</span>
-      </div>
-      <input type={isVisible ? 'text' : 'password'}
-        className="settings-input"
-        value={quoteTokenRef.current}
-        placeholder={''}
-        onChange={handleQuoteTokenChange} />
-
-      <div className="settings-label">
-        <a href="https://www.showapi.com/" target="_blank">News</a>
-        <span
-          className="settings-label-show"
-          onClick={toggleVisibility}
-        >{isVisible ? <FaRegEye /> : <FaRegEyeSlash />}</span>
-      </div>
-      <input type={isVisible ? 'text' : 'password'}
-        className="settings-input"
-        value={newsKeyRef.current}
-        placeholder={''}
-        onChange={handleNewsKeyChange} />
-
-      <div className="settings_inline">
-
-        <div className="block">
-          <div className="settings-label">
-            <a href="https://www.mxnzp.com/" target="_blank">Mxnzp AppId</a>
-          </div>
-          <input type={'text'}
-            className="settings-input"
-            value={mxnzpAppIdRef.current}
-            placeholder={''}
-            onChange={handleMxnzpAppIdChange} />
-        </div>
-
-        <div className="block">
-          <div className="settings-label">
-            <a href="https://www.mxnzp.com/" target="_blank">Mxnzp AppSecret</a>
-            <span
-              className="settings-label-show"
-              onClick={toggleVisibility}
-            >{isVisible ? <FaRegEye /> : <FaRegEyeSlash />}</span>
-          </div>
-          <input type={isVisible ? 'text' : 'password'}
-            className="settings-input"
-            value={mxnzpAppSecretRef.current}
-            placeholder={''}
-            onChange={handleMxnzpAppSecretChange} />
-        </div>
-
-      </div>
-    </div>;
-
-  };
-
   const DEFAULT = 'Default';
   const REAL_TIME_API = 'Realtime';
   const DALL_E = 'Dall-E-3';
   const GRAPHRAG = 'GraphRAG';
   const SPEECH = 'Speech';
+  const TTS = 'TTS';
   const COMPLETION = 'Completion';
   const TOKENS = 'Third-party API';
   const PROMPT = 'Prompt';
@@ -579,6 +728,8 @@ const SettingsComponent: React.FC = () => {
         return <SettingsRealtime />;
       case SPEECH:
         return <Speech />;
+      case TTS:
+        return <SettingsTTS />;
       case GRAPHRAG:
         return <GraphRAG />;
       case DALL_E:
@@ -637,6 +788,8 @@ const SettingsComponent: React.FC = () => {
                   className={activeTab === REAL_TIME_API ? 'active' : ''}>{REAL_TIME_API}</button>
                 <button onClick={() => setActiveTab(SPEECH)}
                   className={activeTab === SPEECH ? 'active' : ''}>{SPEECH}</button>
+                <button onClick={() => setActiveTab(TTS)}
+                  className={activeTab === TTS ? 'active' : ''}>{TTS}</button>
                 <button onClick={() => setActiveTab(COMPLETION)}
                   className={activeTab === COMPLETION ? 'active' : ''}>{COMPLETION}</button>
                 <button onClick={() => setActiveTab(DALL_E)}

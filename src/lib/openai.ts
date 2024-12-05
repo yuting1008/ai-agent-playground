@@ -1,6 +1,27 @@
 import { AzureOpenAI } from 'openai';
 
 
+export const getOpenAIClientSSt = (ttsApiKey: string, ttsTargetUri: string) => {
+
+  if (!ttsApiKey || !ttsTargetUri) {
+    return null;
+  }
+
+  const urlInfo = extractUrlInfo(ttsTargetUri);
+  const deployment = urlInfo?.deployment;
+  const endpoint = urlInfo?.endpoint;
+  const apiVersion = urlInfo?.apiVersion;
+
+  return new AzureOpenAI({
+    endpoint: endpoint,
+    apiVersion: apiVersion,
+    apiKey: ttsApiKey,
+    deployment: deployment,
+    dangerouslyAllowBrowser: true
+  });
+
+};
+
 export const getOpenAIClient = () => {
   const completionApiKey = localStorage.getItem('completionApiKey') || '';
   const completionTargetUri = localStorage.getItem('completionTargetUri') || '';
