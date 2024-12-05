@@ -74,8 +74,6 @@ export const RealtimeProvider: React.FC<{ children: ReactNode }> = ({ children }
   const wavStreamPlayerRef = useRef<WavStreamPlayer>(
     new WavStreamPlayer({ sampleRate: 24000 })
   );
-
-
   
   /**
    * All of our variables for displaying application state

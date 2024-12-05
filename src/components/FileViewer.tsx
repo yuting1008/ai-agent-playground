@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import styles from './FileViewer.module.css';
 import { getOpenAIClient } from '../lib/openai';
 import { useContexts } from '../providers/AppProvider';
+import { Assistant } from 'openai/resources/beta/assistants';
 
 const TrashIcon = () => (
   <svg
@@ -20,31 +21,6 @@ const TrashIcon = () => (
   </svg>
 );
 
-const getOrCreateVectorStore = async (assistantId: string) => {
-
-  if (!assistantId) {
-    alert('No assistant ID found');
-  }
-
-  const assistant = await getOpenAIClient().beta.assistants.retrieve(assistantId);
-
-  // if the assistant already has a vector store, return it
-  if (assistant.tool_resources?.file_search?.vector_store_ids?.length && assistant.tool_resources.file_search.vector_store_ids.length > 0) {
-    return assistant.tool_resources.file_search.vector_store_ids[0];
-  }
-  // otherwise, create a new vector store and attatch it to the assistant
-  const vectorStore = await getOpenAIClient().beta.vectorStores.create({
-    name: 'sample-assistant-vector-store'
-  });
-  await getOpenAIClient().beta.assistants.update(assistantId, {
-    tool_resources: {
-      file_search: {
-        vector_store_ids: [vectorStore.id]
-      }
-    }
-  });
-  return vectorStore.id;
-};
 
 
 const FileViewer = () => {
@@ -52,22 +28,48 @@ const FileViewer = () => {
 
   const { assistantRef } = useContexts();
 
+  const getOrCreateVectorStore = async () => {
+
+    if (!assistantRef?.current){
+      return '';
+    }
+  
+    // if the assistant already has a vector store, return it
+    if (assistantRef?.current.tool_resources?.file_search?.vector_store_ids?.length && assistantRef?.current.tool_resources.file_search.vector_store_ids.length > 0) {
+      return assistantRef?.current.tool_resources.file_search.vector_store_ids[0];
+    }
+    // otherwise, create a new vector store and attatch it to the assistant
+    const vectorStore = await getOpenAIClient().beta.vectorStores.create({
+      name: 'sample-assistant-vector-store'
+    });
+    await getOpenAIClient().beta.assistants.update(assistantRef?.current.id, {
+      tool_resources: {
+        file_search: {
+          vector_store_ids: [vectorStore.id]
+        }
+      }
+    });
+    return vectorStore.id;
+  };
+  
+
   useEffect(() => {
 
     const interval = setInterval(() => {
-      fetchFiles(assistantRef?.current?.id);
-    }, 1000);
+      fetchFiles();
+    }, 2000);
 
     return () => clearInterval(interval);
   }, []);
 
   // list files in assistant's vector store
-  const fetchFiles = async (assistantId: string) => {
-    if (!assistantId) {
+  const fetchFiles = async () => {
+
+    if (!assistantRef?.current){
       return;
     }
 
-    const vectorStoreId = await getOrCreateVectorStore(assistantId); // get or create vector store
+    const vectorStoreId = await getOrCreateVectorStore(); // get or create vector store
     const fileList = await getOpenAIClient().beta.vectorStores.files.list(vectorStoreId);
 
     const filesArray = await Promise.all(
@@ -90,7 +92,7 @@ const FileViewer = () => {
 
   // delete file from assistant's vector store
   const handleFileDelete = async (fileId: string) => {
-    const vectorStoreId = await getOrCreateVectorStore(assistantRef.current.id); // get or create vector store
+    const vectorStoreId = await getOrCreateVectorStore(); // get or create vector store
     await getOpenAIClient().beta.vectorStores.files.del(vectorStoreId, fileId); // delete file from vector store
   };
 
@@ -100,7 +102,7 @@ const FileViewer = () => {
     const file = event.target.files[0];
 
     try {
-      const vectorStoreId = await getOrCreateVectorStore(assistantRef.current.id);
+      const vectorStoreId = await getOrCreateVectorStore();
 
       // upload using the file stream
       const openaiFile = await getOpenAIClient().files.create({

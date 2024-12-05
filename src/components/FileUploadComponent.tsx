@@ -67,9 +67,8 @@ const FileUploadComponent: React.FC = () => {
 
       console.log('content', content.length);
 
-      realtimeClientRef?.current.updateSession({
-        instructions: updateDataFile(content)
-      });
+      updateDataFile(content);
+      
       console.log('update instructions');
 
       realtimeClientRef?.current.sendUserMessageContent([

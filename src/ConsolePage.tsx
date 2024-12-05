@@ -4,7 +4,6 @@ import { ItemType, ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dis
 import { WavRecorder } from './lib/wavtools';
 import { clientHiChinese, clientHiEnglish, notDisplay, products } from './lib/const';
 
-
 import { Mic, X, Zap } from 'react-feather';
 import { Button } from './components/button/Button';
 import { Toggle } from './components/toggle/Toggle';
@@ -12,7 +11,6 @@ import './ConsolePage.scss';
 import ReactMarkdown from 'react-markdown';
 import Markdown from 'react-markdown';
 import Camera from './components/Camera';
-
 
 import SettingsComponent from './components/Settings';
 import FileUploadComponent from './components/FileUploadComponent';
@@ -27,7 +25,6 @@ import { useAvatar } from './providers/AvatarProvider';
 import { useRealtime } from './providers/RealtimeProvider';
 import { InputBar } from './components/InputBar';
 import AudioVisualization from './components/AudioVisualization';
-import Loading from './pages/Loading';
 
 
 type AssistantMessageProps = {
@@ -94,18 +91,24 @@ interface RealtimeEvent {
 
 export function ConsolePage() {
 
-
-  const { messagesAssistant } = useAssistant();
-  const { wavRecorderRef, wavStreamPlayerRef } = useRealtime();
-  const { isConnected, setIsConnected } = useRealtime();
-  const { setIsConnecting } = useRealtime();
-  const { functions_tools_ref } = useContexts();
-  const { isConnecting, connectMessage, setConnectMessage, deleteConversationItem, changeTurnEndType, isRecording, canPushToTalk, startRecording, stopRecording } = useRealtime();
-
+  const {
+    isConnecting, setIsConnecting,
+    connectMessage, setConnectMessage,
+    deleteConversationItem,
+    changeTurnEndType,
+    isRecording,
+    canPushToTalk,
+    isConnected, setIsConnected,
+    wavRecorderRef,
+    wavStreamPlayerRef,
+    startRecording,
+    items, setItems, setRealtimeEvents,
+    stopRecording } = useRealtime();
 
   const {
-    isAvatarStarted,
+    isAvatarStarted, isAvatarStartedRef,
     realtimeInstructions,
+    functionsToolsRef,
     realtimeClientRef } = useContexts();
 
   const {
@@ -116,24 +119,16 @@ export function ConsolePage() {
     language,
   } = useSettings();
 
-  const { setupAssistant, createThread } = useAssistant();
-
+  const { setupAssistant, createThread, messagesAssistant } = useAssistant();
   const { speakAvatar, processAndStoreSentence, stopAvatarSpeaking } = useAvatar();
 
-
-
   const startTimeRef = useRef<string>(new Date().toISOString());
-
-
-  const { items, setItems, setRealtimeEvents } = useRealtime();
-
 
   /**
    * Connect to conversation:
    * WavRecorder tasK speech input, WavStreamPlayer output, client is API client
    */
   const connectConversation = useCallback(async () => {
-
 
     if (isAssistant) {
       setIsConnecting(true);
@@ -156,8 +151,6 @@ export function ConsolePage() {
       return;
     }
 
-
-
     if (!endpoint) {
       setIsConnected(false);
       setIsConnecting(false);
@@ -173,13 +166,10 @@ export function ConsolePage() {
     }
 
     setIsConnecting(true);
-    const client = realtimeClientRef.current;
-    const wavRecorder = wavRecorderRef.current;
-    const wavStreamPlayer = wavStreamPlayerRef.current;
 
     // Connect to realtime API
     try {
-      await client.connect();
+      await realtimeClientRef.current.connect();
     } catch (e: any) {
       console.error(e);
       const tip = `链接失败，如果您确定配置信息无误，可能是由于网络问题。
@@ -195,30 +185,28 @@ export function ConsolePage() {
       return;
     }
 
-
     // Set state variables
     startTimeRef.current = new Date().toISOString();
     setIsConnected(true);
     setIsConnecting(false);
     setRealtimeEvents([]);
-    setItems(client.conversation.getItems());
+    setItems(realtimeClientRef.current.conversation.getItems());
 
     // Connect to microphone
-    await wavRecorder.begin();
+    await wavRecorderRef.current.begin();
 
     // Connect to audio output
-    await wavStreamPlayer.connect();
+    await wavStreamPlayerRef.current.connect();
 
-
-    client.sendUserMessageContent([
+    realtimeClientRef.current.sendUserMessageContent([
       {
         type: `input_text`,
         text: language === 'chinese' ? clientHiChinese : clientHiEnglish
       }
     ]);
 
-    if (client.getTurnDetectionType() === 'server_vad') {
-      await wavRecorder.record((data) => client.appendInputAudio(data.mono));
+    if (realtimeClientRef.current.getTurnDetectionType() === 'server_vad') {
+      await wavRecorderRef.current.record((data) => realtimeClientRef.current.appendInputAudio(data.mono));
     }
   }, []);
 
@@ -228,16 +216,6 @@ export function ConsolePage() {
   const disconnectConversation = useCallback(async () => {
     window.location.reload();
   }, []);
-
-
-  /**
-   * Whether to use the avatar
-   */
-  function shouldUseRealTimeAudio() {
-    return !isAvatarStarted;
-  }
-
-
 
   /**
    * Core RealtimeClient and audio capture setup
@@ -256,7 +234,7 @@ export function ConsolePage() {
     client.updateSession({ voice: 'echo' });
 
     // Add tools
-    functions_tools_ref.current.forEach(([definition, handler]: [ToolDefinitionType, Function]) => {
+    functionsToolsRef.current.forEach(([definition, handler]: [ToolDefinitionType, Function]) => {
       client.addTool(definition, handler);
     });
 
@@ -273,7 +251,6 @@ export function ConsolePage() {
         }
       });
     });
-
 
     client.on('error', (event: any) => {
       console.error(event);
@@ -298,7 +275,7 @@ export function ConsolePage() {
 
     client.on('conversation.updated', async ({ item, delta }: any) => {
 
-      if (item.object === 'realtime.item' && item.type === 'message' && item.role === 'assistant' && !shouldUseRealTimeAudio()) {
+      if (item.object === 'realtime.item' && item.type === 'message' && item.role === 'assistant' && isAvatarStartedRef.current) {
         const sentences = processAndStoreSentence(item.id, item.formatted.transcript);
         for (const sentence of sentences) {
           if (sentence.exists === false) {
@@ -310,7 +287,7 @@ export function ConsolePage() {
 
       const items = client.conversation.getItems();
       if (delta?.audio) {
-        if (shouldUseRealTimeAudio()) {
+        if (!isAvatarStartedRef.current) {
           wavStreamPlayer.add16BitPCM(delta.audio, item.id);
         }
       }
@@ -397,16 +374,14 @@ export function ConsolePage() {
     assistantScrollToBottom();
   }, [messagesAssistant]);
 
-
-
   /**
    * Render the application
    */
   return (
     <div data-component="ConsolePage">
 
-      <Loading />
-      
+    
+
       <div className="content-top">
         <div className="content-title"><img src="/logomark.svg" alt="logo" /><h1>AI Agent Playground</h1></div>
         <span className="copyright">PRC STU Azure Team</span>

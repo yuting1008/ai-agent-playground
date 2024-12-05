@@ -2,9 +2,9 @@ import React from 'react';
 import { useContexts } from '../providers/AppProvider';
 
 const Loading: React.FC = () => {
-  const { loadingRef } = useContexts();
+  const { loading } = useContexts();
 
-  if (!loadingRef.current) return null;
+  if (!loading) return null;
 
   return (
     <div style={popupStyles}>

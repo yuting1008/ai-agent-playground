@@ -100,10 +100,10 @@ export const SttProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     };
 
     // Speech Ended / Silence
-    newRecognizer.speechEndDetected = () => {
-      console.log('Silence detected. Stopping recognition.');
-      sttStopRecognition();
-    };
+    // newRecognizer.speechEndDetected = () => {
+    //   console.log('Silence detected. Stopping recognition.');
+    //   sttStopRecognition();
+    // };
 
     newRecognizer.canceled = (s, e) => {
       console.error(`Canceled: ${e.reason}`);
@@ -132,7 +132,6 @@ export const SttProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     if (sttRecognizerRef.current) {
       sttRecognizerRef.current.stopContinuousRecognitionAsync(() => {
         console.log('Recognition stopped.');
-        // setTranscript((prev) => `${prev}\n--- Recognition Stopped ---\n`);
         setSttRecognizer(null);
         setSttRecognizerConnecting(false);
       });

@@ -5,8 +5,9 @@ import { AssistantStream } from 'openai/lib/AssistantStream';
 // @ts-expect-error - no types for this yet
 import { AssistantStreamEvent } from 'openai/resources/beta/assistants/assistants';
 import { useAvatar } from './AvatarProvider';
-import { AssistantCreateParams } from 'openai/resources/beta/assistants';
+import { Assistant, AssistantCreateParams } from 'openai/resources/beta/assistants';
 import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
+import { useSettings } from './SettingsProvider';
 
 interface AssistantContextType {
   messagesAssistant: any[];
@@ -34,8 +35,8 @@ export const AssistantProvider: React.FC<{ children: ReactNode }> = ({ children 
   const {
 
     assistantResponseBufferRef, setAssistantResponseBuffer
-    
-     } = useContexts();
+
+  } = useContexts();
 
   // ------------------------ vars ------------------------
   // messagesAssistant
@@ -52,7 +53,8 @@ export const AssistantProvider: React.FC<{ children: ReactNode }> = ({ children 
     assistantRunningRef.current = assistantRunning;
   }, [assistantRunning]);
 
-  const { functions_tools_ref } = useContexts();
+  const { functionsToolsRef } = useContexts();
+  const { realtimeInstructions } = useContexts();
 
   // ------------------------ functions ------------------------
   const setupAssistant = async () => {
@@ -62,9 +64,9 @@ export const AssistantProvider: React.FC<{ children: ReactNode }> = ({ children 
       //   console.log(`Assistant already exists: ${assistantId}`);
       //   return;
       // }
-      const prompt = localStorage.getItem('prompt') || 'You are a helpful assistant.';
+
       const params: AssistantCreateParams = {
-        instructions: prompt,
+        instructions: realtimeInstructions,
         name: 'Quickstart Assistant',
         temperature: 1,
         top_p: 1,
@@ -75,11 +77,11 @@ export const AssistantProvider: React.FC<{ children: ReactNode }> = ({ children 
         ]
       };
 
-      functions_tools_ref.current.forEach(([definition, handler]: [ToolDefinitionType, Function]) => {
+      functionsToolsRef.current.forEach(([definition, handler]: [ToolDefinitionType, Function]) => {
         params.tools?.push({ type: 'function', function: definition });
       });
 
-      const assistant = await getOpenAIClient().beta.assistants.create(params);
+      const assistant: Assistant = await getOpenAIClient().beta.assistants.create(params);
       console.log(`Assistant created: ${JSON.stringify(assistant)}`);
       setAssistant(assistant);
     } catch (error: any) {
@@ -91,9 +93,8 @@ export const AssistantProvider: React.FC<{ children: ReactNode }> = ({ children 
   const functionCallHandler = async (call: any) => {
     console.log('function call', call);
     const args = JSON.parse(call.function.arguments);
-    const tools = functions_tools_ref.current;
 
-    for (const [definition, handler] of tools) {
+    for (const [definition, handler] of functionsToolsRef.current) {
       if (definition.name === call?.function?.name) {
         return JSON.stringify(await handler({ ...args }));
       }
@@ -182,19 +183,19 @@ export const AssistantProvider: React.FC<{ children: ReactNode }> = ({ children 
   const handleAssistantRequiresAction = async (
     event: AssistantStreamEvent.ThreadRunRequiresAction
   ) => {
+    setLoading(true);
     const runId = event.data.id;
     const toolCalls = event.data.required_action.submit_tool_outputs.tool_calls;
     // loop over tool calls and call function handler
     const toolCallOutputs = await Promise.all(
       toolCalls.map(async (toolCall: any) => {
-        setLoading(true);
         const result = await functionCallHandler(toolCall);
-        setLoading(false);
         return { output: result, tool_call_id: toolCall.id };
       })
     );
     setAssistantRunning(true);
     submitAssistantActionResult(runId, toolCallOutputs);
+    setLoading(false);
   };
 
   // handleRunCompleted - re-enable the input form
@@ -285,9 +286,14 @@ export const AssistantProvider: React.FC<{ children: ReactNode }> = ({ children 
         setThreadJob(null);
       }
 
-      if (event.event === 'thread.run.requires_action')
+      if (event.event === 'thread.run.requires_action') {
         handleAssistantRequiresAction(event);
-      if (event.event === 'thread.run.completed') handleAssistantRunCompleted();
+      }
+
+      if (event.event === 'thread.run.completed') {
+        handleAssistantRunCompleted();
+      }
+
     });
   };
 
@@ -298,7 +304,7 @@ export const AssistantProvider: React.FC<{ children: ReactNode }> = ({ children 
     });
 
     const stream = getOpenAIClient().beta.threads.runs.stream(threadRef.current?.id, {
-      assistant_id: assistantRef.current.id
+      assistant_id: assistantRef?.current?.id || ''
     });
 
     const new_stream = AssistantStream.fromReadableStream(stream.toReadableStream());
@@ -314,9 +320,7 @@ export const AssistantProvider: React.FC<{ children: ReactNode }> = ({ children 
       setupAssistant,
       stopCurrentStreamJob,
       createThread,
-      assistantRunning,
-      assistantRunningRef,
-      setAssistantRunning,
+      assistantRunning, assistantRunningRef, setAssistantRunning,
       sendAssistantMessage
     }}>
       {children}

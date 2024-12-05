@@ -16,8 +16,6 @@ const AvatarContext = createContext<AvatarContextType | undefined>(undefined);
 export const AvatarProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { avatarSynthesizerRef, setIsAvatarSpeaking, avatarSpeechSentencesArrayRef, setAvatarSpeechSentencesArray } = useContexts();
 
-
-
   const speakAvatar = async (spokenText: string) => {
     if (!avatarSynthesizerRef.current) return;
 

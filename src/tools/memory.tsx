@@ -21,12 +21,3 @@ export const definition: ToolDefinitionType = {
   }
 };
 
-export const handler: Function = async ({ key, value }: { [key: string]: any }) => {
-  const { setMemoryKv } = useContexts();
-  setMemoryKv((memoryKv) => {
-    const newKv = { ...memoryKv };
-    newKv[key] = value;
-    return newKv;
-  });
-  return { ok: true };
-};

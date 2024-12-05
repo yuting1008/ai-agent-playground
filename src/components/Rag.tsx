@@ -18,19 +18,8 @@ const RagComponent: React.FC<ChildComponentProps> = ({ client }) => {
 
 
   useEffect(() => {
-
-    if (client.isConnected()) {
-      console.log('update instructions');
-      client.updateSession({
-        instructions: isCameraOn ? replaceInstructions('现在我的摄像头是关闭的', '现在我的摄像头打开的')
-          : replaceInstructions('现在我的摄像头打开的', '现在我的摄像头是关闭的')
-      });
-
-
-    } else {
-      console.log('client is not connected, not update instructions');
-    }
-
+    isCameraOn ? replaceInstructions('现在我的摄像头是关闭的', '现在我的摄像头打开的')
+      : replaceInstructions('现在我的摄像头打开的', '现在我的摄像头是关闭的')
   }, [isCameraOn]);
 
 

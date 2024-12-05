@@ -119,7 +119,7 @@ const LocalStorageViewer: React.FC = () => {
                 <tr key='photosRef'><td className={styles.tdKey}>photosRef</td><td className={styles.tdValue}>{photosRef.current.length}</td></tr>
                 <tr key='photosRefSize'><td className={styles.tdKey}>photosRefSize</td><td className={styles.tdValue}>{getStringArraySizeUtf8InMB(photosRef.current)} MB</td></tr>
                 
-                <tr key='assistantRef'><td className={styles.tdKey}>assistantRef</td><td className={styles.tdValue}>{JSON.stringify(assistantRef.current)}</td></tr>
+                <tr key='assistantRef.id'><td className={styles.tdKey}>assistantRef</td><td className={styles.tdValue}>{assistantRef?.current?.id}</td></tr>
                 <tr key='threadRef'><td className={styles.tdKey}>threadRef</td><td className={styles.tdValue}>{JSON.stringify(threadRef.current)}</td></tr>
                 <tr key='threadJobRef'><td className={styles.tdKey}>threadJobRef</td><td className={styles.tdValue}>{JSON.stringify(threadJobRef.current)}</td></tr>
                 <tr key='assistantResponseBufferRef'><td className={styles.tdKey}>assistantResponseBufferRef</td><td className={styles.tdValue}>{assistantResponseBufferRef.current}</td></tr>

@@ -11,6 +11,7 @@ import * as order_get from '../tools/order_get';
 import * as order_return from '../tools/order_return';
 import * as dark from '../tools/dark';
 import * as news from '../tools/news';
+import * as douyin from '../tools/douyin';
 import * as location from '../tools/location';
 import * as stock_recommend from '../tools/stock_recommend';
 import * as products_recommend from '../tools/products_recommend';
@@ -27,6 +28,10 @@ import * as exchange_rate_aim from '../tools/exchange_rate_aim';
 import * as exchange_rate_list from '../tools/exchange_rate_list';
 import * as exchange_rate_configs from '../tools/exchange_rate_configs';
 import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
+import { CAMERA_PHOTO_LIMIT } from '../lib/const';
+import { getCompletion, getOpenAIClient } from '../lib/openai';
+import { delayFunction } from '../lib/helper';
+import { Assistant } from 'openai/resources/beta/assistants';
 
 
 interface AppContextType {
@@ -68,9 +73,9 @@ interface AppContextType {
   setRealtimeInstructions: React.Dispatch<React.SetStateAction<string>>;
   replaceInstructions: (source: string | RegExp, target: string) => string;
 
-  assistant: string;
-  assistantRef: React.MutableRefObject<any | null>;
-  setAssistant: React.Dispatch<React.SetStateAction<any | null>>;
+  assistant: Assistant | null;
+  assistantRef: React.MutableRefObject<Assistant | null>;
+  setAssistant: React.Dispatch<React.SetStateAction<Assistant | null>>;
 
   isNightMode: boolean;
   isNightModeRef: React.MutableRefObject<boolean>;
@@ -109,7 +114,7 @@ interface AppContextType {
   isWebcamReadyRef: React.MutableRefObject<boolean>;
   setIsWebcamReady: React.Dispatch<React.SetStateAction<boolean>>;
 
-  functions_tools_ref: React.MutableRefObject<any>;
+  functionsToolsRef: React.MutableRefObject<[ToolDefinitionType, Function][]>;
 }
 
 const IS_DEBUG: boolean = window.location.href.includes('localhost');
@@ -141,14 +146,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     console.log(`iseWebcamReady: ${isWebcamReadyRef?.current}`);
 
-    if (realtimeClientRef?.current?.isConnected()) {
-      console.log('update instructions');
-      realtimeClientRef?.current.updateSession({
-        instructions: isCameraOnRef?.current ? replaceInstructions('现在我的摄像头是关闭的', '现在我的摄像头打开的') : replaceInstructions('现在我的摄像头打开的', '现在我的摄像头是关闭的')
-      });
-    } else {
-      console.log('client is not connected, not update instructions');
-    }
+    isCameraOnRef?.current ? replaceInstructions('现在我的摄像头是关闭的', '现在我的摄像头打开的') 
+        : replaceInstructions('现在我的摄像头打开的', '现在我的摄像头是关闭的')
 
   }, [isWebcamReady]);
 
@@ -185,14 +184,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const isAvatarStartedRef = useRef(isAvatarStarted);
   useEffect(() => {
     isAvatarStartedRef.current = isAvatarStarted;
-    const currentInstructions = isAvatarStartedRef.current ? replaceInstructions('你的虚拟人形象处于关闭状态', '你的虚拟人形象处于打开状态')
+    isAvatarStartedRef.current ? replaceInstructions('你的虚拟人形象处于关闭状态', '你的虚拟人形象处于打开状态')
       : replaceInstructions('你的虚拟人形象处于打开状态', '你的虚拟人形象处于关闭状态');
-
-    realtimeClientRef.current.isConnected() && realtimeClientRef.current.updateSession({ instructions: currentInstructions });
   }, [isAvatarStarted]);
 
   // assistant object
-  const [assistant, setAssistant] = useState<any | null>(null);
+  const [assistant, setAssistant] = useState<Assistant | null>(null);
   const assistantRef = useRef(assistant);
   useEffect(() => {
     assistantRef.current = assistant;
@@ -235,7 +232,28 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const realtimeInstructionsRef = useRef(realtimeInstructions);
   useEffect(() => {
     realtimeInstructionsRef.current = realtimeInstructions;
+    
+    if (assistant) {
+      assistant.instructions = realtimeInstructions;
+      (async () => {
+        try {
+         const res = await getOpenAIClient().beta.assistants.update(assistant.id, {
+            instructions: realtimeInstructions
+          });
+          console.log('assistant instructions updated', res);
+        } catch (error) {
+          console.error('Error:', error);
+        }
+      })();
+    }
+
+    if (realtimeClientRef?.current.isConnected()) {
+      const res = realtimeClientRef.current.updateSession({ instructions: realtimeInstructions });
+      console.log('realtime instructions updated', res);
+    }
+
   }, [realtimeInstructions]);
+
   const replaceInstructions = (source: string | RegExp, target: string) => {
     const new_instructions = realtimeInstructionsRef.current.replace(source, target);
     setRealtimeInstructions(new_instructions);
@@ -254,13 +272,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       document.body.classList.remove('night-mode');
     }
 
-    const currentInstructions = isNightMode ? replaceInstructions('你的界面现在是白天模式', '你的界面现在是夜间模式')
+    isNightMode ? replaceInstructions('你的界面现在是白天模式', '你的界面现在是夜间模式')
       : replaceInstructions('你的界面现在是夜间模式', '你的界面现在是白天模式');
 
-    if (realtimeClientRef?.current?.isConnected()) {
-      realtimeClientRef.current.updateSession({ instructions: currentInstructions });
-      console.log('updated instructions');
-    }
 
   }, [isNightMode]);
 
@@ -309,24 +323,190 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
+  // -------- handlers ---------
+  const camera_on_handler: Function = async ({ on }: { [on: string]: boolean }) => {
+    if (on) {
+      setIsCameraOn(true);
+      return { message: 'The camera is starting, please wait a moment to turn on.' };
+    }
+  
+    setPhotos([]);
+    setIsCameraOn(false);
+  
+    return { message: 'The camera has been turned off' };
+  };
+
+  const camera_current_handler: Function = async ({ prompt }: { [key: string]: any }) => {
+    try {
+  
+      console.log('prompt', prompt);
+      
+      if (photos.length === 0) {
+        return { error: 'no photos, please turn on your camera' };
+      }
+    
+      let content: any = [
+        {
+          type: 'text',
+          text: `Can you describe what you saw? User questions about these frames are: ${prompt}`
+        }
+      ];
+    
+      const photoIndex = photos.length >= 1 ? 1 : 0;
+    
+      content.push({
+        type: 'image_url',
+        image_url: {
+          url: photos[photoIndex]
+        }
+      });
+    
+   
+  
+      const messages = [
+        {
+          role: 'user',
+          content: content
+        }
+      ];
+      console.log('vision content', content);
+      const resp = await getCompletion(messages);
+      console.log('vision resp', resp);
+   
+      return { message: resp };
+    } catch (error) {
+      console.error('vision error', error);
+      return { error: error };
+    }
+  };
+
+  const camera_video_handler: Function = async ({ prompt, seconds }: { [key: string]: any }) => {
+
+    console.log('prompt', prompt);
+    console.log('seconds', seconds);
+    
+  
+    console.log('photos.length', photos.length);
+    console.log('photosRef.current.length', photosRef.current.length);
+  
+    if (seconds > CAMERA_PHOTO_LIMIT) {
+      return { error: `The maximum number of seconds is ${CAMERA_PHOTO_LIMIT}` };
+    }
+  
+    if (photos.length === 0) {
+      return { error: 'no photos, please turn on your camera' };
+    }
+  
+    let content: any = [
+      {
+        type: 'text',
+        text: `I'm going to give you a set of video frames from the video head capture, just captured. The images are displayed in reverse chronological order. Can you describe what you saw? If there are more pictures, it is continuous, please tell me the complete event that happened just now. User questions about these frames are: ${prompt}`
+      }
+    ];
+  
+    // for photos
+    let photoCount = 0;
+    photos.forEach((photo: string) => {
+      if (photoCount < seconds) {
+        content.push({
+          type: 'image_url',
+          image_url: {
+            url: photo
+          }
+        });
+      }
+  
+      photoCount++;
+  
+    });
+  
+  
+    try {
+      console.log('vision content', content);
+      const messages = [
+        {
+          role: 'user',
+          content: content
+        }
+      ];
+      console.log('vision content', content);
+      const resp = await getCompletion(messages);
+      console.log('vision resp', resp);
+    
+      return { message: resp };
+    } catch (error) {
+      console.error('vision error', error);
+  
+      return { error: error };
+    }
+  
+  };
+
+  const memory_handler: Function = async ({ key, value }: { [key: string]: any }) => {
+    setMemoryKv((memoryKv) => {
+      const newKv = { ...memoryKv };
+      newKv[key] = value;
+      return newKv;
+    });
+    return { ok: true };
+  };
+
+
+
+  const avatar_handler: Function = async ({ on }: { [key: string]: boolean }) => {
+    if (on) {
+  
+  
+      if (!cogSvcSubKeyRef.current || !cogSvcRegionRef.current) {
+        return { message: 'Please set your Cognitive Services subscription key and region.' };
+      }
+  
+      await startAvatarSession();
+  
+      let checkTime = 0;
+  
+      while (checkTime < 10) {
+        await delayFunction(1000);
+        checkTime++;
+        if (isAvatarStartedRef.current) {
+          return { message: 'ok' };
+        }
+      }
+  
+      return { message: 'Error, please check your error message.' };
+    }
+  
+    stopAvatarSession();
+  
+    return { message: 'done' };
+  };
+
+  
+ const dark_handler: Function = ({ on }: { [on: string]: boolean }) => {
+  setIsNightMode(on);
+  return { ok: true };
+};
+  
   // functions_tools array
-  const functions_tools_ref = useRef<[ToolDefinitionType, Function][]>([
-    [memory.definition, memory.handler],
+  const functionsToolsRef = useRef<[ToolDefinitionType, Function][]>([
+    [camera_on.definition, camera_on_handler],
+    [camera_current.definition, camera_current_handler],
+    [camera_video.definition, camera_video_handler],
+    [memory.definition, memory_handler],
+    [avatar.definition, avatar_handler],
+    [dark.definition, dark_handler],
+
+    [news.definition, news.handler],
+    [douyin.definition, douyin.handler],
     [weather.definition, weather.handler],
-    [avatar.definition, avatar.handler],
     [order_get.definition, order_get.handler],
     [order_return.definition, order_return.handler],
-    [dark.definition, dark.handler],
-    [news.definition, news.handler],
     [exchange_rate_aim.definition, exchange_rate_aim.handler],
     [exchange_rate_list.definition, exchange_rate_list.handler],
     [exchange_rate_configs.definition, exchange_rate_configs.handler],
     [products_recommend.definition, products_recommend.handler],
     [location.definition, location.handler],
     [feishu.definition, feishu.handler],
-    [camera_on.definition, camera_on.handler],
-    [camera_current.definition, camera_current.handler],
-    [camera_video.definition, camera_video.handler],
     [painting.definition, painting.handler],
     [pronunciation_assessment.definition, pronunciation_assessment.handler],
     [azure_docs.definition, azure_docs.handler],
@@ -337,7 +517,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const startAvatarSession = async () => {
     try {
-
 
       const privateEndpoint = localStorage.getItem('privateEndpoint') || '';
 
@@ -532,7 +711,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       inputValue, inputValueRef, setInputValue,
       isCameraOn, isCameraOnRef, setIsCameraOn,
       isWebcamReady, isWebcamReadyRef, setIsWebcamReady,
-      functions_tools_ref
+      functionsToolsRef
     }}>
       {children}
     </AppContext.Provider>

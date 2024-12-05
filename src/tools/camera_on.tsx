@@ -16,17 +16,3 @@ export const definition: ToolDefinitionType = {
     required: ['on']
   }
 };
-
-export const handler: Function = async ({ on }: { [on: string]: boolean }) => {
-  const { setPhotos, setIsCameraOn } = useContexts();
-
-  if (on) {
-    setIsCameraOn(true);
-    return { message: 'The camera is starting, please wait a moment to turn on.' };
-  }
-
-  setPhotos([]);
-  setIsCameraOn(false);
-
-  return { message: 'The camera has been turned off' };
-};

@@ -19,7 +19,7 @@ export function InputBar() {
   const { cancelRealtimeResponse } = useRealtime();
   const { stopAvatarSpeaking } = useAvatar();
   const {  stopCurrentStreamJob, assistantRunning } = useAssistant();
-  const { sttRecognizerRef, sttRecognizerConnecting, sttStartRecognition, sttStopRecognition } = useStt();
+  const { sttRecognizer, sttRecognizerConnecting, sttStartRecognition, sttStopRecognition } = useStt();
   const {setAssistantResponseBuffer} = useContexts();
   const {  setMessagesAssistant, setAssistantRunning,sendAssistantMessage } = useAssistant();
 
@@ -43,7 +43,6 @@ export function InputBar() {
 
     await stopCurrentStreamJob();
     setAssistantResponseBuffer('')
-    stopAvatarSpeaking();
     sendAssistantMessage(inputValue);
     setMessagesAssistant((prevMessages: any) => [
       ...prevMessages,
@@ -51,7 +50,6 @@ export function InputBar() {
     ]);
     setAssistantRunning(true);
     setInputValue('');
-   
   };
 
 
@@ -106,19 +104,19 @@ export function InputBar() {
             </button>
 
             <button
-              onClick={sttRecognizerRef.current ? sttStopRecognition : sttStartRecognition}
+              onClick={sttRecognizer ? sttStopRecognition : sttStartRecognition}
               style={{
                 padding: '5px 8px',
                 fontSize: '12px',
-                color: sttRecognizerRef.current ? '#ffffff' : '',
-                backgroundColor: sttRecognizerRef.current ? '#ff4d4f' : '',
+                color: sttRecognizer ? '#ffffff' : '',
+                backgroundColor: sttRecognizer ? '#ff4d4f' : '',
                 border: 'none',
                 cursor: 'pointer',
                 borderRadius: '5px',
                 display: isRealtime ? 'none' : ''
               }}
             >
-              {sttRecognizerRef.current ? <Mic /> :
+              {sttRecognizer ? <Mic /> :
                 (
                   sttRecognizerConnecting ? <Clock /> : <MicOff />
                 )}

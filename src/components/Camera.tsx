@@ -5,13 +5,13 @@ import { CAMERA_PHOTO_LIMIT } from '../lib/const';
 import './Camera.scss';
 import { Camera as CameraIcon, CameraOff, RefreshCw } from 'react-feather';
 
+const photoInterval = 500;
 
 const Camera: React.FC = () => {
   const webcamRef = React.useRef<Webcam>(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { photos, isCameraOn, isCameraOnRef,setPhotos, setIsCameraOn, isWebcamReady, isWebcamReadyRef,setIsWebcamReady } = useContexts();
-  const photoInterval = 500;
   const [facingMode, setFacingMode] = useState('user');
   const [cameraCount, setCameraCount] = useState(0);
 
@@ -49,8 +49,6 @@ const Camera: React.FC = () => {
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-        console.log('capture');
-  
         if (webcamRef.current && isCameraOnRef.current && isWebcamReadyRef.current) {
           const imageSrc = webcamRef.current.getScreenshot();
           if (imageSrc) {
