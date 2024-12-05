@@ -377,7 +377,7 @@ export function ConsolePage() {
   return (
     <div data-component="ConsolePage">
 
-      <SingleExecutionComponent />
+      
 
       <div className="content-top">
         <div className="content-title"><img src="/logomark.svg" alt="logo" /><h1>AI Agent Playground</h1></div>
@@ -608,6 +608,8 @@ export function ConsolePage() {
           </div>
 
           <AudioVisualization />
+
+          <SingleExecutionComponent />
 
         </div>
 
