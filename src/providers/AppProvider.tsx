@@ -267,20 +267,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // isNightMode boolean
   const [isNightMode, setIsNightMode] = useState<boolean>(false);
   const isNightModeRef = useRef(isNightMode);
-  useEffect(() => {
-    isNightModeRef.current = isNightMode;
-
-    if (isNightMode) {
-      document.body.classList.add('night-mode');
-    } else {
-      document.body.classList.remove('night-mode');
-    }
-
-    isNightMode ? replaceInstructions('你的界面现在是白天模式', '你的界面现在是夜间模式')
-      : replaceInstructions('你的界面现在是夜间模式', '你的界面现在是白天模式');
-
-
-  }, [isNightMode]);
 
   // realtime client
   const realtimeClientRef = useRef<RealtimeClient>(

@@ -7,11 +7,10 @@ export const definition: ToolDefinitionType = {
   parameters: {
     type: 'object',
     properties: {},
-    required: []
   }
 };
 
-export const handler: Function = async () => async () => {
+export const handler: Function = async () => {
   return {
     orders: [
       { id: 11, name: 'Order 11', status: 'pending', created_at: '2024-01-01 12:00:00' },

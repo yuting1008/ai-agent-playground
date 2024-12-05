@@ -34,6 +34,7 @@ const modalStyles: React.CSSProperties = {
   width: '80%',
   maxWidth: '500px',
   backgroundColor: '#fff',
+  color: '#000000',
   padding: '20px',
   boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
   borderRadius: '8px',
