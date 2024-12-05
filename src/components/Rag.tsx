@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Webcam from 'react-webcam';
-import { usePhotos } from '../context/AppProvider';
+import { useContexts } from '../providers/AppProvider';
 import { RealtimeClient } from '@theodoreniu/realtime-api-beta';
-import { imageLimit } from '../utils/conversation_config.js';
-import { replaceInstructions } from '../utils/instructions';
+import { CAMERA_PHOTO_INTERVAL_MS, CAMERA_PHOTO_LIMIT } from '../lib/const';
+
 
 interface ChildComponentProps {
   client: RealtimeClient;
@@ -13,24 +13,12 @@ const RagComponent: React.FC<ChildComponentProps> = ({ client }) => {
   const webcamRef = React.useRef<Webcam>(null);
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [isUploadedRag, setIsUploadedRag] = useState(false);
-  const { setPhotos } = usePhotos();
-  const photoInterval = 1000;
+  const { setPhotos, replaceInstructions } = useContexts();
 
 
   useEffect(() => {
-
-    if (client.isConnected()) {
-      console.log('update instructions');
-      client.updateSession({
-        instructions: isCameraOn ? replaceInstructions('现在我的摄像头是关闭的', '现在我的摄像头打开的')
-          : replaceInstructions('现在我的摄像头打开的', '现在我的摄像头是关闭的')
-      });
-
-
-    } else {
-      console.log('client is not connected, not update instructions');
-    }
-
+    isCameraOn ? replaceInstructions('现在我的摄像头是关闭的', '现在我的摄像头打开的')
+      : replaceInstructions('现在我的摄像头打开的', '现在我的摄像头是关闭的')
   }, [isCameraOn]);
 
 
@@ -39,7 +27,7 @@ const RagComponent: React.FC<ChildComponentProps> = ({ client }) => {
       const imageSrc = webcamRef.current.getScreenshot();
       if (imageSrc) {
         setPhotos(prevPhotos => {
-          return [imageSrc, ...prevPhotos].slice(0, imageLimit);
+          return [imageSrc, ...prevPhotos].slice(0, CAMERA_PHOTO_LIMIT);
         });
       }
     }
@@ -49,7 +37,7 @@ const RagComponent: React.FC<ChildComponentProps> = ({ client }) => {
 
     let intervalId: NodeJS.Timeout | null = null;
     if (isCameraOn) {
-      intervalId = setInterval(capture, photoInterval);
+      intervalId = setInterval(capture, CAMERA_PHOTO_INTERVAL_MS);
     }
     return () => {
       if (intervalId) clearInterval(intervalId);

@@ -1,6 +1,6 @@
 import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
-import { products } from '../utils/conversation_config';
-import { getJsonData } from '../utils/openai';
+import { products } from '../lib/const';
+import { getJsonData } from '../lib/openai';
 
 export const definition: ToolDefinitionType = {
   name: 'products_recommend',

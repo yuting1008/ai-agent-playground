@@ -1,19 +1,22 @@
-import { RealtimeClient } from '@theodoreniu/realtime-api-beta';
 import React, { useRef, useState } from 'react';
-import { fileUploadInstructions, fileUploadTooBig } from '../utils/conversation_config';
+import { fileUploadInstructions, fileUploadTooBig } from '../lib/const';
 import './FileUploadComponent.scss';
 import { Upload } from 'react-feather';
-import { Button } from '../components/button/Button';
-import { DATA_BEGIN, DATA_END, getInstructions, setInstructions } from '../utils/instructions';
+import { Button } from './button/Button';
+import { DATA_BEGIN, DATA_END } from '../lib/instructions';
+import { useContexts } from '../providers/AppProvider';
 
-interface ChildComponentProps {
-  client: RealtimeClient;
-}
 
-const FileUploadComponent: React.FC<ChildComponentProps> = ({ client }) => {
+
+const FileUploadComponent: React.FC = () => {
+
+  const { realtimeClientRef } = useContexts();
+
   const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState<string>('Upload File');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { replaceInstructions } = useContexts();
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -50,10 +53,10 @@ const FileUploadComponent: React.FC<ChildComponentProps> = ({ client }) => {
 
   const updateSession = (content: string) => {
 
-    if (client.isConnected()) {
+    if (realtimeClientRef?.current.isConnected()) {
 
       if (content.length > 20000) {
-        client.sendUserMessageContent([
+        realtimeClientRef?.current.sendUserMessageContent([
           {
             type: `input_text`,
             text: fileUploadTooBig
@@ -64,12 +67,11 @@ const FileUploadComponent: React.FC<ChildComponentProps> = ({ client }) => {
 
       console.log('content', content.length);
 
-      client.updateSession({
-        instructions: updateDataFile(content)
-      });
+      updateDataFile(content);
+      
       console.log('update instructions');
 
-      client.sendUserMessageContent([
+      realtimeClientRef?.current.sendUserMessageContent([
         {
           type: `input_text`,
           text: fileUploadInstructions
@@ -80,12 +82,10 @@ const FileUploadComponent: React.FC<ChildComponentProps> = ({ client }) => {
   };
 
   const updateDataFile = (content: string) => {
-    const instructions = getInstructions();
     const regex = new RegExp(`${DATA_BEGIN}[\\s\\S]*?${DATA_END}`, 'g');
+    const target = `${DATA_BEGIN}\n${content}\n${DATA_END}`;
 
-    const new_instructions = instructions.replace(regex, `${DATA_BEGIN}\n${content}\n${DATA_END}`);
-    setInstructions(new_instructions);
-    return new_instructions;
+    return replaceInstructions(regex, target);
   };
 
   const handleButtonClick = () => {

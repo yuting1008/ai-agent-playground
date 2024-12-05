@@ -1,6 +1,5 @@
 import { AzureOpenAI } from 'openai';
-import * as weather from '../tools/weather';
-import * as pronunciation_assessment from '../tools/pronunciation_assessment';
+
 
 export const getOpenAIClient = () => {
   const completionApiKey = localStorage.getItem('completionApiKey') || '';
@@ -25,40 +24,6 @@ export const getOpenAIClient = () => {
 
 };
 
-export const createAssistant = async () => {
-  const prompt = localStorage.getItem('prompt') || 'You are a helpful assistant.';
-  const assistant = await getOpenAIClient().beta.assistants.create({
-    instructions: prompt,
-    name: 'Quickstart Assistant',
-    temperature: 1,
-    top_p: 1,
-    model: 'gpt-4o-mini',
-    tools: [
-      { type: 'code_interpreter' },
-      { type: 'file_search' },
-      { type: 'function', function: weather.definition },
-      { type: 'function', function: pronunciation_assessment.definition },
-    ]
-  });
-  console.log(assistant);
-  return assistant;
-};
-
-export const setupAssistant = async () => {
-  try {
-    // const assistantId = localStorage.getItem('assistantId') || '';
-    // if (assistantId) {
-    //   console.log(`Assistant already exists: ${assistantId}`);
-    //   return;
-    // }
-    const assistantResponse = await createAssistant();
-    console.log(`Assistant created: ${JSON.stringify(assistantResponse)}`);
-    localStorage.setItem('assistantId', assistantResponse.id);
-  } catch (error: any) {
-    console.error(`Error creating assistant: ${error.message}`);
-    alert(`Error creating assistant: ${error.message}`);
-  }
-};
 
 const getAssistantFileById = async (fileId: string) => {
   const [file, fileContent] = await Promise.all([
