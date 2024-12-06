@@ -6,13 +6,10 @@ import { Button } from './button/Button';
 import { DATA_BEGIN, DATA_END } from '../lib/instructions';
 import { useContexts } from '../providers/AppProvider';
 
-
-
 const FileUploadComponent: React.FC = () => {
 
   const { realtimeClientRef } = useContexts();
 
-  const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState<string>('Upload File');
   const fileInputRef = useRef<HTMLInputElement>(null);
 

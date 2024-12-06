@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useContexts } from '../providers/AppProvider';
 import './Camera.scss';
 import { useSettings } from '../providers/SettingsProvider';

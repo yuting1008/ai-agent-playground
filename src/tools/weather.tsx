@@ -1,6 +1,4 @@
 import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
-import { useContexts } from '../providers/AppProvider';
-import { useSettings } from '../providers/SettingsProvider';
 
 export const definition: ToolDefinitionType = {
   name: 'get_weather',
