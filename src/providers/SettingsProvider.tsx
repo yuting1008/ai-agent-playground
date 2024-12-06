@@ -112,7 +112,6 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     localStorage.setItem('language', language);
   }, [language]);
 
-
   // assistantType string
   const [assistantType, setAssistantType] = useState<string>(localStorage.getItem('assistantType') || ASSISTENT_TYPE_DEFAULT);
   const assistantTypeRef = useRef(assistantType);

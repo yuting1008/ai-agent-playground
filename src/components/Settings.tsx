@@ -37,6 +37,18 @@ const SettingsComponent: React.FC = () => {
     setTtsApiKey, ttsApiKey,
   } = useSettings();
 
+  const DEFAULT = 'Default';
+  const REAL_TIME_API = 'Realtime';
+  const DALL_E = 'Dall-E-3';
+  const GRAPHRAG = 'GraphRAG';
+  const SPEECH = 'Speech';
+  const TTS = 'TTS';
+  const COMPLETION = 'Completion';
+  const TOKENS = 'Third-party API';
+  const PROMPT = 'Prompt';
+  const BING = 'Bing';
+  const IMPORT_EXPORT = 'Import/Export';
+
   const [isVisible, setIsVisible] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -49,6 +61,8 @@ const SettingsComponent: React.FC = () => {
     { value: ASSISTENT_TYPE_REALTIME, label: 'Realtime' },
     { value: ASSISTENT_TYPE_ASSISTANT, label: 'STT -> Assistant -> TTS' }
   ];
+
+  const [activeTab, setActiveTab] = useState(DEFAULT);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -349,6 +363,44 @@ const SettingsComponent: React.FC = () => {
         value={privateEndpoint}
         placeholder={'https://xxx.privateendpoint.openai.azure.com'}
         onChange={handlePrivateEndpointChange} /> */}
+
+    </div>;
+  };
+
+  const Bing = () => {
+
+    const [bingApiKey, setBingApiKey] = useState(localStorage.getItem('bingApiKey') || '');
+    useEffect(() => {
+      localStorage.setItem('bingApiKey', bingApiKey);
+    }, [bingApiKey]);
+
+    const handleBingApiKeyChange = (e: any) => {
+      setBingApiKey(e.target.value);
+    };
+
+    return <div>
+
+      <div className="settings-label">Key
+        <span
+          className="settings-label-show"
+          onClick={toggleVisibility}
+        >{isVisible ? <FaRegEye /> : <FaRegEyeSlash />}</span>
+      </div>
+      <input type={isVisible ? 'text' : 'password'}
+        className="settings-input"
+        value={bingApiKey}
+        placeholder={''}
+        onChange={handleBingApiKeyChange} />
+
+      <div className="settings-label">Endpoint</div>
+      <input type={'text'}
+        className="settings-input"
+        value={'https://api.bing.microsoft.com/'} />
+
+      <div className="settings-label">Location</div>
+      <input type={'text'}
+        className="settings-input"
+        value={'global'} />
 
     </div>;
   };
@@ -655,7 +707,6 @@ const SettingsComponent: React.FC = () => {
   const SettingsImportExport = () => {
     return <div style={{ display: 'flex', gap: '15px' }}>
 
-
       <Button
         label={'Import'}
         icon={Upload}
@@ -682,19 +733,6 @@ const SettingsComponent: React.FC = () => {
     </div>;
   };
 
-  const DEFAULT = 'Default';
-  const REAL_TIME_API = 'Realtime';
-  const DALL_E = 'Dall-E-3';
-  const GRAPHRAG = 'GraphRAG';
-  const SPEECH = 'Speech';
-  const TTS = 'TTS';
-  const COMPLETION = 'Completion';
-  const TOKENS = 'Third-party API';
-  const PROMPT = 'Prompt';
-  const IMPORT_EXPORT = 'Import/Export';
-
-  const [activeTab, setActiveTab] = useState(DEFAULT);
-
   const renderContent = () => {
     switch (activeTab) {
       case DEFAULT:
@@ -715,6 +753,8 @@ const SettingsComponent: React.FC = () => {
         return <SettingsTokens />;
       case PROMPT:
         return <Prompt />;
+      case BING:
+        return <Bing />;
       case IMPORT_EXPORT:
         return <SettingsImportExport />;
       default:
@@ -769,12 +809,14 @@ const SettingsComponent: React.FC = () => {
                   className={activeTab === COMPLETION ? 'active' : ''}>{COMPLETION}</button>
                 <button onClick={() => setActiveTab(DALL_E)}
                   className={activeTab === DALL_E ? 'active' : ''}>{DALL_E}</button>
+                <button onClick={() => setActiveTab(PROMPT)}
+                  className={activeTab === PROMPT ? 'active' : ''}>{PROMPT}</button>
+                <button onClick={() => setActiveTab(BING)}
+                  className={activeTab === BING ? 'active' : ''}>{BING}</button>
                 <button onClick={() => setActiveTab(GRAPHRAG)}
                   className={activeTab === GRAPHRAG ? 'active' : ''}>{GRAPHRAG}</button>
                 <button onClick={() => setActiveTab(TOKENS)}
                   className={activeTab === TOKENS ? 'active' : ''}>{TOKENS}</button>
-                <button onClick={() => setActiveTab(PROMPT)}
-                  className={activeTab === PROMPT ? 'active' : ''}>{PROMPT}</button>
                 <button onClick={() => setActiveTab(IMPORT_EXPORT)}
                   className={activeTab === IMPORT_EXPORT ? 'active' : ''}>{IMPORT_EXPORT}</button>
               </div>

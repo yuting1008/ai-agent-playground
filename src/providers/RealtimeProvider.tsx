@@ -59,8 +59,8 @@ interface RealtimeEvent {
 
 
 export const RealtimeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { realtimeClientRef } = useContexts();
 
+  const { realtimeClientRef } = useContexts();
 
   /**
  * Instantiate:
