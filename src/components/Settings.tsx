@@ -10,7 +10,6 @@ import { useContexts } from '../providers/AppProvider';
 import { useSettings } from '../providers/SettingsProvider';
 
 const SettingsComponent: React.FC = () => {
-  const { debug } = useContexts();
   const { realtimeClientRef } = useContexts();
 
   const {
@@ -47,11 +46,9 @@ const SettingsComponent: React.FC = () => {
     { value: 'english', label: 'English' }
   ];
 
-  const supportedAssistantTypes = debug ? [
+  const supportedAssistantTypes = [
     { value: ASSISTENT_TYPE_REALTIME, label: 'Realtime' },
     { value: ASSISTENT_TYPE_ASSISTANT, label: 'STT -> Assistant -> TTS' }
-  ] : [
-    { value: ASSISTENT_TYPE_REALTIME, label: 'Realtime' }
   ];
 
   useEffect(() => {
@@ -87,7 +84,6 @@ const SettingsComponent: React.FC = () => {
     const handleAssistantTypeChange = (value: string) => {
       setAssistantType(value);
     };
-
 
     return <div>
 
