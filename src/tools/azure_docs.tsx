@@ -34,8 +34,6 @@ export const handler: Function = async ({ query }: { [key: string]: any }) => {
     throw new Error('GraphRAG project name is not set, please set it in the settings.');
   }
 
-  const graphragCache = localStorage.getItem('graphragCache') || 'Disable';
-
   const url = `${graphragUrl}/api/local_search`;
 
   var body = JSON.stringify({
@@ -43,7 +41,7 @@ export const handler: Function = async ({ query }: { [key: string]: any }) => {
     'project_name': graphragProjectName,
     'community_level': 2,
     'query_source': true,
-    'user_cache': graphragCache === 'Enable'
+    'user_cache': false
   });
 
   const result = await fetch(url, {

@@ -35,10 +35,6 @@ interface SettingsContextType {
   graphragAboutRef: React.MutableRefObject<string>;
   setGraphragAbout: React.Dispatch<React.SetStateAction<string>>;
 
-  graphragCache: string;
-  graphragCacheRef: React.MutableRefObject<string>;
-  setGraphragCache: React.Dispatch<React.SetStateAction<string>>;
-
   cogSvcRegion: string;
   cogSvcRegionRef: React.MutableRefObject<string>;
   setCogSvcRegion: React.Dispatch<React.SetStateAction<string>>;
@@ -206,14 +202,6 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     localStorage.setItem('graphragAbout', graphragAbout);
   }, [graphragAbout]);
 
-  // graphragCache string
-  const [graphragCache, setGraphragCache] = useState<string>(localStorage.getItem('graphragCache') || 'Disable');
-  const graphragCacheRef = useRef(graphragCache);
-  useEffect(() => {
-    graphragCacheRef.current = graphragCache;
-    localStorage.setItem('graphragCache', graphragCache);
-  }, [graphragCache]);
-
   // cogSvcRegion string
   const [cogSvcRegion, setCogSvcRegion] = useState<string>(localStorage.getItem('cogSvcRegion') || 'westus2');
   const cogSvcRegionRef = useRef(cogSvcRegion);
@@ -322,7 +310,6 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       graphragApiKey, graphragApiKeyRef, setGraphragApiKey,
       graphragProjectName, graphragProjectNameRef, setGraphragProjectName,
       graphragAbout, graphragAboutRef, setGraphragAbout,
-      graphragCache, graphragCacheRef, setGraphragCache,
       cogSvcRegion, cogSvcRegionRef, setCogSvcRegion,
       cogSvcSubKey, cogSvcSubKeyRef, setCogSvcSubKey,
       completionTargetUri, completionTargetUriRef, setCompletionTargetUri,
