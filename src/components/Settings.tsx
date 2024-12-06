@@ -21,7 +21,6 @@ const SettingsComponent: React.FC = () => {
     setGraphragApiKey, graphragApiKey,
     setGraphragProjectName, graphragProjectName,
     setGraphragAbout, graphragAbout,
-    setGraphragCache, graphragCache,
     setCogSvcRegion, cogSvcRegion,
     setCogSvcSubKey, cogSvcSubKey,
     setCompletionTargetUri, completionTargetUri,
@@ -247,21 +246,6 @@ const SettingsComponent: React.FC = () => {
       localStorage.setItem('graphragAbout', graphragAbout);
     }, [graphragAbout]);
 
-    const [graphragCache, setGraphragCache] = useState(localStorage.getItem('graphragCache') || 'Enable');
-    useEffect(() => {
-      localStorage.setItem('graphragCache', graphragCache);
-    }, [graphragCache]);
-
-    const graphragCacheOptions = [
-      { value: 'Enable', label: 'Enable' },
-      { value: 'Disable', label: 'Disable' }
-    ];
-
-    const handleGraphragCacheChange = (value: string) => {
-      setGraphragCache(value);
-    };
-
-
     const handleGraphragUrlChange = (e: any) => {
       setGraphragUrl(e.target.value);
     };
@@ -315,9 +299,6 @@ const SettingsComponent: React.FC = () => {
         value={graphragAbout}
         placeholder={GRAPHRAG_ABOUT}
         onChange={handleGraphragAboutChange} />
-
-      <div className="settings-label">API Cache</div>
-      <Dropdown options={graphragCacheOptions} selectedValue={graphragCache} onChange={handleGraphragCacheChange} />
     </div>;
   };
 
@@ -578,7 +559,6 @@ const SettingsComponent: React.FC = () => {
       graphragUrl: graphragUrl,
       graphragApiKey: graphragApiKey,
       graphragProjectName: graphragProjectName,
-      graphragCache: graphragCache,
       graphragAbout: graphragAbout,
 
       assistantType: assistantType,
@@ -639,7 +619,6 @@ const SettingsComponent: React.FC = () => {
         setGraphragUrl(settings.graphragUrl);
         setGraphragApiKey(settings.graphragApiKey);
         setGraphragProjectName(settings.graphragProjectName);
-        setGraphragCache(settings.graphragCache);
         setGraphragAbout(settings.graphragAbout);
 
         setFeishuHook(settings.feishuHook);
