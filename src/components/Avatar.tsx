@@ -14,6 +14,7 @@ const Avatar: React.FC = () => {
     peerConnectionRef, avatarSynthesizerRef,
     needSpeechQueue, setNeedSpeechQueue,
     setIsAvatarLoading, setIsAvatarStarted,
+    setCaptionQueue,
     replaceInstructions, setIsAvatarSpeaking, isAvatarSpeaking } = useContexts();
 
   const {
@@ -23,6 +24,9 @@ const Avatar: React.FC = () => {
   useEffect(() => {
     isAvatarOnRef.current = isAvatarOn;
     isAvatarOn ? startAvatarSession() : stopAvatarSession();
+    if (!isAvatarOn) {
+      setCaptionQueue([]);
+    }
   }, [isAvatarOn]);
 
   useEffect(() => {
