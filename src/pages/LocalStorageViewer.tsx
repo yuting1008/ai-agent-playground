@@ -18,7 +18,7 @@ const LocalStorageViewer: React.FC = () => {
     assistantResponseBufferRef,
     threadJobRef,
     threadRef,
-    avatarSpeechSentencesArrayRef,
+    speechSentencesCacheArrayRef,
     isAvatarStartedRef,
     realtimeInstructionsRef,
     assistantRef,
@@ -126,7 +126,7 @@ const LocalStorageViewer: React.FC = () => {
                 <tr key='assistantResponseBufferRef'><td className={styles.tdKey}>assistantResponseBufferRef</td><td className={styles.tdValue}>{assistantResponseBufferRef.current}</td></tr>
 
                 <tr key='isAvatarStartedRef'><td className={styles.tdKey}>isAvatarStartedRef</td><td className={styles.tdValue}>{JSON.stringify(isAvatarStartedRef.current)}</td></tr>
-                <tr key='avatarSpeechSentencesArrayRef'><td className={styles.tdKey} >avatarSpeechSentencesArrayRef</td><td className={styles.tdValue}>{JSON.stringify(avatarSpeechSentencesArrayRef.current)}</td></tr>
+                <tr key='speechSentencesCacheArrayRef'><td className={styles.tdKey} >speechSentencesCacheArrayRef</td><td className={styles.tdValue}>{JSON.stringify(speechSentencesCacheArrayRef.current)}</td></tr>
                 
                 <tr key='realtimeInstructionsRef'><td className={styles.tdKey}>realtimeInstructionsRef</td><td className={styles.tdValue}>{realtimeInstructionsRef.current}</td></tr>
                 

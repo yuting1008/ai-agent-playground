@@ -21,11 +21,11 @@ import { useSettings } from '../providers/SettingsProvider';
 import { useAssistant } from '../providers/AssistantProvider';
 import { NightMode } from '../components/NightMode';
 import Avatar from '../components/Avatar';
-import { useAvatar } from '../providers/AvatarProvider';
 import { useRealtime } from '../providers/RealtimeProvider';
 import { InputBar } from '../components/InputBar';
 import AudioVisualization from '../components/AudioVisualization';
 import OpenAITTS from '../components/OpenAITTS';
+import Caption from '../components/Caption';
 
 type AssistantMessageProps = {
   role: 'user' | 'assistant' | 'code';
@@ -121,7 +121,6 @@ export function ConsolePage() {
   } = useSettings();
 
   const { setupAssistant, createThread, messagesAssistant } = useAssistant();
-  const { stopAvatarSpeaking } = useAvatar();
 
   const startTimeRef = useRef<string>(new Date().toISOString());
 
@@ -257,7 +256,6 @@ export function ConsolePage() {
     });
 
     client.on('conversation.interrupted', async () => {
-      await stopAvatarSpeaking();
       const trackSampleOffset = await wavStreamPlayer.interrupt();
       if (trackSampleOffset?.trackId) {
         const { trackId, offset } = trackSampleOffset;
@@ -366,9 +364,8 @@ export function ConsolePage() {
   return (
     <div data-component="ConsolePage">
 
-      <OpenAITTS/>
-
-      
+      <OpenAITTS />
+      <Caption />
 
       <div className="content-top">
         <div className="content-title"><img src="/logomark.svg" alt="logo" /><h1>AI Agent Playground</h1></div>

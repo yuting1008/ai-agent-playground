@@ -2,7 +2,6 @@ import React, { createContext, ReactNode, useContext, useEffect, useRef, useStat
 import { instructions } from '../lib/instructions';
 import { RealtimeClient } from '@theodoreniu/realtime-api-beta';
 import { useSettings } from './SettingsProvider';
-import * as SpeechSDK from 'microsoft-cognitiveservices-speech-sdk';
 
 import * as memory from '../tools/memory';
 import * as weather from '../tools/weather';
@@ -32,6 +31,8 @@ import { CAMERA_PHOTO_LIMIT } from '../lib/const';
 import { getCompletion, getOpenAIClient } from '../lib/openai';
 import { delayFunction } from '../lib/helper';
 import { Assistant } from 'openai/resources/beta/assistants';
+import { processAndStoreSentence } from '../lib/sentence';
+import { AvatarSynthesizer } from 'microsoft-cognitiveservices-speech-sdk';
 
 
 interface AppContextType {
@@ -64,9 +65,9 @@ interface AppContextType {
   assistantResponseBufferRef: React.MutableRefObject<string>;
   setAssistantResponseBuffer: React.Dispatch<React.SetStateAction<string>>;
 
-  avatarSpeechSentencesArray: string[];
-  avatarSpeechSentencesArrayRef: React.MutableRefObject<string[]>;
-  setAvatarSpeechSentencesArray: React.Dispatch<React.SetStateAction<string[]>>;
+  speechSentencesCacheArray: string[];
+  speechSentencesCacheArrayRef: React.MutableRefObject<string[]>;
+  setSpeechSentencesCacheArray: React.Dispatch<React.SetStateAction<string[]>>;
 
   realtimeInstructions: string;
   realtimeInstructionsRef: React.MutableRefObject<string>;
@@ -83,6 +84,10 @@ interface AppContextType {
 
   realtimeClientRef: React.MutableRefObject<RealtimeClient>;
 
+  isAvatarOn: boolean;
+  isAvatarOnRef: React.MutableRefObject<boolean>;
+  setIsAvatarOn: React.Dispatch<React.SetStateAction<boolean>>;
+
   isAvatarLoading: boolean;
   isAvatarLoadingRef: React.MutableRefObject<boolean>;
   setIsAvatarLoading: React.Dispatch<React.SetStateAction<boolean>>;
@@ -91,12 +96,10 @@ interface AppContextType {
   isAvatarSpeakingRef: React.MutableRefObject<boolean>;
   setIsAvatarSpeaking: React.Dispatch<React.SetStateAction<boolean>>;
 
-  avatarSynthesizerRef: React.MutableRefObject<any>;
+  avatarSynthesizerRef: React.MutableRefObject<AvatarSynthesizer | null>;
   peerConnectionRef: React.MutableRefObject<RTCPeerConnection | null>;
   avatarVideoRef: React.MutableRefObject<HTMLVideoElement | null>;
   avatarAudioRef: React.MutableRefObject<HTMLAudioElement | null>;
-  stopAvatarSession: () => void;
-  startAvatarSession: () => Promise<void>;
 
   memoryKv: { [key: string]: any };
   memoryKvRef: React.MutableRefObject<{ [key: string]: any }>;
@@ -114,8 +117,21 @@ interface AppContextType {
   isWebcamReadyRef: React.MutableRefObject<boolean>;
   setIsWebcamReady: React.Dispatch<React.SetStateAction<boolean>>;
 
+  needSpeechQueue: string[];
+  needSpeechQueueRef: React.MutableRefObject<string[]>;
+  setNeedSpeechQueue: React.Dispatch<React.SetStateAction<string[]>>;
+
   functionsToolsRef: React.MutableRefObject<[ToolDefinitionType, Function][]>;
 
+  caption: string;
+  captionRef: React.MutableRefObject<string>;
+  setCaption: React.Dispatch<React.SetStateAction<string>>;
+
+  captionQueue: string[];
+  captionQueueRef: React.MutableRefObject<string[]>;
+  setCaptionQueue: React.Dispatch<React.SetStateAction<string[]>>;
+  updateCaptionQueue: (caption: string) => void;
+  addCaptionQueue: (caption: string) => void;
 }
 
 const IS_DEBUG: boolean = window.location.href.includes('localhost');
@@ -127,30 +143,35 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const { keyRef, endpointRef } = useSettings();
   const { cogSvcSubKeyRef, cogSvcRegionRef } = useSettings();
 
+  // caption string
+  const [caption, setCaption] = useState('');
+  const captionRef = useRef(caption);
+  useEffect(() => {
+    captionRef.current = caption;
+  }, [caption]);
+
+  // captionQueue string[]
+  const [captionQueue, setCaptionQueue] = useState<string[]>([]);
+  const captionQueueRef = useRef<string[]>([]);
+  const updateCaptionQueue = (caption: string) => {
+    if (captionQueueRef.current.length === 0) {
+      return;
+    }
+    if (captionQueueRef.current[0] === caption) {
+      setCaptionQueue(captionQueueRef.current.slice(1));
+    }
+  };
+  const addCaptionQueue = (caption: string) => {
+    setCaptionQueue([...captionQueueRef.current, caption]);
+  };
+
   // isCameraOn boolean
   const [isCameraOn, setIsCameraOn] = useState(false);
   const isCameraOnRef = useRef(isCameraOn);
-  useEffect(() => {
-    console.log('isCameraOn:', isCameraOn);
-    isCameraOnRef.current = isCameraOn;
-    if (!isCameraOn) {
-      setIsWebcamReady(false);
-      setPhotos([]);
-    }
-  }, [isCameraOn]);
 
   // isWebcamReady boolean
   const [isWebcamReady, setIsWebcamReady] = useState(false);
   const isWebcamReadyRef = useRef(isWebcamReady);
-  useEffect(() => {
-    isWebcamReadyRef.current = isWebcamReady;
-
-    console.log(`iseWebcamReady:`, isWebcamReadyRef.current);
-
-    isWebcamReady ? replaceInstructions('现在我的摄像头是关闭的', '现在我的摄像头打开的')
-      : replaceInstructions('现在我的摄像头打开的', '现在我的摄像头是关闭的')
-
-  }, [isWebcamReady]);
 
   // input string
   const [inputValue, setInputValue] = useState('');
@@ -183,11 +204,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // isAvatarStarted
   const [isAvatarStarted, setIsAvatarStarted] = useState<boolean>(false);
   const isAvatarStartedRef = useRef(isAvatarStarted);
-  useEffect(() => {
-    isAvatarStartedRef.current = isAvatarStarted;
-    isAvatarStartedRef.current ? replaceInstructions('你的虚拟人形象处于关闭状态', '你的虚拟人形象处于打开状态')
-      : replaceInstructions('你的虚拟人形象处于打开状态', '你的虚拟人形象处于关闭状态');
-  }, [isAvatarStarted]);
 
   // assistant object
   const [assistant, setAssistant] = useState<Assistant | null>(null);
@@ -211,22 +227,43 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     threadJobRef.current = threadJob;
   }, [threadJob]);
 
+  // needSpeechQueue string[]
+  const [needSpeechQueue, setNeedSpeechQueue] = useState<string[]>([]);
+  const needSpeechQueueRef = useRef<string[]>([]);
+  useEffect(() => {
+    needSpeechQueueRef.current = needSpeechQueue;
+  }, [needSpeechQueue]);
+
   // assistantResponseBuffer string
   const [assistantResponseBuffer, setAssistantResponseBuffer] = useState<string>('');
   const assistantResponseBufferRef = useRef(assistantResponseBuffer);
   useEffect(() => {
     assistantResponseBufferRef.current = assistantResponseBuffer;
+
+    if (!assistantResponseBuffer) {
+      return;
+    }
+
+    const sentences = processAndStoreSentence(assistantResponseBuffer, isAvatarStarted, speechSentencesCacheArrayRef);
+
+    for (const sentence of sentences) {
+      if (sentence.exists === false) {
+        console.log(`speech need speak: ${sentence.sentence}`);
+        setNeedSpeechQueue([...needSpeechQueue, sentence.sentence]);
+      }
+    }
+
   }, [assistantResponseBuffer]);
 
-  // avatarSpeechSentencesArray array
-  const [avatarSpeechSentencesArray, setAvatarSpeechSentencesArray] = useState<string[]>([]);
-  const avatarSpeechSentencesArrayRef = useRef(avatarSpeechSentencesArray);
+  // speechSentencesCacheArray array
+  const [speechSentencesCacheArray, setSpeechSentencesCacheArray] = useState<string[]>([]);
+  const speechSentencesCacheArrayRef = useRef(speechSentencesCacheArray);
   useEffect(() => {
-    avatarSpeechSentencesArrayRef.current = avatarSpeechSentencesArray;
-    if (avatarSpeechSentencesArray.length ===0) {
+    speechSentencesCacheArrayRef.current = speechSentencesCacheArray;
+    if (speechSentencesCacheArray.length === 0) {
       setAssistantResponseBuffer('');
     }
-  }, [avatarSpeechSentencesArray]);
+  }, [speechSentencesCacheArray]);
 
   const prompt = localStorage.getItem('prompt') || '';
 
@@ -280,6 +317,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     )
   );
 
+  // isAvatarOn boolean
+  const [isAvatarOn, setIsAvatarOn] = useState<boolean>(false);
+  const isAvatarOnRef = useRef(isAvatarOn);
+  useEffect(() => {
+    isAvatarOnRef.current = isAvatarOn;
+  }, [isAvatarOn]);
+
   // isAvatarLoading boolean
   const [isAvatarLoading, setIsAvatarLoading] = useState<boolean>(false);
   const isAvatarLoadingRef = useRef(isAvatarLoading);
@@ -294,24 +338,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     isAvatarSpeakingRef.current = isAvatarSpeaking;
   }, [isAvatarSpeaking]);
 
+  // memoryKv
+  const [memoryKv, setMemoryKv] = useState<{ [key: string]: any }>({});
+  const memoryKvRef = useRef(memoryKv);
+  useEffect(() => {
+    memoryKvRef.current = memoryKv;
+  }, [memoryKv]);
+
   // avatarSynthesizer
   const avatarSynthesizerRef = useRef<any>(null);
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const avatarVideoRef = useRef<HTMLVideoElement>(null);
   const avatarAudioRef = useRef<HTMLAudioElement>(null);
-  const stopAvatarSession = () => {
-    if (avatarSynthesizerRef.current) {
-      avatarSynthesizerRef.current.close();
-    }
-    setIsAvatarStarted(false);
-    setIsAvatarLoading(false);
-    if (avatarVideoRef.current) {
-      avatarVideoRef.current.srcObject = null;
-    }
-    if (avatarAudioRef.current) {
-      avatarAudioRef.current.srcObject = null;
-    }
-  };
 
   // -------- handlers ---------
   const camera_on_handler: Function = async ({ on }: { [on: string]: boolean }) => {
@@ -451,7 +489,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         return { message: 'Please set your Cognitive Services subscription key and region.' };
       }
 
-      await startAvatarSession();
+      setIsAvatarOn(true);
 
       let checkTime = 0;
 
@@ -466,11 +504,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       return { message: 'Error, please check your error message.' };
     }
 
-    stopAvatarSession();
+    setIsAvatarOn(false);
 
     return { message: 'done' };
   };
-
 
   const dark_handler: Function = ({ on }: { [on: string]: boolean }) => {
     setIsNightMode(on);
@@ -505,155 +542,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     [stock_recommend.definition, stock_recommend.handler],
   ]);
 
-  const startAvatarSession = async () => {
-    try {
-
-      const privateEndpoint = localStorage.getItem('privateEndpoint') || '';
-
-      if (!cogSvcSubKeyRef.current || !cogSvcRegionRef.current) {
-        alert('Please set your Cognitive Services subscription key, region, and private endpoint.');
-        setIsAvatarLoading(false);
-        setIsAvatarStarted(false);
-        return;
-      }
-
-      setIsAvatarLoading(true);
-      console.log('starting avatar session...');
-
-      let speechSynthesisConfig;
-      if (privateEndpoint) {
-        console.log(`using private endpoint: ${privateEndpoint}`);
-        speechSynthesisConfig = SpeechSDK.SpeechConfig.fromEndpoint(
-          new URL(`wss://${privateEndpoint}/tts/cognitiveservices/websocket/v1?enableTalkingAvatar=true`),
-          cogSvcSubKeyRef.current
-        );
-      } else {
-        speechSynthesisConfig = SpeechSDK.SpeechConfig.fromSubscription(cogSvcSubKeyRef.current, cogSvcRegionRef.current);
-        console.log(`using public endpoint: ${cogSvcRegionRef.current}`);
-      }
-
-      const videoFormat = new SpeechSDK.AvatarVideoFormat();
-      videoFormat.width = 300;
-      videoFormat.height = 250;
-      videoFormat.setCropRange(
-        new SpeechSDK.Coordinate(600, 0),
-        new SpeechSDK.Coordinate(1360, 520)
-      );
-      console.log('videoFormat: ' + videoFormat);
-
-      const avatarConfig = new SpeechSDK.AvatarConfig(
-        'harry',
-        'business',
-        videoFormat
-      );
-      console.log('avatarConfig: ' + avatarConfig);
-      avatarConfig.customized = false;
-      avatarConfig.backgroundImage = new URL('https://playground.azuretsp.com/images/avatar_bg.jpg');
-
-      // Get token
-      const response = await fetch(
-        privateEndpoint
-          ? `https://${privateEndpoint}/tts/cognitiveservices/avatar/relay/token/v1`
-          : `https://${cogSvcRegionRef.current}.tts.speech.microsoft.com/cognitiveservices/avatar/relay/token/v1`,
-        {
-          headers: {
-            'Ocp-Apim-Subscription-Key': cogSvcSubKeyRef.current
-          }
-        }
-      );
-
-      const responseData = await response.json();
-      console.log('responseData: ' + responseData);
-
-      avatarSynthesizerRef.current = new SpeechSDK.AvatarSynthesizer(
-        speechSynthesisConfig,
-        avatarConfig
-      );
-
-      await setupWebRTCAvatar(
-        responseData.Urls[0],
-        responseData.Username,
-        responseData.Password
-      );
-      console.log('avatarSynthesizerRef.current: ' + avatarSynthesizerRef.current);
-    } catch (error) {
-      console.log(error);
-      alert(`Avatar session failed to start. Please check your configuration or network.\n` + error);
-      setIsAvatarLoading(false);
-      setIsAvatarStarted(false);
-    }
-  };
-
-
-  const setupWebRTCAvatar = async (
-    iceServerUrl: string,
-    iceServerUsername: string,
-    iceServerCredential: string
-  ) => {
-    const useTcpForWebRTC = false;
-
-    peerConnectionRef.current = new RTCPeerConnection({
-      iceServers: [{
-        urls: [useTcpForWebRTC ? iceServerUrl.replace(':3478', ':443?transport=tcp') : iceServerUrl],
-        username: iceServerUsername,
-        credential: iceServerCredential
-      }],
-      iceTransportPolicy: useTcpForWebRTC ? 'relay' : 'all'
-    });
-
-    peerConnectionRef.current.ontrack = (event) => {
-
-      const video = avatarVideoRef.current;
-      const audio = avatarAudioRef.current;
-
-      if (!video || !audio) {
-        console.error('avatarVideoRef or avatarAudioRef is not initialized');
-        return;
-      }
-
-      console.log(event);
-
-      if (event.track.kind === 'video') {
-        video.id = 'avatarVideo';
-        video.srcObject = event.streams[0];
-        video.autoplay = true;
-      } else if (event.track.kind === 'audio') {
-        audio.id = 'avatarAudio';
-        audio.srcObject = event.streams[0];
-        audio.autoplay = true;
-      }
-
-      video.onloadedmetadata = () => {
-        setIsAvatarStarted(true);
-        setIsAvatarLoading(false);
-      };
-    };
-
-    // Add transceivers
-    peerConnectionRef.current.addTransceiver('video', { direction: 'sendrecv' });
-    peerConnectionRef.current.addTransceiver('audio', { direction: 'sendrecv' });
-
-    // Start avatar
-    console.log('starting avatar...');
-    const result = await avatarSynthesizerRef.current.startAvatarAsync(peerConnectionRef.current);
-    if (result.reason === SpeechSDK.ResultReason.SynthesizingAudioCompleted) {
-      console.log('Avatar started successfully');
-    } else {
-      throw new Error(JSON.stringify(result));
-    }
-
-  };
-
-  // memoryKv
-  const [memoryKv, setMemoryKv] = useState<{ [key: string]: any }>({});
-  const memoryKvRef = useRef(memoryKv);
-  useEffect(() => {
-    memoryKvRef.current = memoryKv;
-  }, [memoryKv]);
-
-
-  // ---------------- functions -----------------
-
   const handleKeyDown = (event: KeyboardEvent) => {
     if (
       event.ctrlKey &&
@@ -685,7 +573,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       thread, threadRef, setThread,
       threadJob, threadJobRef, setThreadJob,
       assistantResponseBuffer, assistantResponseBufferRef, setAssistantResponseBuffer,
-      avatarSpeechSentencesArray, avatarSpeechSentencesArrayRef, setAvatarSpeechSentencesArray,
+      speechSentencesCacheArray, speechSentencesCacheArrayRef, setSpeechSentencesCacheArray,
       realtimeInstructions, realtimeInstructionsRef, setRealtimeInstructions, replaceInstructions,
       isNightMode, isNightModeRef, setIsNightMode,
       realtimeClientRef,
@@ -695,13 +583,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       peerConnectionRef,
       avatarVideoRef,
       avatarAudioRef,
-      stopAvatarSession,
-      startAvatarSession,
       memoryKv, memoryKvRef, setMemoryKv,
       inputValue, inputValueRef, setInputValue,
       isCameraOn, isCameraOnRef, setIsCameraOn,
       isWebcamReady, isWebcamReadyRef, setIsWebcamReady,
+      isAvatarOn, isAvatarOnRef, setIsAvatarOn,
       functionsToolsRef,
+      needSpeechQueue, needSpeechQueueRef, setNeedSpeechQueue,
+      caption, captionRef, setCaption,
+      captionQueue, captionQueueRef, setCaptionQueue, 
+      updateCaptionQueue, addCaptionQueue,
     }}>
       {children}
     </AppContext.Provider>
