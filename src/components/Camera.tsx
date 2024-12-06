@@ -6,12 +6,36 @@ import './Camera.scss';
 import { Camera as CameraIcon, CameraOff, RefreshCw } from 'react-feather';
 
 const Camera: React.FC = () => {
+
   const webcamRef = React.useRef<Webcam>(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { photos, isCameraOn, isCameraOnRef, setPhotos, setIsCameraOn, isWebcamReady, isWebcamReadyRef, setIsWebcamReady } = useContexts();
+
+  const { isCameraOn, isCameraOnRef,
+    photos, setPhotos, setIsCameraOn,
+    isWebcamReady, isWebcamReadyRef, setIsWebcamReady,
+    replaceInstructions
+  } = useContexts();
+
   const [facingMode, setFacingMode] = useState('user');
+
   const [cameraCount, setCameraCount] = useState(0);
+
+  useEffect(() => {
+    console.log('isCameraOn:', isCameraOn);
+    isCameraOnRef.current = isCameraOn;
+    if (!isCameraOn) {
+      setIsWebcamReady(false);
+      setPhotos([]);
+    }
+  }, [isCameraOn]);
+
+  useEffect(() => {
+    console.log(`iseWebcamReady:`, isWebcamReady);
+    isWebcamReadyRef.current = isWebcamReady;
+    isWebcamReady ? replaceInstructions('现在我的摄像头是关闭的', '现在我的摄像头打开的')
+      : replaceInstructions('现在我的摄像头打开的', '现在我的摄像头是关闭的')
+  }, [isWebcamReady]);
 
   useEffect(() => {
     const getCameras = async () => {

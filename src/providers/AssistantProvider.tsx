@@ -4,10 +4,8 @@ import { getOpenAIClient } from '../lib/openai';
 import { AssistantStream } from 'openai/lib/AssistantStream';
 // @ts-expect-error - no types for this yet
 import { AssistantStreamEvent } from 'openai/resources/beta/assistants/assistants';
-import { useAvatar } from './AvatarProvider';
 import { Assistant, AssistantCreateParams } from 'openai/resources/beta/assistants';
 import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
-import { useSettings } from './SettingsProvider';
 
 interface AssistantContextType {
   messagesAssistant: any[];
