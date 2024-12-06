@@ -96,5 +96,4 @@ const AudioVisualization: React.FC = () => {
   );
 };
 
-
 export default AudioVisualization;

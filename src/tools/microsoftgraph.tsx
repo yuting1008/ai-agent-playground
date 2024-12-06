@@ -1,5 +1,4 @@
 import 'isomorphic-fetch';
-import { Client } from '@microsoft/microsoft-graph-client';
 
 import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
 

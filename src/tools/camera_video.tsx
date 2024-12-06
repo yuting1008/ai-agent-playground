@@ -1,6 +1,4 @@
 import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
-import { useContexts } from '../providers/AppProvider';
-import { getCompletion } from '../lib/openai';
 import { CAMERA_PHOTO_LIMIT } from '../lib/const';
 
 export const definition: ToolDefinitionType = {

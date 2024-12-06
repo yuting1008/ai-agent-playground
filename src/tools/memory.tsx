@@ -1,5 +1,4 @@
 import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
-import { useContexts } from '../providers/AppProvider';
 
 export const definition: ToolDefinitionType = {
   name: 'set_memory',
