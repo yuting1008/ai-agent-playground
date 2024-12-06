@@ -241,6 +241,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     assistantResponseBufferRef.current = assistantResponseBuffer;
 
     if (!assistantResponseBuffer) {
+      setNeedSpeechQueue([]);
+      setCaptionQueue([]);
+      setIsAvatarSpeaking(false);
       return;
     }
 
@@ -260,9 +263,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const speechSentencesCacheArrayRef = useRef(speechSentencesCacheArray);
   useEffect(() => {
     speechSentencesCacheArrayRef.current = speechSentencesCacheArray;
-    if (speechSentencesCacheArray.length === 0) {
-      setAssistantResponseBuffer('');
-    }
   }, [speechSentencesCacheArray]);
 
   const prompt = localStorage.getItem('prompt') || '';
