@@ -8,6 +8,7 @@ import * as weather from '../tools/weather';
 import * as avatar from '../tools/avatar';
 import * as order_get from '../tools/order_get';
 import * as order_return from '../tools/order_return';
+import * as bing from '../tools/bing';
 import * as dark from '../tools/dark';
 import * as news from '../tools/news';
 import * as douyin from '../tools/douyin';
@@ -33,6 +34,7 @@ import { delayFunction } from '../lib/helper';
 import { Assistant } from 'openai/resources/beta/assistants';
 import { processAndStoreSentence } from '../lib/sentence';
 import { AvatarSynthesizer } from 'microsoft-cognitiveservices-speech-sdk';
+import axios from 'axios';
 
 
 interface AppContextType {
@@ -61,17 +63,16 @@ interface AppContextType {
   threadJobRef: React.MutableRefObject<any | null>;
   setThreadJob: React.Dispatch<React.SetStateAction<any | null>>;
 
-  assistantResponseBuffer: string;
-  assistantResponseBufferRef: React.MutableRefObject<string>;
-  setAssistantResponseBuffer: React.Dispatch<React.SetStateAction<string>>;
+  responseBuffer: string;
+  responseBufferRef: React.MutableRefObject<string>;
+  setResponseBuffer: React.Dispatch<React.SetStateAction<string>>;
 
   speechSentencesCacheArray: string[];
   speechSentencesCacheArrayRef: React.MutableRefObject<string[]>;
   setSpeechSentencesCacheArray: React.Dispatch<React.SetStateAction<string[]>>;
 
-  realtimeInstructions: string;
-  realtimeInstructionsRef: React.MutableRefObject<string>;
-  setRealtimeInstructions: React.Dispatch<React.SetStateAction<string>>;
+  llmInstructions: string;
+  llmInstructionsRef: React.MutableRefObject<string>;
   replaceInstructions: (source: string | RegExp, target: string) => string;
 
   assistant: Assistant | null;
@@ -132,6 +133,9 @@ interface AppContextType {
   setCaptionQueue: React.Dispatch<React.SetStateAction<string[]>>;
   updateCaptionQueue: (caption: string) => void;
   addCaptionQueue: (caption: string) => void;
+
+  bingSearchData: any;
+  setBingSearchData: React.Dispatch<React.SetStateAction<any>>;
 }
 
 const IS_DEBUG: boolean = window.location.href.includes('localhost');
@@ -140,8 +144,10 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
-  const { keyRef, endpointRef } = useSettings();
-  const { cogSvcSubKeyRef, cogSvcRegionRef } = useSettings();
+  const {
+    keyRef, endpointRef,
+    cogSvcSubKeyRef, cogSvcRegionRef
+  } = useSettings();
 
   // caption string
   const [caption, setCaption] = useState('');
@@ -234,20 +240,20 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     needSpeechQueueRef.current = needSpeechQueue;
   }, [needSpeechQueue]);
 
-  // assistantResponseBuffer string
-  const [assistantResponseBuffer, setAssistantResponseBuffer] = useState<string>('');
-  const assistantResponseBufferRef = useRef(assistantResponseBuffer);
+  // responseBuffer string
+  const [responseBuffer, setResponseBuffer] = useState<string>('');
+  const responseBufferRef = useRef(responseBuffer);
   useEffect(() => {
-    assistantResponseBufferRef.current = assistantResponseBuffer;
+    responseBufferRef.current = responseBuffer;
 
-    if (!assistantResponseBuffer) {
+    if (!responseBuffer) {
       setNeedSpeechQueue([]);
       setCaptionQueue([]);
       setIsAvatarSpeaking(false);
       return;
     }
 
-    const sentences = processAndStoreSentence(assistantResponseBuffer, isAvatarStarted, speechSentencesCacheArrayRef);
+    const sentences = processAndStoreSentence(responseBuffer, isAvatarStarted, speechSentencesCacheArrayRef);
 
     for (const sentence of sentences) {
       if (!sentence.exists) {
@@ -256,7 +262,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
     }
 
-  }, [assistantResponseBuffer]);
+  }, [responseBuffer]);
 
   // speechSentencesCacheArray array
   const [speechSentencesCacheArray, setSpeechSentencesCacheArray] = useState<string[]>([]);
@@ -269,17 +275,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   // realtime instructions string
   const updateInstructions = prompt ? `${instructions}\n\nOther requirements of the user: \n${prompt}` : instructions;
-  const [realtimeInstructions, setRealtimeInstructions] = useState<string>(updateInstructions);
-  const realtimeInstructionsRef = useRef(realtimeInstructions);
+  const [llmInstructions, setLlmInstructions] = useState<string>(updateInstructions);
+  const llmInstructionsRef = useRef(llmInstructions);
   useEffect(() => {
-    realtimeInstructionsRef.current = realtimeInstructions;
+    llmInstructionsRef.current = llmInstructions;
 
     if (assistant) {
-      assistant.instructions = realtimeInstructions;
+      assistant.instructions = llmInstructions;
       (async () => {
         try {
           const res = await getOpenAIClient().beta.assistants.update(assistant.id, {
-            instructions: realtimeInstructions
+            instructions: llmInstructions
           });
           console.log('assistant instructions updated', res);
         } catch (error) {
@@ -289,15 +295,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
 
     if (realtimeClientRef?.current.isConnected()) {
-      const res = realtimeClientRef.current.updateSession({ instructions: realtimeInstructions });
+      const res = realtimeClientRef.current.updateSession({ instructions: llmInstructions });
       console.log('realtime instructions updated', res);
     }
 
-  }, [realtimeInstructions]);
+  }, [llmInstructions]);
 
   const replaceInstructions = (source: string | RegExp, target: string) => {
-    const new_instructions = realtimeInstructionsRef.current.replace(source, target);
-    setRealtimeInstructions(new_instructions);
+    const new_instructions = llmInstructionsRef.current.replace(source, target);
+    setLlmInstructions(new_instructions);
     return new_instructions;
   };
 
@@ -351,7 +357,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const avatarVideoRef = useRef<HTMLVideoElement>(null);
   const avatarAudioRef = useRef<HTMLAudioElement>(null);
 
-  // -------- handlers ---------
+  // -------- functions ---------
   const camera_on_handler: Function = async ({ on }: { [on: string]: boolean }) => {
     if (on) {
       setIsCameraOn(true);
@@ -514,6 +520,32 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return { ok: true };
   };
 
+  const [bingSearchData, setBingSearchData] = useState<any>(null);
+  const bing_search_handler: Function = async ({ query }: { [key: string]: any }) => {
+
+    const subscriptionKey = localStorage.getItem('bingApiKey') || '';
+
+    if (!subscriptionKey) {
+      throw new Error('Bing API key is not set');
+    }
+
+    const mkt = 'en-US';
+    const params = { q: query, mkt: mkt };
+    const headers = { 'Ocp-Apim-Subscription-Key': subscriptionKey };
+
+    const response = await axios.get('https://api.bing.microsoft.com/v7.0/search', { headers, params });
+    const data = response.data;
+
+    setBingSearchData(data);
+
+    console.log(data);
+
+    return {
+      message: 'ok, please check the results in the modal. you don\'t need to say anything.',
+      data: data
+    };
+  };
+
   // functions_tools array
   const functionsToolsRef = useRef<[ToolDefinitionType, Function][]>([
     [camera_on.definition, camera_on_handler],
@@ -522,6 +554,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     [memory.definition, memory_handler],
     [avatar.definition, avatar_handler],
     [dark.definition, dark_handler],
+    [bing.definition, bing_search_handler],
 
     [news.definition, news.handler],
     [douyin.definition, douyin.handler],
@@ -568,30 +601,30 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       loading, loadingRef, setLoading,
       isAvatarStarted, isAvatarStartedRef, setIsAvatarStarted,
       debug, debugRef, setDebug,
-      assistant: assistant, assistantRef: assistantRef, setAssistant: setAssistant,
+      assistant, assistantRef, setAssistant,
       thread, threadRef, setThread,
       threadJob, threadJobRef, setThreadJob,
-      assistantResponseBuffer, assistantResponseBufferRef, setAssistantResponseBuffer,
+      responseBuffer, responseBufferRef, setResponseBuffer,
       speechSentencesCacheArray, speechSentencesCacheArrayRef, setSpeechSentencesCacheArray,
-      realtimeInstructions, realtimeInstructionsRef, setRealtimeInstructions, replaceInstructions,
+      llmInstructions, llmInstructionsRef, replaceInstructions,
       isNightMode, isNightModeRef, setIsNightMode,
-      realtimeClientRef,
       isAvatarLoading, isAvatarLoadingRef, setIsAvatarLoading,
       isAvatarSpeaking, isAvatarSpeakingRef, setIsAvatarSpeaking,
-      avatarSynthesizerRef,
-      peerConnectionRef,
-      avatarVideoRef,
-      avatarAudioRef,
       memoryKv, memoryKvRef, setMemoryKv,
       inputValue, inputValueRef, setInputValue,
       isCameraOn, isCameraOnRef, setIsCameraOn,
       isWebcamReady, isWebcamReadyRef, setIsWebcamReady,
       isAvatarOn, isAvatarOnRef, setIsAvatarOn,
-      functionsToolsRef,
       needSpeechQueue, needSpeechQueueRef, setNeedSpeechQueue,
       caption, captionRef, setCaption,
-      captionQueue, captionQueueRef, setCaptionQueue, 
-      updateCaptionQueue, addCaptionQueue,
+      captionQueue, captionQueueRef, setCaptionQueue, updateCaptionQueue, addCaptionQueue,
+      bingSearchData, setBingSearchData,
+      realtimeClientRef,
+      functionsToolsRef,
+      avatarSynthesizerRef,
+      peerConnectionRef,
+      avatarVideoRef,
+      avatarAudioRef,
     }}>
       {children}
     </AppContext.Provider>

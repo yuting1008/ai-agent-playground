@@ -15,12 +15,12 @@ const LocalStorageViewer: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [localStorageData, setLocalStorageData] = useState<LocalStorageItem[]>([]);
   const { photosRef,
-    assistantResponseBufferRef,
+    responseBufferRef,
     threadJobRef,
     threadRef,
     speechSentencesCacheArrayRef,
     isAvatarStartedRef,
-    realtimeInstructionsRef,
+    llmInstructionsRef,
     assistantRef,
     isCameraOnRef,
     isWebcamReadyRef,
@@ -123,12 +123,12 @@ const LocalStorageViewer: React.FC = () => {
                 <tr key='assistantRef.id'><td className={styles.tdKey}>assistantRef</td><td className={styles.tdValue}>{assistantRef?.current?.id}</td></tr>
                 <tr key='threadRef'><td className={styles.tdKey}>threadRef</td><td className={styles.tdValue}>{JSON.stringify(threadRef.current)}</td></tr>
                 <tr key='threadJobRef'><td className={styles.tdKey}>threadJobRef</td><td className={styles.tdValue}>{JSON.stringify(threadJobRef.current)}</td></tr>
-                <tr key='assistantResponseBufferRef'><td className={styles.tdKey}>assistantResponseBufferRef</td><td className={styles.tdValue}>{assistantResponseBufferRef.current}</td></tr>
+                <tr key='responseBufferRef'><td className={styles.tdKey}>responseBufferRef</td><td className={styles.tdValue}>{responseBufferRef.current}</td></tr>
 
                 <tr key='isAvatarStartedRef'><td className={styles.tdKey}>isAvatarStartedRef</td><td className={styles.tdValue}>{JSON.stringify(isAvatarStartedRef.current)}</td></tr>
                 <tr key='speechSentencesCacheArrayRef'><td className={styles.tdKey} >speechSentencesCacheArrayRef</td><td className={styles.tdValue}>{JSON.stringify(speechSentencesCacheArrayRef.current)}</td></tr>
                 
-                <tr key='realtimeInstructionsRef'><td className={styles.tdKey}>realtimeInstructionsRef</td><td className={styles.tdValue}>{realtimeInstructionsRef.current}</td></tr>
+                <tr key='llmInstructionsRef'><td className={styles.tdKey}>llmInstructionsRef</td><td className={styles.tdValue}>{llmInstructionsRef.current}</td></tr>
                 
               </tbody>
             </table>

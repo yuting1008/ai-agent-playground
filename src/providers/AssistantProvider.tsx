@@ -31,7 +31,7 @@ export const AssistantProvider: React.FC<{ children: ReactNode }> = ({ children 
     assistantRef, setAssistant, setLoading,
     threadRef, threadJobRef,
     setThreadJob, setThread,
-    setAssistantResponseBuffer
+    setResponseBuffer
   } = useContexts();
 
   // ------------------------ vars ------------------------
@@ -49,8 +49,7 @@ export const AssistantProvider: React.FC<{ children: ReactNode }> = ({ children 
     assistantRunningRef.current = assistantRunning;
   }, [assistantRunning]);
 
-  const { functionsToolsRef } = useContexts();
-  const { realtimeInstructions } = useContexts();
+  const { functionsToolsRef, llmInstructions } = useContexts();
 
   // ------------------------ functions ------------------------
   const setupAssistant = async () => {
@@ -62,7 +61,7 @@ export const AssistantProvider: React.FC<{ children: ReactNode }> = ({ children 
       // }
 
       const params: AssistantCreateParams = {
-        instructions: realtimeInstructions,
+        instructions: llmInstructions,
         name: 'Quickstart Assistant',
         temperature: 1,
         top_p: 1,
@@ -129,7 +128,7 @@ export const AssistantProvider: React.FC<{ children: ReactNode }> = ({ children 
   // textDelta - append text to last assistant message
   const handleAssistantTextDelta = (delta: any) => {
     if (delta.value != null) {
-      setAssistantResponseBuffer(latestText => latestText + delta.value);
+      setResponseBuffer(latestText => latestText + delta.value);
       appendAssistantToLastMessage(delta.value);
     }
 

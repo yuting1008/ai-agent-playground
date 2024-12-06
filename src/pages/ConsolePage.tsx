@@ -26,6 +26,7 @@ import { InputBar } from '../components/InputBar';
 import AudioVisualization from '../components/AudioVisualization';
 import OpenAITTS from '../components/OpenAITTS';
 import Caption from '../components/Caption';
+import BingSearchResult from '../components/functions/BingSearchResult';
 
 type AssistantMessageProps = {
   role: 'user' | 'assistant' | 'code';
@@ -107,8 +108,8 @@ export function ConsolePage() {
 
   const {
     isAvatarStarted, isAvatarStartedRef,
-    realtimeInstructions,
-    setAssistantResponseBuffer,
+    llmInstructions,
+    setResponseBuffer,
     functionsToolsRef,
     realtimeClientRef } = useContexts();
 
@@ -218,7 +219,7 @@ export function ConsolePage() {
     const client = realtimeClientRef.current;
 
     // Set instructions
-    client.updateSession({ instructions: realtimeInstructions });
+    client.updateSession({ instructions: llmInstructions });
     // Set transcription, otherwise we don't get user transcriptions back
     client.updateSession({ input_audio_transcription: { model: 'whisper-1' } });
     // Set voice
@@ -266,7 +267,7 @@ export function ConsolePage() {
     client.on('conversation.updated', async ({ item, delta }: any) => {
 
       if (item.object === 'realtime.item' && item.type === 'message' && item.role === 'assistant' && isAvatarStartedRef.current) {
-        setAssistantResponseBuffer(item.formatted.transcript);
+        setResponseBuffer(item.formatted.transcript);
       }
 
       const items = client.conversation.getItems();
@@ -365,6 +366,8 @@ export function ConsolePage() {
 
       <OpenAITTS />
       <Caption />
+
+      <BingSearchResult />
 
       <div className="content-top">
         <div className="content-title"><img src="/logomark.svg" alt="logo" /><h1>AI Agent Playground</h1></div>

@@ -8,12 +8,10 @@ import { useContexts } from '../providers/AppProvider';
 
 const FileUploadComponent: React.FC = () => {
 
-  const { realtimeClientRef } = useContexts();
+  const { realtimeClientRef, replaceInstructions } = useContexts();
 
   const [fileName, setFileName] = useState<string>('Upload File');
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const { replaceInstructions } = useContexts();
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];

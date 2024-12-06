@@ -12,8 +12,8 @@ interface Sentence {
 const OpenAITTS: React.FC = () => {
 
     const {
-        needSpeechQueueRef, setNeedSpeechQueue,
-        setCaption
+        needSpeechQueueRef, isAvatarStartedRef,
+        setCaption, setNeedSpeechQueue
     } = useContexts();
 
     const { ttsApiKey, ttsTargetUri } = useSettings();
@@ -76,10 +76,6 @@ const OpenAITTS: React.FC = () => {
         }
         setIsCreating(false);
     };
-
-    const {
-        isAvatarStartedRef,
-    } = useContexts();
 
     useEffect(() => {
         const intervalId = setInterval(async () => {

@@ -14,7 +14,7 @@ const Avatar: React.FC = () => {
     peerConnectionRef, avatarSynthesizerRef,
     needSpeechQueue, setNeedSpeechQueue,
     setIsAvatarLoading, setIsAvatarStarted,
-    setCaptionQueue,
+    setCaptionQueue, addCaptionQueue, updateCaptionQueue,
     replaceInstructions, setIsAvatarSpeaking, isAvatarSpeaking } = useContexts();
 
   const {
@@ -23,10 +23,14 @@ const Avatar: React.FC = () => {
 
   useEffect(() => {
     isAvatarOnRef.current = isAvatarOn;
-    isAvatarOn ? startAvatarSession() : stopAvatarSession();
-    if (!isAvatarOn) {
+
+    if (isAvatarOn) {
+      startAvatarSession();
+    } else {
       setCaptionQueue([]);
+      stopAvatarSession();
     }
+
   }, [isAvatarOn]);
 
   useEffect(() => {
@@ -214,8 +218,6 @@ const Avatar: React.FC = () => {
   const toggleAvatar = () => {
     setIsAvatarOn(!isAvatarOnRef.current);
   };
-
-  const { addCaptionQueue, updateCaptionQueue } = useContexts();
 
   const speakAvatar = async (spokenText: string) => {
     if (!avatarSynthesizerRef.current) return;

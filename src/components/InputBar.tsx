@@ -12,7 +12,7 @@ export function InputBar() {
 
   const {
     setInputValue, setIsAvatarSpeaking,
-    setAssistantResponseBuffer, inputValue, realtimeClientRef
+    setResponseBuffer, inputValue, realtimeClientRef
   } = useContexts();
 
   const {
@@ -20,17 +20,14 @@ export function InputBar() {
     isRealtime
   } = useSettings();
 
-
   const {
     setMessagesAssistant, setAssistantRunning, sendAssistantMessage,
     stopCurrentStreamJob, assistantRunning
   } = useAssistant();
 
-
   const {
     isConnected, cancelRealtimeResponse
   } = useRealtime();
-
 
   const [sttRecognizer, setSttRecognizer] = useState<SpeechSDK.SpeechRecognizer | null>(null);
   const [sttRecognizerConnecting, setSttRecognizerConnecting] = useState(false);
@@ -118,7 +115,7 @@ export function InputBar() {
 
   const sendText = async (inputValue: string) => {
     if (!inputValue.trim()) return;
-    setAssistantResponseBuffer('');
+    setResponseBuffer('');
 
     if (isRealtime) {
       cancelRealtimeResponse();

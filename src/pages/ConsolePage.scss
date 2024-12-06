@@ -197,7 +197,7 @@
           height: 32px;
           width: 32px;
           overflow: hidden;
-          z-index: 9999;
+          z-index: 999;
           text-align: center;
           white-space: pre;
           cursor: pointer;
@@ -639,7 +639,16 @@ body.night-mode {
   }
 }
 
+.modal {
+  background-color: #ffffff;
+}
+
 body.night-mode {
+
+  .modal {
+    background-color: #181818;
+  }
+
   .text-input {
     button {
       color: #d0d0d0;
