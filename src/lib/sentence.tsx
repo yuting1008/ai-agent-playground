@@ -30,17 +30,26 @@ function processSentences(inputs: string[]) {
     const result: string[] = [];
 
     for (const sentence of inputs) {
-        if (sentence.trim() === '') {
+
+        let newSentence = sentence.trim();
+
+        if (newSentence === '') {
             continue;
         }
-        if (excludePunctuation.includes(sentence.trim())) {
+
+        if (excludePunctuation.includes(newSentence)) {
             continue;
         }
+
+        // remove all * / # in the sentence
+        newSentence = newSentence.replaceAll('*', '')
+            .replaceAll('#', '');
+
         // If the last character is a punctuation mark, remove it
-        if (needRemoveMarks.includes(sentence[sentence.length - 1])) {
-            result.push(sentence.slice(0, -1));
+        if (needRemoveMarks.includes(newSentence[newSentence.length - 1])) {
+            result.push(newSentence.slice(0, -1));
         } else {
-            result.push(sentence);
+            result.push(newSentence);
         }
     }
 

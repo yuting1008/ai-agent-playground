@@ -2,7 +2,7 @@ import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/clie
 
 export const definition: ToolDefinitionType = {
   name: 'bing_search',
-  description: 'Search anything on the web',
+  description: 'Search anything on the web. You don\'t need to say anything after the search. no respond any message to the user before or after calling the tool.',
   parameters: {
     type: 'object',
     properties: {
@@ -14,4 +14,3 @@ export const definition: ToolDefinitionType = {
     required: ['query']
   }
 };
-
