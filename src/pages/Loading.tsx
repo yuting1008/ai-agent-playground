@@ -1,8 +1,8 @@
 import React from 'react';
-import { usePhotos } from '../context/AppProvider';
+import { useContexts } from '../providers/AppProvider';
 
 const Loading: React.FC = () => {
-  const { loading, setLoading } = usePhotos();
+  const { loading } = useContexts();
 
   if (!loading) return null;
 
@@ -24,7 +24,9 @@ const popupStyles: React.CSSProperties = {
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'center',
-  zIndex: 90000
+  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  zIndex: 99999,
+  transition: 'opacity 0.5s ease-in-out, visibility 0.5s ease-in-out'
 };
 
 const modalStyles: React.CSSProperties = {
@@ -32,11 +34,11 @@ const modalStyles: React.CSSProperties = {
   width: '80%',
   maxWidth: '500px',
   backgroundColor: '#fff',
+  color: '#000000',
   padding: '20px',
   boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
   borderRadius: '8px',
   textAlign: 'center'
 };
-
 
 export default Loading;

@@ -21,7 +21,6 @@ export const handler: Function = async ({ symbol }: { [key: string]: any }) => {
     throw new Error('Quote token is not set, please set it in the settings.');
   }
 
-
   const url = `https://finnhub.io/api/v1/stock/recommendation?symbol=${symbol}&token=${quoteToken}`;
   console.log('url', url);
   const result = await fetch(url, {

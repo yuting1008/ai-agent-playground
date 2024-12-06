@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import styles from './FileViewer.module.css';
-import { getOpenAIClient } from '../utils/openai';
+import { getOpenAIClient } from '../lib/openai';
+import { useContexts } from '../providers/AppProvider';
 
 const TrashIcon = () => (
   <svg
@@ -19,47 +20,53 @@ const TrashIcon = () => (
   </svg>
 );
 
-const getOrCreateVectorStore = async () => {
-  const assistantId = localStorage.getItem('assistantId') || '';
-  if (!assistantId) {
-    alert('No assistant ID found');
-  }
-
-
-  const assistant = await getOpenAIClient().beta.assistants.retrieve(assistantId);
-
-  // if the assistant already has a vector store, return it
-  if (assistant.tool_resources?.file_search?.vector_store_ids?.length && assistant.tool_resources.file_search.vector_store_ids.length > 0) {
-    return assistant.tool_resources.file_search.vector_store_ids[0];
-  }
-  // otherwise, create a new vector store and attatch it to the assistant
-  const vectorStore = await getOpenAIClient().beta.vectorStores.create({
-    name: 'sample-assistant-vector-store'
-  });
-  await getOpenAIClient().beta.assistants.update(assistantId, {
-    tool_resources: {
-      file_search: {
-        vector_store_ids: [vectorStore.id]
-      }
-    }
-  });
-  return vectorStore.id;
-};
 
 
 const FileViewer = () => {
   const [files, setFiles] = useState<any[]>([]);
 
+  const { assistantRef } = useContexts();
+
+  const getOrCreateVectorStore = async () => {
+
+    if (!assistantRef?.current){
+      return '';
+    }
+  
+    // if the assistant already has a vector store, return it
+    if (assistantRef?.current.tool_resources?.file_search?.vector_store_ids?.length && assistantRef?.current.tool_resources.file_search.vector_store_ids.length > 0) {
+      return assistantRef?.current.tool_resources.file_search.vector_store_ids[0];
+    }
+    // otherwise, create a new vector store and attatch it to the assistant
+    const vectorStore = await getOpenAIClient().beta.vectorStores.create({
+      name: 'sample-assistant-vector-store'
+    });
+    await getOpenAIClient().beta.assistants.update(assistantRef?.current.id, {
+      tool_resources: {
+        file_search: {
+          vector_store_ids: [vectorStore.id]
+        }
+      }
+    });
+    return vectorStore.id;
+  };
+  
+
   useEffect(() => {
+
     const interval = setInterval(() => {
       fetchFiles();
-    }, 1000);
+    }, 2000);
 
     return () => clearInterval(interval);
   }, []);
 
   // list files in assistant's vector store
   const fetchFiles = async () => {
+
+    if (!assistantRef?.current){
+      return;
+    }
 
     const vectorStoreId = await getOrCreateVectorStore(); // get or create vector store
     const fileList = await getOpenAIClient().beta.vectorStores.files.list(vectorStoreId);
@@ -113,39 +120,41 @@ const FileViewer = () => {
   };
 
   return (
-    <div className={styles.fileViewer}>
-      <div
-        className={`${styles.filesList} ${files.length !== 0 ? styles.grow : ''
-          }`}
-      >
-        {files.length === 0 ? (
-          <div className={styles.title}>Test file search</div>
-        ) : (
-          files.map((file: any) => (
-            <div key={file.file_id} className={styles.fileEntry}>
-              <div className={styles.fileName}>
-                <span className={styles.fileName}>{file.filename}</span>
-                <span className={styles.fileStatus}>{file.status}</span>
+    <div className="content-actions container_bg">
+      <div className={styles.fileViewer}>
+        <div
+          className={`${styles.filesList} ${files.length !== 0 ? styles.grow : ''
+            }`}
+        >
+          {files.length === 0 ? (
+            <div className={styles.title}>Test file search</div>
+          ) : (
+            files.map((file: any) => (
+              <div key={file.file_id} className={styles.fileEntry}>
+                <div className={styles.fileName}>
+                  <span className={styles.fileName}>{file.filename}</span>
+                  <span className={styles.fileStatus}>{file.status}</span>
+                </div>
+                <span onClick={() => handleFileDelete(file.file_id)}>
+                  <TrashIcon />
+                </span>
               </div>
-              <span onClick={() => handleFileDelete(file.file_id)}>
-                <TrashIcon />
-              </span>
-            </div>
-          ))
-        )}
-      </div>
-      <div className={styles.fileUploadContainer}>
-        <label htmlFor="file-upload" className={styles.fileUploadBtn}>
-          Attach files
-        </label>
-        <input
-          type="file"
-          id="file-upload"
-          name="file-upload"
-          className={styles.fileUploadInput}
-          multiple
-          onChange={handleFileUpload}
-        />
+            ))
+          )}
+        </div>
+        <div className={styles.fileUploadContainer}>
+          <label htmlFor="file-upload" className={styles.fileUploadBtn}>
+            Attach files
+          </label>
+          <input
+            type="file"
+            id="file-upload"
+            name="file-upload"
+            className={styles.fileUploadInput}
+            multiple
+            onChange={handleFileUpload}
+          />
+        </div>
       </div>
     </div>
   );
