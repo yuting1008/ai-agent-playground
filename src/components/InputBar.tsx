@@ -12,7 +12,7 @@ import './InputBar.scss';
 export function InputBar() {
 
   const {
-    setInputValue, setSpeechSentencesCacheArray, setIsAvatarSpeaking,
+    setInputValue, setIsAvatarSpeaking,
     setAssistantResponseBuffer, inputValue, realtimeClientRef
   } = useContexts();
 
@@ -119,7 +119,7 @@ export function InputBar() {
 
   const sendText = async (inputValue: string) => {
     if (!inputValue.trim()) return;
-    setSpeechSentencesCacheArray([]);
+    setAssistantResponseBuffer('')
 
     if (isRealtime) {
       cancelRealtimeResponse();
@@ -135,7 +135,6 @@ export function InputBar() {
     }
 
     await stopCurrentStreamJob();
-    setAssistantResponseBuffer('')
     setIsAvatarSpeaking(false);
     sendAssistantMessage(inputValue);
     setMessagesAssistant((prevMessages: any) => [

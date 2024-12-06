@@ -57,13 +57,11 @@ const OpenAITTS: React.FC = () => {
                     speed: 1.0,
                 }
             )
-            // console.log('response', response)
 
             const audioBlob = await response.blob();
 
             setNeedSpeechQueue(needSpeechQueueRef.current.slice(1));
 
-            // console.log('audioBlob', audioBlob)
             const audioURL = URL.createObjectURL(audioBlob);
 
             const sentence: Sentence = {

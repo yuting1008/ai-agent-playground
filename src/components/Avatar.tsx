@@ -12,11 +12,9 @@ const Avatar: React.FC = () => {
     isAvatarStarted, isAvatarStartedRef, isAvatarLoading,
     avatarVideoRef, avatarAudioRef,
     peerConnectionRef, avatarSynthesizerRef,
-    needSpeechQueue, needSpeechQueueRef, setNeedSpeechQueue,
+    needSpeechQueue, setNeedSpeechQueue,
     setIsAvatarLoading, setIsAvatarStarted,
-    replaceInstructions, setIsAvatarSpeaking, isAvatarSpeaking,
-    setCaption
-  } = useContexts();
+    replaceInstructions, setIsAvatarSpeaking, isAvatarSpeaking } = useContexts();
 
   const {
     cogSvcSubKeyRef, cogSvcRegionRef,
@@ -213,7 +211,7 @@ const Avatar: React.FC = () => {
     setIsAvatarOn(!isAvatarOnRef.current);
   };
 
-  const {addCaptionQueue, updateCaptionQueue} = useContexts();
+  const { addCaptionQueue, updateCaptionQueue } = useContexts();
 
   const speakAvatar = async (spokenText: string) => {
     if (!avatarSynthesizerRef.current) return;

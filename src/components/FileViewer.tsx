@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import styles from './FileViewer.module.css';
 import { getOpenAIClient } from '../lib/openai';
 import { useContexts } from '../providers/AppProvider';
-import { Assistant } from 'openai/resources/beta/assistants';
 
 const TrashIcon = () => (
   <svg

@@ -5,7 +5,7 @@ import { useContexts } from "../providers/AppProvider";
 
 const Caption: React.FC = () => {
     const { caption, setCaption } = useContexts();
-    const { captionQueue, captionQueueRef, setCaptionQueue } = useContexts();
+    const { captionQueue, captionQueueRef } = useContexts();
 
     useEffect(() => {
         captionQueueRef.current = captionQueue;
