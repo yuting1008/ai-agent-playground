@@ -271,42 +271,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     speechSentencesCacheArrayRef.current = speechSentencesCacheArray;
   }, [speechSentencesCacheArray]);
 
-  const prompt = localStorage.getItem('prompt') || '';
-
-  // realtime instructions string
-  const updateInstructions = prompt ? `${instructions}\n\nOther requirements of the user: \n${prompt}` : instructions;
-  const [llmInstructions, setLlmInstructions] = useState<string>(updateInstructions);
-  const llmInstructionsRef = useRef(llmInstructions);
-  useEffect(() => {
-    llmInstructionsRef.current = llmInstructions;
-
-    if (assistant) {
-      assistant.instructions = llmInstructions;
-      (async () => {
-        try {
-          const res = await getOpenAIClient().beta.assistants.update(assistant.id, {
-            instructions: llmInstructions
-          });
-          console.log('assistant instructions updated', res);
-        } catch (error) {
-          console.error('Error:', error);
-        }
-      })();
-    }
-
-    if (realtimeClientRef?.current.isConnected()) {
-      const res = realtimeClientRef.current.updateSession({ instructions: llmInstructions });
-      console.log('realtime instructions updated', res);
-    }
-
-  }, [llmInstructions]);
-
-  const replaceInstructions = (source: string | RegExp, target: string) => {
-    const new_instructions = llmInstructionsRef.current.replace(source, target);
-    setLlmInstructions(new_instructions);
-    return new_instructions;
-  };
-
   // isNightMode boolean
   const [isNightMode, setIsNightMode] = useState<boolean>(false);
   const isNightModeRef = useRef(isNightMode);
@@ -574,6 +538,46 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     [quote.definition, quote.handler],
     [stock_recommend.definition, stock_recommend.handler],
   ]);
+
+  // instructions string
+  const prompt = localStorage.getItem('prompt') || '';
+  let updateInstructions = prompt ? `${instructions}\n\nOther requirements of the user: \n${prompt}` : instructions;
+  updateInstructions += `\n\nYou have the following tools and abilities:`;
+  for (const tool of functionsToolsRef.current) {
+    updateInstructions += `\n${tool[0].name}: ${tool[0].description}`;
+  }
+
+  const [llmInstructions, setLlmInstructions] = useState<string>(updateInstructions);
+  const llmInstructionsRef = useRef(llmInstructions);
+  useEffect(() => {
+    llmInstructionsRef.current = llmInstructions;
+
+    if (assistant) {
+      assistant.instructions = llmInstructions;
+      (async () => {
+        try {
+          const res = await getOpenAIClient().beta.assistants.update(assistant.id, {
+            instructions: llmInstructions
+          });
+          console.log('assistant instructions updated', res);
+        } catch (error) {
+          console.error('Error:', error);
+        }
+      })();
+    }
+
+    if (realtimeClientRef?.current.isConnected()) {
+      const res = realtimeClientRef.current.updateSession({ instructions: llmInstructions });
+      console.log('realtime instructions updated', res);
+    }
+
+  }, [llmInstructions]);
+
+  const replaceInstructions = (source: string | RegExp, target: string) => {
+    const new_instructions = llmInstructionsRef.current.replace(source, target);
+    setLlmInstructions(new_instructions);
+    return new_instructions;
+  };
 
   const handleKeyDown = (event: KeyboardEvent) => {
     if (

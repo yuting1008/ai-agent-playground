@@ -12,18 +12,28 @@ interface LocalStorageItem {
 const excludeKeys = ['Hm_', 'ally-supports-cache'];
 
 const LocalStorageViewer: React.FC = () => {
+
   const [isOpen, setIsOpen] = useState(false);
   const [localStorageData, setLocalStorageData] = useState<LocalStorageItem[]>([]);
-  const { photosRef,
-    responseBufferRef,
-    threadJobRef,
-    threadRef,
-    speechSentencesCacheArrayRef,
-    isAvatarStartedRef,
-    llmInstructionsRef,
-    assistantRef,
-    isCameraOnRef,
-    isWebcamReadyRef,
+  const {
+    isCameraOn,
+    isAvatarOn,
+    isWebcamReady,
+    isNightMode,
+    isAvatarLoading,
+    isAvatarSpeaking,
+    photos,
+    responseBuffer,
+    threadJob,
+    thread,
+    speechSentencesCacheArray,
+    isAvatarStarted,
+    llmInstructions,
+    assistant,
+    memoryKv,
+    inputValue,
+    needSpeechQueue,
+    captionQueue,
   } = useContexts();
 
   const fetchLocalStorageData = useCallback(() => {
@@ -114,22 +124,33 @@ const LocalStorageViewer: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                <tr key='isCameraOnRef'><td className={styles.tdKey}>isCameraOnRef</td><td className={styles.tdValue}>{JSON.stringify(isCameraOnRef.current)}</td></tr>
-                <tr key='isWebcamReadyRef'><td className={styles.tdKey}>isWebcamReadyRef</td><td className={styles.tdValue}>{JSON.stringify(isWebcamReadyRef.current)}</td></tr>
-       
-                <tr key='photosRefLength'><td className={styles.tdKey}>photosRef.length</td><td className={styles.tdValue}>{photosRef.current.length} / {CAMERA_PHOTO_LIMIT}</td></tr>
-                <tr key='photosRefSize'><td className={styles.tdKey}>photosRefSize</td><td className={styles.tdValue}>{getStringArraySizeUtf8InMB(photosRef.current)} MB</td></tr>
-                
-                <tr key='assistantRef.id'><td className={styles.tdKey}>assistantRef</td><td className={styles.tdValue}>{assistantRef?.current?.id}</td></tr>
-                <tr key='threadRef'><td className={styles.tdKey}>threadRef</td><td className={styles.tdValue}>{JSON.stringify(threadRef.current)}</td></tr>
-                <tr key='threadJobRef'><td className={styles.tdKey}>threadJobRef</td><td className={styles.tdValue}>{JSON.stringify(threadJobRef.current)}</td></tr>
-                <tr key='responseBufferRef'><td className={styles.tdKey}>responseBufferRef</td><td className={styles.tdValue}>{responseBufferRef.current}</td></tr>
 
-                <tr key='isAvatarStartedRef'><td className={styles.tdKey}>isAvatarStartedRef</td><td className={styles.tdValue}>{JSON.stringify(isAvatarStartedRef.current)}</td></tr>
-                <tr key='speechSentencesCacheArrayRef'><td className={styles.tdKey} >speechSentencesCacheArrayRef</td><td className={styles.tdValue}>{JSON.stringify(speechSentencesCacheArrayRef.current)}</td></tr>
-                
-                <tr key='llmInstructionsRef'><td className={styles.tdKey}>llmInstructionsRef</td><td className={styles.tdValue}>{llmInstructionsRef.current}</td></tr>
-                
+                <tr key='isCameraOn'><td className={styles.tdKey}>isCameraOn</td><td className={styles.tdValue}>{JSON.stringify(isCameraOn)}</td></tr>
+                <tr key='isWebcamReady'><td className={styles.tdKey}>isWebcamReady</td><td className={styles.tdValue}>{JSON.stringify(isWebcamReady)}</td></tr>
+                <tr key='photos.length'><td className={styles.tdKey}>photos.length</td><td className={styles.tdValue}>{photos.length} / {CAMERA_PHOTO_LIMIT}</td></tr>
+                <tr key='photos.size'><td className={styles.tdKey}>photos.size</td><td className={styles.tdValue}>{getStringArraySizeUtf8InMB(photos)} MB</td></tr>
+
+                <tr key='isAvatarOn'><td className={styles.tdKey}>isAvatarOn</td><td className={styles.tdValue}>{JSON.stringify(isAvatarOn)}</td></tr>
+                <tr key='isAvatarLoading'><td className={styles.tdKey}>isAvatarLoading</td><td className={styles.tdValue}>{JSON.stringify(isAvatarLoading)}</td></tr>
+                <tr key='isAvatarStarted'><td className={styles.tdKey}>isAvatarStarted</td><td className={styles.tdValue}>{JSON.stringify(isAvatarStarted)}</td></tr>
+                <tr key='isAvatarSpeaking'><td className={styles.tdKey}>isAvatarSpeaking</td><td className={styles.tdValue}>{JSON.stringify(isAvatarSpeaking)}</td></tr>
+                <tr key='isNightMode'><td className={styles.tdKey}>isNightMode</td><td className={styles.tdValue}>{JSON.stringify(isNightMode)}</td></tr>
+
+                <tr key='inputValue'><td className={styles.tdKey}>inputValue</td><td className={styles.tdValue}>{inputValue}</td></tr>
+                <tr key='responseBuffer'><td className={styles.tdKey}>responseBuffer</td><td className={styles.tdValue}>{responseBuffer}</td></tr>
+
+                <tr key='memoryKv'><td className={styles.tdKey}>memoryKv</td><td className={styles.tdValue}>{JSON.stringify(memoryKv)}</td></tr>
+
+                <tr key='assistant.id'><td className={styles.tdKey}>assistant.id</td><td className={styles.tdValue}>{assistant?.id}</td></tr>
+                <tr key='thread'><td className={styles.tdKey}>thread</td><td className={styles.tdValue}>{JSON.stringify(thread)}</td></tr>
+                <tr key='threadJob'><td className={styles.tdKey}>threadJob</td><td className={styles.tdValue}>{JSON.stringify(threadJob)}</td></tr>
+
+                <tr key='speechSentencesCacheArray'><td className={styles.tdKey} >speechSentencesCacheArray</td><td className={styles.tdValue}>{JSON.stringify(speechSentencesCacheArray)}</td></tr>
+                <tr key='needSpeechQueue'><td className={styles.tdKey}>needSpeechQueue</td><td className={styles.tdValue}>{JSON.stringify(needSpeechQueue)}</td></tr>
+                <tr key='captionQueue'><td className={styles.tdKey}>captionQueue</td><td className={styles.tdValue}>{JSON.stringify(captionQueue)}</td></tr>
+
+                <tr key='llmInstructions'><td className={styles.tdKey}>llmInstructions</td><td className={styles.tdValue}>{llmInstructions}</td></tr>
+
               </tbody>
             </table>
 

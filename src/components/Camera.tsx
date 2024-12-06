@@ -33,8 +33,8 @@ const Camera: React.FC = () => {
   useEffect(() => {
     console.log(`iseWebcamReady:`, isWebcamReady);
     isWebcamReadyRef.current = isWebcamReady;
-    isWebcamReady ? replaceInstructions('现在我的摄像头是关闭的', '现在我的摄像头打开的')
-      : replaceInstructions('现在我的摄像头打开的', '现在我的摄像头是关闭的')
+    isWebcamReady ? replaceInstructions('现在我的摄像头是关闭的', '现在我的摄像头是打开的')
+      : replaceInstructions('现在我的摄像头是打开的', '现在我的摄像头是关闭的')
   }, [isWebcamReady]);
 
   useEffect(() => {
