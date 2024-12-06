@@ -250,7 +250,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const sentences = processAndStoreSentence(assistantResponseBuffer, isAvatarStarted, speechSentencesCacheArrayRef);
 
     for (const sentence of sentences) {
-      if (sentence.exists === false) {
+      if (!sentence.exists) {
         console.log(`speech need speak: ${sentence.sentence}`);
         setNeedSpeechQueue([...needSpeechQueue, sentence.sentence]);
       }
@@ -550,8 +550,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     ) {
       event.preventDefault();
       setDebug((prevMyVariable) => {
-        const newValue = !prevMyVariable;
-        return newValue;
+        return !prevMyVariable;
       });
     }
   };

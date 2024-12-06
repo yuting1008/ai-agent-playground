@@ -152,10 +152,10 @@ export const RealtimeProvider: React.FC<{ children: ReactNode }> = ({ children }
   const cancelRealtimeResponse = async () => {
     const client = realtimeClientRef.current;
     const wavStreamPlayer = wavStreamPlayerRef.current;
-    const trackSampleOffset = await wavStreamPlayer.interrupt();
+    const trackSampleOffset = wavStreamPlayer.interrupt();
     if (trackSampleOffset?.trackId) {
       const { trackId, offset } = trackSampleOffset;
-      await client.cancelResponse(trackId, offset);
+      client.cancelResponse(trackId, offset);
     }
   };
 
@@ -168,10 +168,10 @@ export const RealtimeProvider: React.FC<{ children: ReactNode }> = ({ children }
     const client = realtimeClientRef.current;
     const wavRecorder = wavRecorderRef.current;
     const wavStreamPlayer = wavStreamPlayerRef.current;
-    const trackSampleOffset = await wavStreamPlayer.interrupt();
+    const trackSampleOffset = wavStreamPlayer.interrupt();
     if (trackSampleOffset?.trackId) {
       const { trackId, offset } = trackSampleOffset;
-      await client.cancelResponse(trackId, offset);
+      client.cancelResponse(trackId, offset);
     }
     await wavRecorder.record((data) => client.appendInputAudio(data.mono));
   };

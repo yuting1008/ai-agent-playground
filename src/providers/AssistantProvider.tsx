@@ -27,9 +27,10 @@ const AssistantContext = createContext<AssistantContextType | undefined>(undefin
 
 export const AssistantProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
-  const { assistantRef, setAssistant, setLoading, threadRef, threadJobRef, setThreadJob, setThread } = useContexts();
-
   const {
+    assistantRef, setAssistant, setLoading,
+    threadRef, threadJobRef,
+    setThreadJob, setThread,
     setAssistantResponseBuffer
   } = useContexts();
 
@@ -137,7 +138,6 @@ export const AssistantProvider: React.FC<{ children: ReactNode }> = ({ children 
     }
   };
 
-
   // imageFileDone - show image in chat
   const handleAssistantImageFileDone = (image: any) => {
     appendAssistantToLastMessage(`\n![${image.file_id}](/api/files/${image.file_id})\n`);
@@ -172,7 +172,7 @@ export const AssistantProvider: React.FC<{ children: ReactNode }> = ({ children 
       })
     );
     setAssistantRunning(true);
-    submitAssistantActionResult(runId, toolCallOutputs);
+    await submitAssistantActionResult(runId, toolCallOutputs);
     setLoading(false);
   };
 
