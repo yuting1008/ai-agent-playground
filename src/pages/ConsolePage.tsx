@@ -348,7 +348,6 @@ export function ConsolePage() {
     return true;
   };
 
-
   // automatically scroll to bottom of chat
   const messagesEndAssistantRef = useRef<HTMLDivElement | null>(null);
   const assistantScrollToBottom = () => {

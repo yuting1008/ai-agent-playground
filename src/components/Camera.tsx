@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Webcam from 'react-webcam';
 import { useContexts } from '../providers/AppProvider';
 import { CAMERA_PHOTO_INTERVAL_MS, CAMERA_PHOTO_LIMIT } from '../lib/const';

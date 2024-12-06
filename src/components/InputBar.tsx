@@ -1,14 +1,13 @@
-
-
-import { Mic, MicOff, Send, StopCircle, Clock } from 'react-feather';
+import { Clock, Mic, MicOff, Send, StopCircle } from 'react-feather';
 
 import { useRealtime } from '../providers/RealtimeProvider';
 import { useContexts } from '../providers/AppProvider';
 import { useAssistant } from '../providers/AssistantProvider';
 import { useSettings } from '../providers/SettingsProvider';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import * as SpeechSDK from 'microsoft-cognitiveservices-speech-sdk';
 import './InputBar.scss';
+
 export function InputBar() {
 
   const {
@@ -18,7 +17,7 @@ export function InputBar() {
 
   const {
     cogSvcSubKeyRef, cogSvcRegionRef,
-    isRealtime,
+    isRealtime
   } = useSettings();
 
 
@@ -119,7 +118,7 @@ export function InputBar() {
 
   const sendText = async (inputValue: string) => {
     if (!inputValue.trim()) return;
-    setAssistantResponseBuffer('')
+    setAssistantResponseBuffer('');
 
     if (isRealtime) {
       cancelRealtimeResponse();
@@ -146,7 +145,6 @@ export function InputBar() {
   };
 
 
-
   return (
     <>
       {
@@ -155,17 +153,17 @@ export function InputBar() {
           <div className="text-input">
 
             <input type="text"
-              placeholder="Type your message here..."
-              value={inputValue}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  sendText(inputValue);
-                }
-                if (e.key === 'Escape') {
-                  setInputValue('');
-                }
-              }}
-              onChange={(e) => setInputValue(e.target.value)}
+                   placeholder="Type your message here..."
+                   value={inputValue}
+                   onKeyDown={(e) => {
+                     if (e.key === 'Enter') {
+                       sendText(inputValue);
+                     }
+                     if (e.key === 'Escape') {
+                       setInputValue('');
+                     }
+                   }}
+                   onChange={(e) => setInputValue(e.target.value)}
             />
 
             <button
