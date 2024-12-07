@@ -28,7 +28,7 @@ import * as exchange_rate_aim from '../tools/exchange_rate_aim';
 import * as exchange_rate_list from '../tools/exchange_rate_list';
 import * as exchange_rate_configs from '../tools/exchange_rate_configs';
 import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
-import { CAMERA_PHOTO_LIMIT } from '../lib/const';
+import { AVATAR_OFF, AVATAR_READY, AVATAR_STARTING, CAMERA_OFF, CAMERA_PHOTO_LIMIT, CAMERA_STARTING, CONNECT_DISCONNECTED } from '../lib/const';
 import { getCompletion, getOpenAIClient } from '../lib/openai';
 import { delayFunction } from '../lib/helper';
 import { Assistant } from 'openai/resources/beta/assistants';
@@ -46,10 +46,6 @@ interface AppContextType {
   loading: boolean;
   loadingRef: React.MutableRefObject<boolean>;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
-
-  isAvatarStarted: boolean;
-  isAvatarStartedRef: React.MutableRefObject<boolean>;
-  setIsAvatarStarted: React.Dispatch<React.SetStateAction<boolean>>;
 
   debug: boolean;
   debugRef: React.MutableRefObject<boolean>;
@@ -75,6 +71,18 @@ interface AppContextType {
   llmInstructionsRef: React.MutableRefObject<string>;
   replaceInstructions: (source: string | RegExp, target: string) => string;
 
+  cameraStatus: string;
+  cameraStatusRef: React.MutableRefObject<string>;
+  setCameraStatus: React.Dispatch<React.SetStateAction<string>>;
+
+  connectStatus: string;
+  connectStatusRef: React.MutableRefObject<string>;
+  setConnectStatus: React.Dispatch<React.SetStateAction<string>>;
+
+  avatarStatus: string;
+  avatarStatusRef: React.MutableRefObject<string>;
+  setAvatarStatus: React.Dispatch<React.SetStateAction<string>>;
+
   assistant: Assistant | null;
   assistantRef: React.MutableRefObject<Assistant | null>;
   setAssistant: React.Dispatch<React.SetStateAction<Assistant | null>>;
@@ -85,16 +93,7 @@ interface AppContextType {
 
   realtimeClientRef: React.MutableRefObject<RealtimeClient>;
 
-  isAvatarOn: boolean;
-  isAvatarOnRef: React.MutableRefObject<boolean>;
-  setIsAvatarOn: React.Dispatch<React.SetStateAction<boolean>>;
-
-  isAvatarLoading: boolean;
-  isAvatarLoadingRef: React.MutableRefObject<boolean>;
-  setIsAvatarLoading: React.Dispatch<React.SetStateAction<boolean>>;
-
   isAvatarSpeaking: boolean;
-  isAvatarSpeakingRef: React.MutableRefObject<boolean>;
   setIsAvatarSpeaking: React.Dispatch<React.SetStateAction<boolean>>;
 
   avatarSynthesizerRef: React.MutableRefObject<AvatarSynthesizer | null>;
@@ -109,14 +108,6 @@ interface AppContextType {
   inputValue: string;
   inputValueRef: React.MutableRefObject<string>;
   setInputValue: React.Dispatch<React.SetStateAction<string>>;
-
-  isCameraOn: boolean;
-  isCameraOnRef: React.MutableRefObject<boolean>;
-  setIsCameraOn: React.Dispatch<React.SetStateAction<boolean>>;
-
-  isWebcamReady: boolean;
-  isWebcamReadyRef: React.MutableRefObject<boolean>;
-  setIsWebcamReady: React.Dispatch<React.SetStateAction<boolean>>;
 
   needSpeechQueue: string[];
   needSpeechQueueRef: React.MutableRefObject<string[]>;
@@ -171,13 +162,26 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setCaptionQueue([...captionQueueRef.current, caption]);
   };
 
-  // isCameraOn boolean
-  const [isCameraOn, setIsCameraOn] = useState(false);
-  const isCameraOnRef = useRef(isCameraOn);
+  // cameraStatus string
+  const [cameraStatus, setCameraStatus] = useState(CAMERA_OFF);
+  const cameraStatusRef = useRef(cameraStatus);
+  useEffect(() => {
+    cameraStatusRef.current = cameraStatus;
+  }, [cameraStatus]);
 
-  // isWebcamReady boolean
-  const [isWebcamReady, setIsWebcamReady] = useState(false);
-  const isWebcamReadyRef = useRef(isWebcamReady);
+  // connectStatus string
+  const [connectStatus, setConnectStatus] = useState(CONNECT_DISCONNECTED);
+  const connectStatusRef = useRef(connectStatus);
+  useEffect(() => {
+    connectStatusRef.current = connectStatus;
+  }, [connectStatus]);
+
+  // avatarStatus string
+  const [avatarStatus, setAvatarStatus] = useState(AVATAR_OFF);
+  const avatarStatusRef = useRef(avatarStatus);
+  useEffect(() => {
+    avatarStatusRef.current = avatarStatus;
+  }, [avatarStatus]);
 
   // input string
   const [inputValue, setInputValue] = useState('');
@@ -206,10 +210,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   useEffect(() => {
     loadingRef.current = loading;
   }, [loading]);
-
-  // isAvatarStarted
-  const [isAvatarStarted, setIsAvatarStarted] = useState<boolean>(false);
-  const isAvatarStartedRef = useRef(isAvatarStarted);
 
   // assistant object
   const [assistant, setAssistant] = useState<Assistant | null>(null);
@@ -253,7 +253,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       return;
     }
 
-    const sentences = processAndStoreSentence(responseBuffer, isAvatarStarted, speechSentencesCacheArrayRef);
+    const sentences = processAndStoreSentence(responseBuffer, avatarStatusRef?.current === AVATAR_READY, speechSentencesCacheArrayRef);
 
     for (const sentence of sentences) {
       if (!sentence.exists) {
@@ -287,26 +287,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     )
   );
 
-  // isAvatarOn boolean
-  const [isAvatarOn, setIsAvatarOn] = useState<boolean>(false);
-  const isAvatarOnRef = useRef(isAvatarOn);
-  useEffect(() => {
-    isAvatarOnRef.current = isAvatarOn;
-  }, [isAvatarOn]);
-
-  // isAvatarLoading boolean
-  const [isAvatarLoading, setIsAvatarLoading] = useState<boolean>(false);
-  const isAvatarLoadingRef = useRef(isAvatarLoading);
-  useEffect(() => {
-    isAvatarLoadingRef.current = isAvatarLoading;
-  }, [isAvatarLoading]);
-
   // isAvatarSpeaking boolean
   const [isAvatarSpeaking, setIsAvatarSpeaking] = useState<boolean>(false);
-  const isAvatarSpeakingRef = useRef(isAvatarSpeaking);
-  useEffect(() => {
-    isAvatarSpeakingRef.current = isAvatarSpeaking;
-  }, [isAvatarSpeaking]);
 
   // memoryKv
   const [memoryKv, setMemoryKv] = useState<{ [key: string]: any }>({});
@@ -324,12 +306,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // -------- functions ---------
   const camera_on_handler: Function = async ({ on }: { [on: string]: boolean }) => {
     if (on) {
-      setIsCameraOn(true);
+      setCameraStatus(CAMERA_STARTING);
       return { message: 'The camera is starting, please wait a moment to turn on.' };
     }
 
-    setPhotos([]);
-    setIsCameraOn(false);
+    setCameraStatus(CAMERA_OFF);
 
     return { message: 'The camera has been turned off' };
   };
@@ -459,14 +440,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         return { message: 'Please set your Cognitive Services subscription key and region.' };
       }
 
-      setIsAvatarOn(true);
+      setAvatarStatus(AVATAR_STARTING);
 
       let checkTime = 0;
 
       while (checkTime < 10) {
         await delayFunction(1000);
         checkTime++;
-        if (isAvatarStartedRef.current) {
+        if (avatarStatusRef.current === AVATAR_READY) {
           return { message: 'ok' };
         }
       }
@@ -474,7 +455,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       return { message: 'Error, please check your error message.' };
     }
 
-    setIsAvatarOn(false);
+    setAvatarStatus(AVATAR_OFF);
 
     return { message: 'done' };
   };
@@ -603,7 +584,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     <AppContext.Provider value={{
       photos, photosRef, setPhotos,
       loading, loadingRef, setLoading,
-      isAvatarStarted, isAvatarStartedRef, setIsAvatarStarted,
       debug, debugRef, setDebug,
       assistant, assistantRef, setAssistant,
       thread, threadRef, setThread,
@@ -612,17 +592,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       speechSentencesCacheArray, speechSentencesCacheArrayRef, setSpeechSentencesCacheArray,
       llmInstructions, llmInstructionsRef, replaceInstructions,
       isNightMode, isNightModeRef, setIsNightMode,
-      isAvatarLoading, isAvatarLoadingRef, setIsAvatarLoading,
-      isAvatarSpeaking, isAvatarSpeakingRef, setIsAvatarSpeaking,
+      isAvatarSpeaking, setIsAvatarSpeaking,
       memoryKv, memoryKvRef, setMemoryKv,
       inputValue, inputValueRef, setInputValue,
-      isCameraOn, isCameraOnRef, setIsCameraOn,
-      isWebcamReady, isWebcamReadyRef, setIsWebcamReady,
-      isAvatarOn, isAvatarOnRef, setIsAvatarOn,
       needSpeechQueue, needSpeechQueueRef, setNeedSpeechQueue,
       caption, captionRef, setCaption,
       captionQueue, captionQueueRef, setCaptionQueue, updateCaptionQueue, addCaptionQueue,
       bingSearchData, setBingSearchData,
+      cameraStatus, cameraStatusRef, setCameraStatus,
+      connectStatus, connectStatusRef, setConnectStatus,
+      avatarStatus, avatarStatusRef, setAvatarStatus,
       realtimeClientRef,
       functionsToolsRef,
       avatarSynthesizerRef,

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 
 import { ItemType, ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client.js';
 import { WavRecorder } from '../lib/wavtools';
-import { clientHiChinese, clientHiEnglish, notDisplay, products } from '../lib/const';
+import { AVATAR_READY, clientHiChinese, clientHiEnglish, CONNECT_CONNECTED, CONNECT_CONNECTING, CONNECT_DISCONNECTED, notDisplay, products } from '../lib/const';
 
 import { Mic, X, Zap } from 'react-feather';
 import { Button } from '../components/button/Button';
@@ -93,13 +93,11 @@ interface RealtimeEvent {
 export function ConsolePage() {
 
   const {
-    isConnecting, setIsConnecting,
     connectMessage, setConnectMessage,
     deleteConversationItem,
     changeTurnEndType,
     isRecording,
     canPushToTalk,
-    isConnected, setIsConnected,
     wavRecorderRef,
     wavStreamPlayerRef,
     startRecording,
@@ -107,10 +105,11 @@ export function ConsolePage() {
     stopRecording } = useRealtime();
 
   const {
-    isAvatarStarted, isAvatarStartedRef,
+    avatarStatusRef,avatarStatus,
     llmInstructions,
     setResponseBuffer,
     functionsToolsRef,
+    connectStatus, setConnectStatus,
     realtimeClientRef } = useContexts();
 
   const {
@@ -132,32 +131,28 @@ export function ConsolePage() {
   const connectConversation = useCallback(async () => {
 
     if (isAssistant) {
-      setIsConnecting(true);
-      setIsConnected(false);
+      setConnectStatus(CONNECT_CONNECTING);
       setConnectMessage('Creating Assistant...');
       await setupAssistant();
-      setIsConnecting(false);
       setConnectMessage('Creating Thread...');
       await createThread();
-      setIsConnected(true);
+      setConnectStatus(CONNECT_CONNECTED);
       return;
     }
 
     if (!endpoint) {
-      setIsConnected(false);
-      setIsConnecting(false);
+      setConnectStatus(CONNECT_DISCONNECTED);
       setConnectMessage('Please set your Target URI.');
       return;
     }
 
     if (!key) {
-      setIsConnected(false);
-      setIsConnecting(false);
+      setConnectStatus(CONNECT_DISCONNECTED);
       setConnectMessage('Please set your Key.');
       return;
     }
 
-    setIsConnecting(true);
+    setConnectStatus(CONNECT_CONNECTING);
 
     // Connect to realtime API
     try {
@@ -169,8 +164,7 @@ export function ConsolePage() {
       \nConnection failed, if you are certain that the configuration is correct, it may be due to network issues.
       \nRecommended: VPN and the latest Edge browser.
       `;
-      setIsConnected(false);
-      setIsConnecting(false);
+      setConnectStatus(CONNECT_DISCONNECTED);
       setConnectMessage(tip);
       alert(`${tip}\n${e}\n\nKey is "${key}"`);
       window.location.href = '/';
@@ -179,8 +173,7 @@ export function ConsolePage() {
 
     // Set state variables
     startTimeRef.current = new Date().toISOString();
-    setIsConnected(true);
-    setIsConnecting(false);
+    setConnectStatus(CONNECT_CONNECTED);
     setRealtimeEvents([]);
     setItems(realtimeClientRef.current.conversation.getItems());
 
@@ -246,14 +239,13 @@ export function ConsolePage() {
 
     client.on('error', (event: any) => {
       console.error(event);
-      setIsConnected(false);
-      setIsConnecting(false);
+      setConnectStatus(CONNECT_DISCONNECTED);
+      setConnectMessage(event.message);
     });
 
     client.on('close', (event: any) => {
       console.error(event);
-      setIsConnected(false);
-      setIsConnecting(false);
+      setConnectStatus(CONNECT_DISCONNECTED);
     });
 
     client.on('conversation.interrupted', async () => {
@@ -266,13 +258,13 @@ export function ConsolePage() {
 
     client.on('conversation.updated', async ({ item, delta }: any) => {
 
-      if (item.object === 'realtime.item' && item.type === 'message' && item.role === 'assistant' && isAvatarStartedRef.current) {
+      if (item.object === 'realtime.item' && item.type === 'message' && item.role === 'assistant' && avatarStatusRef.current === AVATAR_READY) {
         setResponseBuffer(item.formatted.transcript);
       }
 
       const items = client.conversation.getItems();
       if (delta?.audio) {
-        if (!isAvatarStartedRef.current) {
+        if (avatarStatusRef.current !== AVATAR_READY) {
           wavStreamPlayer.add16BitPCM(delta.audio, item.id);
         }
       }
@@ -357,7 +349,7 @@ export function ConsolePage() {
   useEffect(() => {
     assistantScrollToBottom();
   }, [messagesAssistant]);
-
+  
   /**
    * Render the application
    */
@@ -366,7 +358,6 @@ export function ConsolePage() {
 
       <OpenAITTS />
       <Caption />
-
       <BingSearchResult />
 
       <div className="content-top">
@@ -382,20 +373,20 @@ export function ConsolePage() {
 
             <div className="content-block-body" data-conversation-content>
 
-              {isConnecting && (
+              {connectStatus === CONNECT_CONNECTING && (
                 <div className={'waiting'}>
                   Connection...
                 </div>
               )}
 
-              {!isConnecting && !isConnected && (
+              {connectStatus === CONNECT_DISCONNECTED && (
                 <div className={'waiting'}>
                   {connectMessage}
                 </div>
               )}
 
               {/* assistant chat */}
-              {isConnected && isAssistant &&
+              {connectStatus === CONNECT_CONNECTED && isAssistant &&
                 <div>
                   {messagesAssistant.map((msg, index) => (
                     <AssistantMessage key={index} role={msg.role} text={msg.text} />
@@ -524,7 +515,7 @@ export function ConsolePage() {
                         )}
 
                       {/*file message*/}
-                      {conversationItem.formatted.file && (conversationItem.role === 'user' || !isAvatarStarted) && (
+                      {conversationItem.formatted.file && (conversationItem.role === 'user' || avatarStatus !== AVATAR_READY) && (
                         <audio
                           src={conversationItem.formatted.file.url}
                           controls
@@ -549,9 +540,9 @@ export function ConsolePage() {
 
           <Camera />
 
-          {!isConnected && <SettingsComponent />}
+          {connectStatus === CONNECT_DISCONNECTED && <SettingsComponent />}
 
-          {isConnected && isRealtime && (
+          {connectStatus === CONNECT_CONNECTED && isRealtime && (
             <div className="content-actions container_bg">
               <Toggle
                 defaultValue={false}
@@ -563,7 +554,7 @@ export function ConsolePage() {
           )
           }
 
-          {isConnected && isRealtime && canPushToTalk && (
+          {connectStatus === CONNECT_CONNECTED && isRealtime && canPushToTalk && (
             <div className="content-actions">
               <Button
                 label={isRecording ? 'Release to send' : 'Push to talk'}
@@ -571,7 +562,7 @@ export function ConsolePage() {
                 className={'container_bg'}
                 buttonStyle={isRecording ? 'alert' : 'regular'}
                 style={isRecording ? { backgroundColor: '#80cc29', color: '#ffffff' } : {}}
-                disabled={!isConnected || !canPushToTalk}
+                disabled={connectStatus !== CONNECT_CONNECTED || !canPushToTalk}
                 onMouseDown={startRecording}
                 onMouseUp={stopRecording}
                 onTouchStart={startRecording}
@@ -580,19 +571,19 @@ export function ConsolePage() {
             </div>
           )}
 
-          {isConnected && isRealtime && (<FileUploadComponent />)}
+          {connectStatus === CONNECT_CONNECTED && isRealtime && (<FileUploadComponent />)}
 
-          {isConnected && isAssistant && (<FileViewer />)}
+          {connectStatus === CONNECT_CONNECTED && isAssistant && (<FileViewer />)}
 
           <div className="content-actions">
             <Button
-              disabled={isConnecting}
+              disabled={connectStatus === CONNECT_CONNECTING}
               className={'container_bg'}
-              label={isConnected ? 'Disconnect' : (isConnecting ? 'Connecting' : 'Connect')}
-              icon={isConnected ? X : Zap}
-              buttonStyle={isConnected ? 'regular' : 'action'}
+              label={connectStatus === CONNECT_CONNECTED ? 'Disconnect' : (connectStatus === CONNECT_CONNECTING ? 'Connecting' : 'Connect')}
+              icon={connectStatus === CONNECT_CONNECTED ? X : Zap}
+              buttonStyle={connectStatus === CONNECT_CONNECTED ? 'regular' : 'action'}
               onClick={
-                isConnected ? disconnectConversation : connectConversation
+                connectStatus === CONNECT_CONNECTED ? disconnectConversation : connectConversation
               }
             />
           </div>

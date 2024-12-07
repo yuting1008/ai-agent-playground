@@ -9,6 +9,27 @@ import { ALLOW_PROMPT_CHARACTERS, ASSISTENT_TYPE_ASSISTANT, ASSISTENT_TYPE_REALT
 import { useContexts } from '../providers/AppProvider';
 import { useSettings } from '../providers/SettingsProvider';
 
+const DEFAULT = 'Default';
+const REAL_TIME_API = 'Realtime';
+const DALL_E = 'Dall-E-3';
+const GRAPHRAG = 'GraphRAG';
+const SPEECH = 'Speech';
+const TTS = 'TTS';
+const COMPLETION = 'Completion';
+const TOKENS = 'Third-party API';
+const PROMPT = 'Prompt';
+const BING = 'Bing';
+
+const supportedLanguages = [
+  { value: 'chinese', label: 'Chinese' },
+  { value: 'english', label: 'English' }
+];
+
+const supportedAssistantTypes = [
+  { value: ASSISTENT_TYPE_REALTIME, label: 'Realtime' },
+  { value: ASSISTENT_TYPE_ASSISTANT, label: 'STT -> Assistant -> TTS' }
+];
+
 const SettingsComponent: React.FC = () => {
   const { realtimeClientRef } = useContexts();
 
@@ -37,31 +58,8 @@ const SettingsComponent: React.FC = () => {
     setTtsApiKey, ttsApiKey,
   } = useSettings();
 
-  const DEFAULT = 'Default';
-  const REAL_TIME_API = 'Realtime';
-  const DALL_E = 'Dall-E-3';
-  const GRAPHRAG = 'GraphRAG';
-  const SPEECH = 'Speech';
-  const TTS = 'TTS';
-  const COMPLETION = 'Completion';
-  const TOKENS = 'Third-party API';
-  const PROMPT = 'Prompt';
-  const BING = 'Bing';
-  const IMPORT_EXPORT = 'Import/Export';
-
   const [isVisible, setIsVisible] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const supportedLanguages = [
-    { value: 'chinese', label: 'Chinese' },
-    { value: 'english', label: 'English' }
-  ];
-
-  const supportedAssistantTypes = [
-    { value: ASSISTENT_TYPE_REALTIME, label: 'Realtime' },
-    { value: ASSISTENT_TYPE_ASSISTANT, label: 'STT -> Assistant -> TTS' }
-  ];
-
   const [activeTab, setActiveTab] = useState(DEFAULT);
 
   useEffect(() => {
@@ -78,33 +76,56 @@ const SettingsComponent: React.FC = () => {
     };
   }, []);
 
+  const handleChange = (name: string, value: string) => {
+    console.log(name, value);
+    localStorage.setItem(name, value);
+  };
+
   const DefaultSettings = () => {
 
     const [language, setLanguage] = useState(localStorage.getItem('language') || 'chinese');
-    useEffect(() => {
-      localStorage.setItem('language', language);
-    }, [language]);
-
     const [assistantType, setAssistantType] = useState(localStorage.getItem('assistantType') || ASSISTENT_TYPE_REALTIME);
-    useEffect(() => {
-      localStorage.setItem('assistantType', assistantType);
-    }, [assistantType]);
-
-    const handleDropdownChange = (value: string) => {
-      setLanguage(value);
-    };
-
-    const handleAssistantTypeChange = (value: string) => {
-      setAssistantType(value);
-    };
 
     return <div>
 
       <div className="settings-label">Assistant Type</div>
-      <Dropdown options={supportedAssistantTypes} selectedValue={assistantType} onChange={handleAssistantTypeChange} />
+      <Dropdown options={supportedAssistantTypes} selectedValue={assistantType} onChange={(e) => {
+        setAssistantType(e);
+        handleChange('assistantType', e);
+      }} />
 
       <div className="settings-label">Default Language</div>
-      <Dropdown options={supportedLanguages} selectedValue={language} onChange={handleDropdownChange} />
+      <Dropdown options={supportedLanguages} selectedValue={language} onChange={(e) => {
+        setLanguage(e);
+        handleChange('language', e);
+      }} />
+
+      <div style={{ display: 'flex', gap: '15px', marginTop: '30px' }}>
+
+        <Button
+          label={'Import'}
+          icon={Upload}
+          className={'export_settings'}
+          buttonStyle={'regular'}
+          onClick={handleButtonClick}
+        />
+
+        <Button
+          label={'Export'}
+          icon={Download}
+          className={'export_settings'}
+          buttonStyle={'regular'}
+          onClick={handleExport}
+        />
+
+        <input
+          type="file"
+          accept=".json"
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          style={{ display: 'none' }}
+        />
+      </div>
 
     </div>;
   };
@@ -112,22 +133,8 @@ const SettingsComponent: React.FC = () => {
   const SettingsRealtime = () => {
 
     const [endpoint, setEndpoint] = useState(localStorage.getItem('endpoint') || '');
-    useEffect(() => {
-      localStorage.setItem('endpoint', endpoint);
-    }, [endpoint]);
-
     const [key, setKey] = useState(localStorage.getItem('key') || '');
-    useEffect(() => {
-      localStorage.setItem('key', key);
-    }, [key]);
 
-    const handleEndpointChange = (e: any) => {
-      setEndpoint(e.target.value);
-    };
-
-    const handleKeyChange = (e: any) => {
-      setKey(e.target.value);
-    };
 
     return <div>
       <div className="settings-label">Target URI</div>
@@ -135,7 +142,10 @@ const SettingsComponent: React.FC = () => {
         className="settings-input"
         value={endpoint}
         placeholder={'https://xxx.openai.azure.com/openai/realtime?api-version=2024-10-01-preview&deployment=xxx'}
-        onChange={handleEndpointChange} />
+        onChange={(e) => {
+          setEndpoint(e.target.value);
+          handleChange('endpoint', e.target.value);
+        }} />
 
       <div className="settings-label">Key
         <span
@@ -147,7 +157,10 @@ const SettingsComponent: React.FC = () => {
         className="settings-input"
         value={key}
         placeholder={''}
-        onChange={handleKeyChange} />
+        onChange={(e) => {
+          setKey(e.target.value);
+          handleChange('key', e.target.value);
+        }} />
 
     </div>;
   };
@@ -155,22 +168,7 @@ const SettingsComponent: React.FC = () => {
   const SettingsTTS = () => {
 
     const [ttsTargetUri, setTtsTargetUri] = useState(localStorage.getItem('ttsTargetUri') || '');
-    useEffect(() => {
-      localStorage.setItem('ttsTargetUri', ttsTargetUri);
-    }, [ttsTargetUri]);
-
     const [ttsApiKey, setTtsApiKey] = useState(localStorage.getItem('ttsApiKey') || '');
-    useEffect(() => {
-      localStorage.setItem('ttsApiKey', ttsApiKey);
-    }, [ttsApiKey]);
-
-    const handleTtsTargetUriChange = (e: any) => {
-      setTtsTargetUri(e.target.value);
-    };
-
-    const handleTtsApiKeyChange = (e: any) => {
-      setTtsApiKey(e.target.value);
-    };
 
     return <div>
       <div className="settings-label">Target URI</div>
@@ -178,7 +176,10 @@ const SettingsComponent: React.FC = () => {
         className="settings-input"
         value={ttsTargetUri}
         placeholder={'https://xxxx.openai.azure.com/openai/deployments/tts/audio/speech?api-version=2024-05-01-preview'}
-        onChange={handleTtsTargetUriChange} />
+        onChange={(e) => {
+          setTtsTargetUri(e.target.value);
+          handleChange('ttsTargetUri', e.target.value);
+        }} />
 
       <div className="settings-label">Key
         <span
@@ -190,7 +191,10 @@ const SettingsComponent: React.FC = () => {
         className="settings-input"
         value={ttsApiKey}
         placeholder={''}
-        onChange={handleTtsApiKeyChange} />
+        onChange={(e) => {
+          setTtsApiKey(e.target.value);
+          handleChange('ttsApiKey', e.target.value);
+        }} />
 
     </div>;
   };
@@ -198,22 +202,7 @@ const SettingsComponent: React.FC = () => {
   const DALLE = () => {
 
     const [dallTargetUri, setDallTargetUri] = useState(localStorage.getItem('dallTargetUri') || '');
-    useEffect(() => {
-      localStorage.setItem('dallTargetUri', dallTargetUri);
-    }, [dallTargetUri]);
-
     const [dallApiKey, setDallApiKey] = useState(localStorage.getItem('dallApiKey') || '');
-    useEffect(() => {
-      localStorage.setItem('dallApiKey', dallApiKey);
-    }, [dallApiKey]);
-
-    const handleDallTargetUriChange = (e: any) => {
-      setDallTargetUri(e.target.value);
-    };
-
-    const handleDallApiKeyChange = (e: any) => {
-      setDallApiKey(e.target.value);
-    };
 
     return <div>
       <div className="settings-label">Target URI</div>
@@ -221,7 +210,10 @@ const SettingsComponent: React.FC = () => {
         className="settings-input"
         value={dallTargetUri}
         placeholder={'https://xxx.openai.azure.com/openai/deployments/dall-e-3/images/generations?api-version=2024-02-01'}
-        onChange={handleDallTargetUriChange} />
+        onChange={(e) => {
+          setDallTargetUri(e.target.value);
+          handleChange('dallTargetUri', e.target.value);
+        }} />
 
       <div className="settings-label">Key
         <span
@@ -233,7 +225,10 @@ const SettingsComponent: React.FC = () => {
         className="settings-input"
         value={dallApiKey}
         placeholder={''}
-        onChange={handleDallApiKeyChange} />
+        onChange={(e) => {
+          setDallApiKey(e.target.value);
+          handleChange('dallApiKey', e.target.value);
+        }} />
 
     </div>;
   };
@@ -241,40 +236,9 @@ const SettingsComponent: React.FC = () => {
   const GraphRAG = () => {
 
     const [graphragUrl, setGraphragUrl] = useState(localStorage.getItem('graphragUrl') || '');
-    useEffect(() => {
-      localStorage.setItem('graphragUrl', graphragUrl);
-    }, [graphragUrl]);
-
     const [graphragApiKey, setGraphragApiKey] = useState(localStorage.getItem('graphragApiKey') || '');
-    useEffect(() => {
-      localStorage.setItem('graphragApiKey', graphragApiKey);
-    }, [graphragApiKey]);
-
     const [graphragProjectName, setGraphragProjectName] = useState(localStorage.getItem('graphragProjectName') || '');
-    useEffect(() => {
-      localStorage.setItem('graphragProjectName', graphragProjectName);
-    }, [graphragProjectName]);
-
     const [graphragAbout, setGraphragAbout] = useState(localStorage.getItem('graphragAbout') || '');
-    useEffect(() => {
-      localStorage.setItem('graphragAbout', graphragAbout);
-    }, [graphragAbout]);
-
-    const handleGraphragUrlChange = (e: any) => {
-      setGraphragUrl(e.target.value);
-    };
-
-    const handleGraphragApiKeyChange = (e: any) => {
-      setGraphragApiKey(e.target.value);
-    };
-
-    const handleGraphragProjectNameChange = (e: any) => {
-      setGraphragProjectName(e.target.value);
-    };
-
-    const handleGraphragAboutChange = (e: any) => {
-      setGraphragAbout(e.target.value);
-    };
 
     return <div>
       <div className="settings-tip">
@@ -286,7 +250,10 @@ const SettingsComponent: React.FC = () => {
         className="settings-input"
         value={graphragUrl}
         placeholder={'https://xxx.xxx.xxx.azurecontainerapps.io'}
-        onChange={handleGraphragUrlChange} />
+        onChange={(e) => {
+          setGraphragUrl(e.target.value);
+          handleChange('graphragUrl', e.target.value);
+        }} />
 
       <div className="settings-label">API Key
         <span
@@ -298,43 +265,38 @@ const SettingsComponent: React.FC = () => {
         className="settings-input"
         value={graphragApiKey}
         placeholder={''}
-        onChange={handleGraphragApiKeyChange} />
+        onChange={(e) => {
+          setGraphragApiKey(e.target.value);
+          handleChange('graphragApiKey', e.target.value);
+        }} />
 
       <div className="settings-label">Project Name</div>
       <input type={'text'}
         className="settings-input"
         value={graphragProjectName}
         placeholder={''}
-        onChange={handleGraphragProjectNameChange} />
+        onChange={(e) => {
+          setGraphragProjectName(e.target.value);
+          handleChange('graphragProjectName', e.target.value);
+        }} />
 
       <div className="settings-label">About</div>
       <input type={'text'}
         className="settings-input"
         value={graphragAbout}
         placeholder={GRAPHRAG_ABOUT}
-        onChange={handleGraphragAboutChange} />
+        onChange={(e) => {
+          setGraphragAbout(e.target.value);
+          handleChange('graphragAbout', e.target.value);
+        }} />
     </div>;
   };
 
   const Speech = () => {
 
     const [cogSvcRegion, setCogSvcRegion] = useState(localStorage.getItem('cogSvcRegion') || '');
-    useEffect(() => {
-      localStorage.setItem('cogSvcRegion', cogSvcRegion);
-    }, [cogSvcRegion]);
-
     const [cogSvcSubKey, setCogSvcSubKey] = useState(localStorage.getItem('cogSvcSubKey') || '');
-    useEffect(() => {
-      localStorage.setItem('cogSvcSubKey', cogSvcSubKey);
-    }, [cogSvcSubKey]);
 
-    const handleCogSvcSubKeyChange = (e: any) => {
-      setCogSvcSubKey(e.target.value);
-    };
-
-    const handleCogSvcRegionChange = (e: any) => {
-      setCogSvcRegion(e.target.value);
-    };
 
     return <div>
       <div className="settings-label">Region</div>
@@ -342,7 +304,10 @@ const SettingsComponent: React.FC = () => {
         className="settings-input"
         value={cogSvcRegion}
         placeholder={'westus2'}
-        onChange={handleCogSvcRegionChange} />
+        onChange={(e) => {
+          setCogSvcRegion(e.target.value);
+          handleChange('cogSvcRegion', e.target.value);
+        }} />
 
       <div className="settings-label">Subscription Key
         <span
@@ -354,15 +319,11 @@ const SettingsComponent: React.FC = () => {
         className="settings-input"
         value={cogSvcSubKey}
         placeholder={''}
-        onChange={handleCogSvcSubKeyChange} />
+        onChange={(e) => {
+          setCogSvcSubKey(e.target.value);
+          handleChange('cogSvcSubKey', e.target.value);
+        }} />
 
-
-      {/* <div className="settings-label">Private Endpoint</div>
-      <input type={'text'}
-        className="settings-input"
-        value={privateEndpoint}
-        placeholder={'https://xxx.privateendpoint.openai.azure.com'}
-        onChange={handlePrivateEndpointChange} /> */}
 
     </div>;
   };
@@ -370,13 +331,6 @@ const SettingsComponent: React.FC = () => {
   const Bing = () => {
 
     const [bingApiKey, setBingApiKey] = useState(localStorage.getItem('bingApiKey') || '');
-    useEffect(() => {
-      localStorage.setItem('bingApiKey', bingApiKey);
-    }, [bingApiKey]);
-
-    const handleBingApiKeyChange = (e: any) => {
-      setBingApiKey(e.target.value);
-    };
 
     return <div>
 
@@ -390,16 +344,27 @@ const SettingsComponent: React.FC = () => {
         className="settings-input"
         value={bingApiKey}
         placeholder={''}
-        onChange={handleBingApiKeyChange} />
+        onChange={(e) => {
+          setBingApiKey(e.target.value);
+          handleChange('bingApiKey', e.target.value);
+        }} />
 
       <div className="settings-label">Endpoint</div>
       <input type={'text'}
         className="settings-input"
+        disabled
+        onChange={(e) => {
+          handleChange('bingEndpoint', e.target.value);
+        }}
         value={'https://api.bing.microsoft.com/'} />
 
       <div className="settings-label">Location</div>
       <input type={'text'}
         className="settings-input"
+        disabled
+        onChange={(e) => {
+          handleChange('bingLocation', e.target.value);
+        }}
         value={'global'} />
 
     </div>;
@@ -408,22 +373,8 @@ const SettingsComponent: React.FC = () => {
   const SettingsCompletion = () => {
 
     const [completionTargetUri, setCompletionTargetUri] = useState(localStorage.getItem('completionTargetUri') || '');
-    useEffect(() => {
-      localStorage.setItem('completionTargetUri', completionTargetUri);
-    }, [completionTargetUri]);
-
     const [completionApiKey, setCompletionApiKey] = useState(localStorage.getItem('completionApiKey') || '');
-    useEffect(() => {
-      localStorage.setItem('completionApiKey', completionApiKey);
-    }, [completionApiKey]);
 
-    const handleCompletionTargetUriChange = (e: any) => {
-      setCompletionTargetUri(e.target.value);
-    };
-
-    const handleCompletionApiKeyChange = (e: any) => {
-      setCompletionApiKey(e.target.value);
-    };
 
     return <div>
       <div className="settings-label">Target URI</div>
@@ -431,7 +382,10 @@ const SettingsComponent: React.FC = () => {
         className="settings-input"
         value={completionTargetUri}
         placeholder={'https://xxxx.openai.azure.com/openai/deployments/gpt-4o-mini/chat/completions?api-version=2024-08-01-preview'}
-        onChange={handleCompletionTargetUriChange} />
+        onChange={(e) => {
+          setCompletionTargetUri(e.target.value);
+          handleChange('completionTargetUri', e.target.value);
+        }} />
 
       <div className="settings-label">Key
         <span
@@ -443,7 +397,10 @@ const SettingsComponent: React.FC = () => {
         className="settings-input"
         value={completionApiKey}
         placeholder={''}
-        onChange={handleCompletionApiKeyChange} />
+        onChange={(e) => {
+          setCompletionApiKey(e.target.value);
+          handleChange('completionApiKey', e.target.value);
+        }} />
 
     </div>;
   };
@@ -451,13 +408,6 @@ const SettingsComponent: React.FC = () => {
   const Prompt = () => {
 
     const [prompt, setPrompt] = useState(localStorage.getItem('prompt') || '');
-    useEffect(() => {
-      localStorage.setItem('prompt', prompt);
-    }, [prompt]);
-
-    const handlePromptChange = (e: any) => {
-      setPrompt(e.target.value);
-    };
 
     return (<div>
       <textarea
@@ -467,7 +417,10 @@ const SettingsComponent: React.FC = () => {
         placeholder={''}
         rows={20}
         maxLength={ALLOW_PROMPT_CHARACTERS}
-        onChange={handlePromptChange}
+        onChange={(e) => {
+          setPrompt(e.target.value);
+          handleChange('prompt', e.target.value);
+        }}
       />
       <div className="settings-label">Remaining Characters: {ALLOW_PROMPT_CHARACTERS - prompt.length}</div>
     </div>);
@@ -476,51 +429,14 @@ const SettingsComponent: React.FC = () => {
   const SettingsTokens = () => {
 
     const [feishuHook, setFeishuHook] = useState(localStorage.getItem('feishuHook') || '');
-    useEffect(() => {
-      localStorage.setItem('feishuHook', feishuHook);
-    }, [feishuHook]);
 
     const [quoteToken, setQuoteToken] = useState(localStorage.getItem('quoteToken') || '');
-    useEffect(() => {
-      localStorage.setItem('quoteToken', quoteToken);
-    }, [quoteToken]);
 
     const [newsKey, setNewsKey] = useState(localStorage.getItem('newsKey') || '');
-    useEffect(() => {
-      localStorage.setItem('newsKey', newsKey);
-    }, [newsKey]);
 
     const [mxnzpAppId, setMxnzpAppId] = useState(localStorage.getItem('mxnzpAppId') || '');
-    useEffect(() => {
-      localStorage.setItem('mxnzpAppId', mxnzpAppId);
-    }, [mxnzpAppId]);
 
     const [mxnzpAppSecret, setMxnzpAppSecret] = useState(localStorage.getItem('mxnzpAppSecret') || '');
-    useEffect(() => {
-      localStorage.setItem('mxnzpAppSecret', mxnzpAppSecret);
-    }, [mxnzpAppSecret]);
-
-    const handleFeishuHookChange = (e: any) => {
-      setFeishuHook(e.target.value);
-    };
-
-    const handleQuoteTokenChange = (e: any) => {
-      setQuoteToken(e.target.value);
-    };
-
-    const handleNewsKeyChange = (e: any) => {
-      setNewsKey(e.target.value);
-    };
-
-
-
-    const handleMxnzpAppIdChange = (e: any) => {
-      setMxnzpAppId(e.target.value);
-    };
-
-    const handleMxnzpAppSecretChange = (e: any) => {
-      setMxnzpAppSecret(e.target.value);
-    };
 
 
     return <div>
@@ -536,7 +452,10 @@ const SettingsComponent: React.FC = () => {
         className="settings-input"
         value={feishuHook}
         placeholder={''}
-        onChange={handleFeishuHookChange} />
+        onChange={(e) => {
+          setFeishuHook(e.target.value);
+          handleChange('feishuHook', e.target.value);
+        }} />
 
       <div className="settings-label">
         <a href="https://finnhub.io/" target="_blank">Finnhub</a>
@@ -549,7 +468,10 @@ const SettingsComponent: React.FC = () => {
         className="settings-input"
         value={quoteToken}
         placeholder={''}
-        onChange={handleQuoteTokenChange} />
+        onChange={(e) => {
+          setQuoteToken(e.target.value);
+          handleChange('quoteToken', e.target.value);
+        }} />
 
       <div className="settings-label">
         <a href="https://www.showapi.com/" target="_blank">News</a>
@@ -562,7 +484,10 @@ const SettingsComponent: React.FC = () => {
         className="settings-input"
         value={newsKey}
         placeholder={''}
-        onChange={handleNewsKeyChange} />
+        onChange={(e) => {
+          setNewsKey(e.target.value);
+          handleChange('newsKey', e.target.value);
+        }} />
 
       <div className="settings_inline">
 
@@ -574,7 +499,10 @@ const SettingsComponent: React.FC = () => {
             className="settings-input"
             value={mxnzpAppId}
             placeholder={''}
-            onChange={handleMxnzpAppIdChange} />
+            onChange={(e) => {
+              setMxnzpAppId(e.target.value);
+              handleChange('mxnzpAppId', e.target.value);
+            }} />
         </div>
 
         <div className="block">
@@ -589,7 +517,10 @@ const SettingsComponent: React.FC = () => {
             className="settings-input"
             value={mxnzpAppSecret}
             placeholder={''}
-            onChange={handleMxnzpAppSecretChange} />
+            onChange={(e) => {
+              setMxnzpAppSecret(e.target.value);
+              handleChange('mxnzpAppSecret', e.target.value);
+            }} />
         </div>
 
       </div>
@@ -704,35 +635,6 @@ const SettingsComponent: React.FC = () => {
     }
   };
 
-  const SettingsImportExport = () => {
-    return <div style={{ display: 'flex', gap: '15px' }}>
-
-      <Button
-        label={'Import'}
-        icon={Upload}
-        className={'export_settings'}
-        buttonStyle={'regular'}
-        onClick={handleButtonClick}
-      />
-
-      <Button
-        label={'Export'}
-        icon={Download}
-        className={'export_settings'}
-        buttonStyle={'regular'}
-        onClick={handleExport}
-      />
-
-      <input
-        type="file"
-        accept=".json"
-        ref={fileInputRef}
-        onChange={handleFileChange}
-        style={{ display: 'none' }}
-      />
-    </div>;
-  };
-
   const renderContent = () => {
     switch (activeTab) {
       case DEFAULT:
@@ -755,8 +657,6 @@ const SettingsComponent: React.FC = () => {
         return <Prompt />;
       case BING:
         return <Bing />;
-      case IMPORT_EXPORT:
-        return <SettingsImportExport />;
       default:
         return <DefaultSettings />;
     }
@@ -801,6 +701,8 @@ const SettingsComponent: React.FC = () => {
                   className={activeTab === DEFAULT ? 'active' : ''}>{DEFAULT}</button>
                 <button onClick={() => setActiveTab(REAL_TIME_API)}
                   className={activeTab === REAL_TIME_API ? 'active' : ''}>{REAL_TIME_API}</button>
+                <button onClick={() => setActiveTab(PROMPT)}
+                  className={activeTab === PROMPT ? 'active' : ''}>{PROMPT}</button>
                 <button onClick={() => setActiveTab(SPEECH)}
                   className={activeTab === SPEECH ? 'active' : ''}>{SPEECH}</button>
                 <button onClick={() => setActiveTab(TTS)}
@@ -809,16 +711,12 @@ const SettingsComponent: React.FC = () => {
                   className={activeTab === COMPLETION ? 'active' : ''}>{COMPLETION}</button>
                 <button onClick={() => setActiveTab(DALL_E)}
                   className={activeTab === DALL_E ? 'active' : ''}>{DALL_E}</button>
-                <button onClick={() => setActiveTab(PROMPT)}
-                  className={activeTab === PROMPT ? 'active' : ''}>{PROMPT}</button>
                 <button onClick={() => setActiveTab(BING)}
                   className={activeTab === BING ? 'active' : ''}>{BING}</button>
                 <button onClick={() => setActiveTab(GRAPHRAG)}
                   className={activeTab === GRAPHRAG ? 'active' : ''}>{GRAPHRAG}</button>
                 <button onClick={() => setActiveTab(TOKENS)}
                   className={activeTab === TOKENS ? 'active' : ''}>{TOKENS}</button>
-                <button onClick={() => setActiveTab(IMPORT_EXPORT)}
-                  className={activeTab === IMPORT_EXPORT ? 'active' : ''}>{IMPORT_EXPORT}</button>
               </div>
 
               <div className="tab-content">

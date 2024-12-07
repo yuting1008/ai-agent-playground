@@ -3,6 +3,7 @@ import { getOpenAIClientSSt } from "../lib/openai";
 import './OpenAITTS.scss'
 import { useSettings } from "../providers/SettingsProvider";
 import { useContexts } from "../providers/AppProvider";
+import { AVATAR_READY } from "../lib/const";
 
 interface Sentence {
     text: string;
@@ -12,7 +13,7 @@ interface Sentence {
 const OpenAITTS: React.FC = () => {
 
     const {
-        needSpeechQueueRef, isAvatarStartedRef,
+        needSpeechQueueRef, avatarStatusRef,
         setCaption, setNeedSpeechQueue
     } = useContexts();
 
@@ -80,7 +81,7 @@ const OpenAITTS: React.FC = () => {
     useEffect(() => {
         const intervalId = setInterval(async () => {
 
-            if (isAvatarStartedRef.current) {
+            if (avatarStatusRef.current === AVATAR_READY) {
                 return;
             }
 
@@ -106,7 +107,7 @@ const OpenAITTS: React.FC = () => {
     useEffect(() => {
         const intervalId = setInterval(() => {
 
-            if (isAvatarStartedRef.current) {
+            if (avatarStatusRef.current === AVATAR_READY) {
                 return;
             }
 

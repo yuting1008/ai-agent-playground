@@ -7,12 +7,14 @@ import { useSettings } from '../providers/SettingsProvider';
 import { useState } from 'react';
 import * as SpeechSDK from 'microsoft-cognitiveservices-speech-sdk';
 import './InputBar.scss';
+import { CONNECT_CONNECTED } from '../lib/const';
 
 export function InputBar() {
 
   const {
     setInputValue, setIsAvatarSpeaking,
-    setResponseBuffer, inputValue, realtimeClientRef
+    setResponseBuffer, inputValue, realtimeClientRef,
+    connectStatus
   } = useContexts();
 
   const {
@@ -26,7 +28,7 @@ export function InputBar() {
   } = useAssistant();
 
   const {
-    isConnected, cancelRealtimeResponse
+    cancelRealtimeResponse
   } = useRealtime();
 
   const [sttRecognizer, setSttRecognizer] = useState<SpeechSDK.SpeechRecognizer | null>(null);
@@ -145,7 +147,7 @@ export function InputBar() {
   return (
     <>
       {
-        isConnected && (
+        connectStatus === CONNECT_CONNECTED && (
 
           <div className="text-input">
 
