@@ -28,7 +28,7 @@ import * as exchange_rate_aim from '../tools/exchange_rate_aim';
 import * as exchange_rate_list from '../tools/exchange_rate_list';
 import * as exchange_rate_configs from '../tools/exchange_rate_configs';
 import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
-import { AVATAR_OFF, AVATAR_READY, AVATAR_STARTING, CAMERA_OFF, CAMERA_PHOTO_LIMIT, CAMERA_STARTING } from '../lib/const';
+import { AVATAR_OFF, AVATAR_READY, AVATAR_STARTING, CAMERA_OFF, CAMERA_PHOTO_LIMIT, CAMERA_STARTING, CONNECT_DISCONNECTED } from '../lib/const';
 import { getCompletion, getOpenAIClient } from '../lib/openai';
 import { delayFunction } from '../lib/helper';
 import { Assistant } from 'openai/resources/beta/assistants';
@@ -74,6 +74,10 @@ interface AppContextType {
   cameraStatus: string;
   cameraStatusRef: React.MutableRefObject<string>;
   setCameraStatus: React.Dispatch<React.SetStateAction<string>>;
+
+  connectStatus: string;
+  connectStatusRef: React.MutableRefObject<string>;
+  setConnectStatus: React.Dispatch<React.SetStateAction<string>>;
 
   avatarStatus: string;
   avatarStatusRef: React.MutableRefObject<string>;
@@ -164,6 +168,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   useEffect(() => {
     cameraStatusRef.current = cameraStatus;
   }, [cameraStatus]);
+
+  // connectStatus string
+  const [connectStatus, setConnectStatus] = useState(CONNECT_DISCONNECTED);
+  const connectStatusRef = useRef(connectStatus);
+  useEffect(() => {
+    connectStatusRef.current = connectStatus;
+  }, [connectStatus]);
 
   // avatarStatus string
   const [avatarStatus, setAvatarStatus] = useState(AVATAR_OFF);
@@ -589,6 +600,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       captionQueue, captionQueueRef, setCaptionQueue, updateCaptionQueue, addCaptionQueue,
       bingSearchData, setBingSearchData,
       cameraStatus, cameraStatusRef, setCameraStatus,
+      connectStatus, connectStatusRef, setConnectStatus,
       avatarStatus, avatarStatusRef, setAvatarStatus,
       realtimeClientRef,
       functionsToolsRef,

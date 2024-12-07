@@ -2,6 +2,7 @@ import React, { createContext, ReactNode, useCallback, useContext, useEffect, us
 import { useContexts } from './AppProvider';
 import { WavRecorder, WavStreamPlayer } from '../lib/wavtools';
 import { ItemType } from '@theodoreniu/realtime-api-beta/dist/lib/client.js';
+import { CONNECT_DISCONNECTED } from '../lib/const';
 
 interface RealtimeContextType {
 
@@ -12,17 +13,8 @@ interface RealtimeContextType {
   wavStreamPlayerRef: React.MutableRefObject<WavStreamPlayer>;
   
   isRecording: boolean;
-  isConnected: boolean;
-  isConnecting: boolean;
-
   isRecordingRef: React.MutableRefObject<boolean>;
-  isConnectedRef: React.MutableRefObject<boolean>;
-  isConnectingRef: React.MutableRefObject<boolean>;
-  
-
   setIsRecording: React.Dispatch<React.SetStateAction<boolean>>;
-  setIsConnected: React.Dispatch<React.SetStateAction<boolean>>;
-  setIsConnecting: React.Dispatch<React.SetStateAction<boolean>>;
 
   deleteConversationItem: (id: string) => Promise<void>;
   cancelRealtimeResponse: () => Promise<void>;
@@ -60,7 +52,10 @@ interface RealtimeEvent {
 
 export const RealtimeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
-  const { realtimeClientRef } = useContexts();
+  const { 
+    realtimeClientRef,
+    setConnectStatus,
+   } = useContexts();
 
   /**
  * Instantiate:
@@ -110,24 +105,6 @@ export const RealtimeProvider: React.FC<{ children: ReactNode }> = ({ children }
   useEffect(() => {
     isRecordingRef.current = isRecording;
   }, [isRecording]);
-
-  // isConnected boolean
-  const [isConnected, setIsConnected] = useState(false);
-  const isConnectedRef = useRef(false);
-  useEffect(() => {
-    isConnectedRef.current = isConnected;
-    // if connected is false, clear all items
-    if (!isConnectedRef.current) {
-      setItems([]);
-    }
-  }, [isConnected]);
-
-  // isConnecting boolean
-  const [isConnecting, setIsConnecting] = useState(false);
-  const isConnectingRef = useRef(false);
-  useEffect(() => {
-    isConnectingRef.current = isConnecting;
-  }, [isConnecting]);
 
   // connectMessage string
   const [connectMessage, setConnectMessage] = useState('Awaiting Connection...');
@@ -188,8 +165,7 @@ export const RealtimeProvider: React.FC<{ children: ReactNode }> = ({ children }
       await wavRecorder.pause();
       client.createResponse();
     } catch (e) {
-      setIsConnecting(false);
-      setIsConnected(false);
+      setConnectStatus(CONNECT_DISCONNECTED);
       setConnectMessage('Connection Failed. \nPlease check your network and reconnect.');
       realtimeClientRef.current.disconnect();
       console.error(e);
@@ -215,8 +191,7 @@ export const RealtimeProvider: React.FC<{ children: ReactNode }> = ({ children }
       }
       setCanPushToTalk(value === 'none');
     } catch (e) {
-      setIsConnecting(false);
-      setIsConnected(false);
+      setConnectStatus(CONNECT_DISCONNECTED);
       setConnectMessage('Connection Failed. \nPlease check your network and reconnect.');
       client.disconnect();
       console.error(e);
@@ -231,14 +206,8 @@ export const RealtimeProvider: React.FC<{ children: ReactNode }> = ({ children }
       wavRecorderRef,
       wavStreamPlayerRef,
       isRecording,
-      isConnected,
-      isConnecting,
       isRecordingRef,
-      isConnectedRef,
-      isConnectingRef,
       setIsRecording,
-      setIsConnected,
-      setIsConnecting,
       deleteConversationItem,
       cancelRealtimeResponse,
       startRecording,

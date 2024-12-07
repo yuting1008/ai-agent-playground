@@ -2,12 +2,14 @@ import React, { useEffect, useRef } from 'react';
 import { useRealtime } from '../providers/RealtimeProvider';
 import { WavRenderer } from '../lib/wav_renderer';
 import { useSettings } from '../providers/SettingsProvider';
+import { useContexts } from '../providers/AppProvider';
+import { CONNECT_CONNECTED } from '../lib/const';
 
 const AudioVisualization: React.FC = () => {
 
   const { wavRecorderRef, wavStreamPlayerRef } = useRealtime();
-  const {isRealtimeRef} = useSettings();
-  const {isConnectedRef} = useRealtime();
+  const {isRealtime} = useSettings();
+  const {connectStatus} = useContexts();
   
   const clientCanvasRef = useRef<HTMLCanvasElement>(null);
   const serverCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -84,7 +86,7 @@ const AudioVisualization: React.FC = () => {
 
   return (
     <>
-      <div className="visualization" style={{ display: (isConnectedRef.current && isRealtimeRef.current) ? '' : 'none' }}>
+      <div className="visualization" style={{ display: (connectStatus === CONNECT_CONNECTED && isRealtime) ? '' : 'none' }}>
         <div className="visualization-entry server">
           <canvas ref={serverCanvasRef} />
         </div>
