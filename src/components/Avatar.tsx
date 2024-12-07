@@ -4,16 +4,15 @@ import './Camera.scss';
 import { useSettings } from '../providers/SettingsProvider';
 import * as SpeechSDK from 'microsoft-cognitiveservices-speech-sdk';
 import { htmlEncodeAvatar } from '../lib/helper';
+import { AVATAR_OFF, AVATAR_READY, AVATAR_STARTING } from '../lib/const';
 
 const Avatar: React.FC = () => {
 
   const {
-    isAvatarOn, isAvatarOnRef, setIsAvatarOn,
-    isAvatarStarted, isAvatarStartedRef, isAvatarLoading,
+    avatarStatus, setAvatarStatus,
     avatarVideoRef, avatarAudioRef,
     peerConnectionRef, avatarSynthesizerRef,
     needSpeechQueue, setNeedSpeechQueue,
-    setIsAvatarLoading, setIsAvatarStarted,
     setCaptionQueue, addCaptionQueue, updateCaptionQueue,
     replaceInstructions, setIsAvatarSpeaking, isAvatarSpeaking } = useContexts();
 
@@ -22,26 +21,27 @@ const Avatar: React.FC = () => {
   } = useSettings();
 
   useEffect(() => {
-    isAvatarOnRef.current = isAvatarOn;
 
-    if (isAvatarOn) {
+    if (avatarStatus === AVATAR_STARTING) {
       startAvatarSession();
-    } else {
-      setCaptionQueue([]);
-      stopAvatarSession();
     }
 
-  }, [isAvatarOn]);
+    if (avatarStatus === AVATAR_OFF) {
+      setCaptionQueue([]);
+      stopAvatarSession();
+      replaceInstructions('你的虚拟人形象处于打开状态', '你的虚拟人形象处于关闭状态');
+    }
+
+    if (avatarStatus === AVATAR_READY) {
+      replaceInstructions('你的虚拟人形象处于关闭状态', '你的虚拟人形象处于打开状态');
+    }
+
+  }, [avatarStatus]);
+
+
 
   useEffect(() => {
-    isAvatarStartedRef.current = isAvatarStarted;
-    isAvatarStartedRef.current ? replaceInstructions('你的虚拟人形象处于关闭状态', '你的虚拟人形象处于打开状态')
-      : replaceInstructions('你的虚拟人形象处于打开状态', '你的虚拟人形象处于关闭状态');
-  }, [isAvatarStarted]);
-
-
-  useEffect(() => {
-    if (!isAvatarStarted) {
+    if (avatarStatus !== AVATAR_READY) {
       return;
     }
 
@@ -66,12 +66,11 @@ const Avatar: React.FC = () => {
 
       if (!cogSvcSubKeyRef.current || !cogSvcRegionRef.current) {
         alert('Please set your Cognitive Services subscription key, region, and private endpoint.');
-        setIsAvatarLoading(false);
-        setIsAvatarStarted(false);
+        setAvatarStatus(AVATAR_OFF);
         return;
       }
 
-      setIsAvatarLoading(true);
+      setAvatarStatus(AVATAR_STARTING);
       console.log('starting avatar session...');
 
       let speechSynthesisConfig;
@@ -135,8 +134,7 @@ const Avatar: React.FC = () => {
     } catch (error) {
       console.log(error);
       alert(`Avatar session failed to start. Please check your configuration or network.\n` + error);
-      setIsAvatarLoading(false);
-      setIsAvatarStarted(false);
+      setAvatarStatus(AVATAR_OFF);
     }
   };
 
@@ -179,8 +177,7 @@ const Avatar: React.FC = () => {
       }
 
       video.onloadedmetadata = () => {
-        setIsAvatarStarted(true);
-        setIsAvatarLoading(false);
+        setAvatarStatus(AVATAR_READY);
       };
     };
 
@@ -201,8 +198,7 @@ const Avatar: React.FC = () => {
   };
 
   const stopAvatarSession = () => {
-    setIsAvatarStarted(false);
-    setIsAvatarLoading(false);
+    console.log('stopping avatar session...');
     setIsAvatarSpeaking(false);
 
     avatarSynthesizerRef.current?.close();
@@ -216,7 +212,11 @@ const Avatar: React.FC = () => {
   };
 
   const toggleAvatar = () => {
-    setIsAvatarOn(!isAvatarOnRef.current);
+    if (avatarStatus === AVATAR_OFF) {
+      setAvatarStatus(AVATAR_STARTING); 
+    } else {
+      setAvatarStatus(AVATAR_OFF);
+    }
   };
 
   const speakAvatar = async (spokenText: string) => {
@@ -265,23 +265,24 @@ const Avatar: React.FC = () => {
     <div className="content-actions container_bg remoteVideo">
 
       {
-        isAvatarLoading && <div className="camLoading">
+        avatarStatus === AVATAR_STARTING && <div className="camLoading">
           <div className="spinner" key={'avatarLoading'}></div>
         </div>
       }
 
-      <button className="content-block-btn"
+      <button
+        className="content-block-btn"
         onClick={toggleAvatar}
-        style={{ display: isAvatarLoading ? 'none' : '' }}
+        style={{ display: avatarStatus === AVATAR_STARTING ? 'none' : '' }}
       >
-        {isAvatarStarted ? 'Off' : 'On'}
+        {avatarStatus === AVATAR_READY ? 'Off' : 'On'}
       </button>
 
-      <video ref={avatarVideoRef} style={{ display: (isAvatarStarted && avatarSynthesizerRef.current) ? '' : 'none' }}>
+      <video ref={avatarVideoRef} style={{ display: avatarStatus === AVATAR_READY ? '' : 'none' }}>
         Your browser does not support the video tag.
       </video>
 
-      <audio ref={avatarAudioRef} style={{ display: (isAvatarStarted && avatarSynthesizerRef.current) ? '' : 'none' }}>
+      <audio ref={avatarAudioRef} style={{ display: avatarStatus === AVATAR_READY ? '' : 'none' }}>
         Your browser does not support the audio tag.
       </audio>
 

@@ -11,6 +11,10 @@ export const CAMERA_OFF = 'camera_off';
 export const CAMERA_STARTING = 'camera_starting';
 export const CAMERA_READY = 'camera_ready';
 
+export const AVATAR_OFF = 'avatar_off';
+export const AVATAR_STARTING = 'avatar_starting';
+export const AVATAR_READY = 'avatar_ready';
+
 export const clientHiEnglish = `Hi!`;
 export const clientHiChinese = `你好！`;
 export const fileUploadInstructions = `我已经上传了数据文件，请告诉我你收到了什么内容的文件，只需要简单解释你收到了什么。不要超过30个字。`;

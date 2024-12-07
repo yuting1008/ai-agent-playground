@@ -12,7 +12,7 @@ const Camera: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const {
-    photos, setPhotos, 
+    photos, setPhotos,
     cameraStatus, cameraStatusRef, setCameraStatus,
     replaceInstructions
   } = useContexts();
@@ -54,7 +54,8 @@ const Camera: React.FC = () => {
     setFacingMode((prevMode) => (prevMode === 'user' ? 'environment' : 'user'));
   };
 
-  const handleWebcamReady = () => {
+  const handleWebcamReady = (e: MediaStream) => {
+    console.log('handleWebcamReady', e);
     setCameraStatus(CAMERA_READY);
   };
 
@@ -93,34 +94,61 @@ const Camera: React.FC = () => {
     }
   };
 
+  const SwitchCameraIcon = () => {
+    return cameraStatus === CAMERA_STARTING
+      ? null
+      : <button
+        className="content-block-btn"
+        onClick={toggleCamera}>
+        {cameraStatus !== CAMERA_OFF ? <CameraIcon /> : <CameraOff />}
+      </button>
+  }
+
+  const RefreshCameraIcon = () => {
+    return cameraCount > 1 && cameraStatus === CAMERA_READY
+      ? <button className="content-block-btn switch"
+        style={{ display: cameraStatus !== CAMERA_READY ? 'none' : '' }}
+        onClick={toggleCameraModel}>
+        <RefreshCw />
+      </button>
+      : null;
+  }
+
+  const CameraLoading = () => {
+    return cameraStatus === CAMERA_STARTING
+      ? <div className="camLoading"><div className="spinner" key={'camLoading'}></div></div>
+      : null;
+  }
+
+  const PhotosBrowser = () => {
+    return isModalOpen ?
+      <div style={styles.modalOverlay}>
+        <div style={styles.modalContent}>
+          <button style={styles.closeButton} onClick={closeModal}>Close</button>
+          {photos.length > 0 ? (
+            <div style={styles.imageContainer}>
+              {photos.map((base64Img, index) => (
+                <img key={index} src={base64Img} alt={`Image ${index + 1}`} style={styles.image} />
+              ))}
+            </div>
+          ) : (
+            <p>No photos</p>
+          )}
+        </div>
+      </div>
+      : null;
+  }
+
+
   return (
     <div className="content-block camera container_bg">
 
       <div>
-
-        <button className="content-block-btn"
-          style={{ display: (cameraStatus === CAMERA_STARTING) ? 'none' : '' }}
-          onClick={toggleCamera}>
-          {cameraStatus !== CAMERA_OFF ? <CameraIcon /> : <CameraOff />}
-        </button>
-
-        {
-          cameraCount > 1 && (
-            <button className="content-block-btn switch"
-              style={{ display: cameraStatus !== CAMERA_READY ? 'none' : '' }}
-              onClick={toggleCameraModel}>
-              <RefreshCw />
-            </button>
-          )
-        }
-
+        <SwitchCameraIcon />
+        <RefreshCameraIcon />
       </div>
 
-
-
-      {
-        cameraStatus === CAMERA_STARTING && <div className="camLoading"><div className="spinner" key={'camLoading'}></div></div>
-      }
+      <CameraLoading />
 
 
       {
@@ -137,24 +165,7 @@ const Camera: React.FC = () => {
         )
       }
 
-      {
-        isModalOpen && (
-          <div style={styles.modalOverlay}>
-            <div style={styles.modalContent}>
-              <button style={styles.closeButton} onClick={closeModal}>Close</button>
-              {photos.length > 0 ? (
-                <div style={styles.imageContainer}>
-                  {photos.map((base64Img, index) => (
-                    <img key={index} src={base64Img} alt={`Image ${index + 1}`} style={styles.image} />
-                  ))}
-                </div>
-              ) : (
-                <p>No photos</p>
-              )}
-            </div>
-          </div>
-        )
-      }
+      <PhotosBrowser />
 
     </div>
   );

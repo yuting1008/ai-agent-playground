@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 
 import { ItemType, ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client.js';
 import { WavRecorder } from '../lib/wavtools';
-import { clientHiChinese, clientHiEnglish, notDisplay, products } from '../lib/const';
+import { AVATAR_READY, clientHiChinese, clientHiEnglish, notDisplay, products } from '../lib/const';
 
 import { Mic, X, Zap } from 'react-feather';
 import { Button } from '../components/button/Button';
@@ -107,7 +107,7 @@ export function ConsolePage() {
     stopRecording } = useRealtime();
 
   const {
-    isAvatarStarted, isAvatarStartedRef,
+    avatarStatusRef,avatarStatus,
     llmInstructions,
     setResponseBuffer,
     functionsToolsRef,
@@ -266,13 +266,13 @@ export function ConsolePage() {
 
     client.on('conversation.updated', async ({ item, delta }: any) => {
 
-      if (item.object === 'realtime.item' && item.type === 'message' && item.role === 'assistant' && isAvatarStartedRef.current) {
+      if (item.object === 'realtime.item' && item.type === 'message' && item.role === 'assistant' && avatarStatusRef.current === AVATAR_READY) {
         setResponseBuffer(item.formatted.transcript);
       }
 
       const items = client.conversation.getItems();
       if (delta?.audio) {
-        if (!isAvatarStartedRef.current) {
+        if (avatarStatusRef.current !== AVATAR_READY) {
           wavStreamPlayer.add16BitPCM(delta.audio, item.id);
         }
       }
@@ -524,7 +524,7 @@ export function ConsolePage() {
                         )}
 
                       {/*file message*/}
-                      {conversationItem.formatted.file && (conversationItem.role === 'user' || !isAvatarStarted) && (
+                      {conversationItem.formatted.file && (conversationItem.role === 'user' || avatarStatus !== AVATAR_READY) && (
                         <audio
                           src={conversationItem.formatted.file.url}
                           controls

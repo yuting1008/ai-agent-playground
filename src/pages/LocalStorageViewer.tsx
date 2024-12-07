@@ -17,16 +17,14 @@ const LocalStorageViewer: React.FC = () => {
   const [localStorageData, setLocalStorageData] = useState<LocalStorageItem[]>([]);
   const {
     cameraStatus,
-    isAvatarOn,
+    avatarStatus,
     isNightMode,
-    isAvatarLoading,
     isAvatarSpeaking,
     photos,
     responseBuffer,
     threadJob,
     thread,
     speechSentencesCacheArray,
-    isAvatarStarted,
     llmInstructions,
     assistant,
     memoryKv,
@@ -128,9 +126,7 @@ const LocalStorageViewer: React.FC = () => {
                 <tr key='photos.length'><td className={styles.tdKey}>photos.length</td><td className={styles.tdValue}>{photos.length} / {CAMERA_PHOTO_LIMIT}</td></tr>
                 <tr key='photos.size'><td className={styles.tdKey}>photos.size</td><td className={styles.tdValue}>{getStringArraySizeUtf8InMB(photos)} MB</td></tr>
 
-                <tr key='isAvatarOn'><td className={styles.tdKey}>isAvatarOn</td><td className={styles.tdValue}>{JSON.stringify(isAvatarOn)}</td></tr>
-                <tr key='isAvatarLoading'><td className={styles.tdKey}>isAvatarLoading</td><td className={styles.tdValue}>{JSON.stringify(isAvatarLoading)}</td></tr>
-                <tr key='isAvatarStarted'><td className={styles.tdKey}>isAvatarStarted</td><td className={styles.tdValue}>{JSON.stringify(isAvatarStarted)}</td></tr>
+                <tr key='avatarStatus'><td className={styles.tdKey}>avatarStatus</td><td className={styles.tdValue}>{avatarStatus}</td></tr>
                 <tr key='isAvatarSpeaking'><td className={styles.tdKey}>isAvatarSpeaking</td><td className={styles.tdValue}>{JSON.stringify(isAvatarSpeaking)}</td></tr>
                 <tr key='isNightMode'><td className={styles.tdKey}>isNightMode</td><td className={styles.tdValue}>{JSON.stringify(isNightMode)}</td></tr>
 
