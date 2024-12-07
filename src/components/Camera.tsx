@@ -4,6 +4,7 @@ import { useContexts } from '../providers/AppProvider';
 import { CAMERA_OFF, CAMERA_PHOTO_INTERVAL_MS, CAMERA_PHOTO_LIMIT, CAMERA_READY, CAMERA_STARTING } from '../lib/const';
 import './Camera.scss';
 import { Camera as CameraIcon, CameraOff, RefreshCw } from 'react-feather';
+import { X } from 'react-feather';
 
 const Camera: React.FC = () => {
 
@@ -124,7 +125,12 @@ const Camera: React.FC = () => {
     return isModalOpen ?
       <div style={styles.modalOverlay}>
         <div style={styles.modalContent}>
-          <button style={styles.closeButton} onClick={closeModal}>Close</button>
+
+          <div>
+            <X style={styles.closeButton}
+              onClick={closeModal} />
+          </div>
+
           {photos.length > 0 ? (
             <div style={styles.imageContainer}>
               {photos.map((base64Img, index) => (
@@ -187,14 +193,16 @@ const styles = {
     backgroundColor: '#ededed',
     padding: '20px',
     borderRadius: '8px',
-    width: '80%',
+    width: '90%',
     maxWidth: '750px',
     maxHeight: '80%',
     overflowY: 'auto' as 'auto'
   },
   closeButton: {
     marginBottom: '10px',
-    cursor: 'pointer'
+    cursor: 'pointer',
+    float: 'right' as 'right',
+    color: '#626262'
   },
   imageContainer: {
     display: 'flex',

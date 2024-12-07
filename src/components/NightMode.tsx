@@ -3,6 +3,7 @@ import './NightMode.scss';
 
 import { useContexts } from '../providers/AppProvider';
 import { useEffect } from 'react';
+import { Sun, Moon } from 'react-feather';
 
 export function NightMode() {
 
@@ -20,15 +21,15 @@ export function NightMode() {
     }
 
   }, [isNightMode]);
-  
+
   const toggleNightMode = () => {
     const currentValue = !isNightModeRef.current;
     setIsNightMode(currentValue);
   };
 
   return (
-    <span onClick={toggleNightMode} style={{ cursor: 'pointer' }}>
-      {isNightModeRef.current ? '🌙' : '☀️'}
+    <span onClick={toggleNightMode}>
+      {isNightModeRef.current ? <Moon /> : <Sun />}
     </span>
   )
 }

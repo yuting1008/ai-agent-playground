@@ -27,6 +27,9 @@ import AudioVisualization from '../components/AudioVisualization';
 import OpenAITTS from '../components/OpenAITTS';
 import Caption from '../components/Caption';
 import BingSearchResult from '../components/functions/BingSearchResult';
+import PaintingResult from '../components/functions/PaintingResult';
+import TrafficMonitor from '../components/functions/TrafficMonitor';
+import BellMessage from '../components/functions/BellMessage';
 
 type AssistantMessageProps = {
   role: 'user' | 'assistant' | 'code';
@@ -105,11 +108,12 @@ export function ConsolePage() {
     stopRecording } = useRealtime();
 
   const {
-    avatarStatusRef,avatarStatus,
+    avatarStatusRef, avatarStatus,
     llmInstructions,
     setResponseBuffer,
     functionsToolsRef,
     connectStatus, setConnectStatus,
+    setIsNightMode,
     realtimeClientRef } = useContexts();
 
   const {
@@ -309,6 +313,15 @@ export function ConsolePage() {
   }, []);
 
 
+  useEffect(() => {
+    // if night time at PRC, set night mode
+    const now = new Date();
+    const hour = now.getHours();
+    if (hour >= 18 || hour < 6) {
+      setIsNightMode(true);
+    }
+  }, []);
+
   const isHiddenTool = (item: ItemType) => {
     if (item?.formatted?.text && notDisplay.includes(item?.formatted?.text)) {
       return true;
@@ -320,11 +333,6 @@ export function ConsolePage() {
 
     // graphrag
     if (JSON.parse(item?.output)?.sources?.length > 0) {
-      return false;
-    }
-
-    // painting
-    if (JSON.parse(item?.output)?.result?.data?.length > 0) {
       return false;
     }
 
@@ -349,7 +357,7 @@ export function ConsolePage() {
   useEffect(() => {
     assistantScrollToBottom();
   }, [messagesAssistant]);
-  
+
   /**
    * Render the application
    */
@@ -358,12 +366,17 @@ export function ConsolePage() {
 
       <OpenAITTS />
       <Caption />
-      <BingSearchResult />
 
       <div className="content-top">
         <div className="content-title"><img src="/logomark.svg" alt="logo" /><h1>AI Agent Playground</h1></div>
-        <span className="copyright">PRC STU Azure Team</span>
-        <NightMode />
+        {/* <span className="copyright">PRC STU Azure Team</span> */}
+        <span className="functions">
+          <BingSearchResult />
+          {/* <TrafficMonitor /> */}
+          <PaintingResult />
+          {/* <BellMessage /> */}
+          <NightMode />
+        </span>
       </div>
 
       <div className="content-main">
@@ -432,16 +445,6 @@ export function ConsolePage() {
                       {/* tool response */}
                       {conversationItem.type === 'function_call_output' && (
                         <div>
-
-                          {JSON.parse(conversationItem?.output)?.result?.data.map((item: any) => {
-                            if (item.url) {
-                              return <img src={item.url}
-                                key={conversationItem.id + item.url}
-                                alt={item.url}
-                                className="painting_img" />;
-                            }
-                            return null;
-                          })}
 
                           {JSON.parse(conversationItem?.output)?.sources?.map((item: any) => {
                             if (item.screenshot_sas_url && item.screenshot_sas_url.length > 1) {
@@ -596,7 +599,7 @@ export function ConsolePage() {
 
       </div>
 
-    
+
     </div>
   );
 }

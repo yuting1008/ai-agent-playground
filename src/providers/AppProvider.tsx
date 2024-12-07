@@ -21,6 +21,7 @@ import * as camera_current from '../tools/camera_current';
 import * as camera_on from '../tools/camera_on';
 import * as camera_video from '../tools/camera_video';
 import * as painting from '../tools/painting';
+import * as image_modify from '../tools/painting_modify';
 import * as pronunciation_assessment from '../tools/pronunciation_assessment';
 import * as azure_docs from '../tools/azure_docs';
 import * as quote from '../tools/quote';
@@ -29,12 +30,13 @@ import * as exchange_rate_list from '../tools/exchange_rate_list';
 import * as exchange_rate_configs from '../tools/exchange_rate_configs';
 import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
 import { AVATAR_OFF, AVATAR_READY, AVATAR_STARTING, CAMERA_OFF, CAMERA_PHOTO_LIMIT, CAMERA_STARTING, CONNECT_DISCONNECTED } from '../lib/const';
-import { getCompletion, getOpenAIClient } from '../lib/openai';
+import { editImages, getCompletion, getImages, getOpenAIClient } from '../lib/openai';
 import { delayFunction } from '../lib/helper';
 import { Assistant } from 'openai/resources/beta/assistants';
 import { processAndStoreSentence } from '../lib/sentence';
 import { AvatarSynthesizer } from 'microsoft-cognitiveservices-speech-sdk';
 import axios from 'axios';
+import { GptImage } from '../interfaces/GptImage';
 
 
 interface AppContextType {
@@ -127,6 +129,9 @@ interface AppContextType {
 
   bingSearchData: any;
   setBingSearchData: React.Dispatch<React.SetStateAction<any>>;
+
+  paintingData: any;
+  setPaintingData: React.Dispatch<React.SetStateAction<any>>;
 }
 
 const IS_DEBUG: boolean = window.location.href.includes('localhost');
@@ -465,8 +470,68 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return { ok: true };
   };
 
+  const [paintingData, setPaintingData] = useState<GptImage[]>([]);
+  const paintingDataRef = useRef(paintingData);
+  useEffect(() => {
+    paintingDataRef.current = paintingData;
+  }, [paintingData]);
+
+  const painting_handler: Function = async ({ prompt, n = 1 }: { [key: string]: any }) => {
+    try {
+      const resp = await getImages(prompt = prompt, n = n);
+      const image = resp.data[0];
+      const gptImage: GptImage = {
+        prompt: prompt,
+        b64_json: image.b64_json
+      }
+
+      setPaintingData([...paintingDataRef.current, gptImage]);
+      console.log('painting', gptImage);
+
+      return { result: "completed, please check the results in the modal." };
+    } catch (error) {
+      console.error('painting error', error);
+      return { error: error };
+    }
+  };
+
+  const image_modify_handler: Function = async ({ prompt, index = 1 }: { [key: string]: any }) => {
+
+    if (!paintingDataRef.current) {
+      return { error: 'no painting data, please generate painting first.' };
+    }
+
+    if (paintingDataRef.current.length === 0) {
+      return { error: 'no painting data, please generate painting first.' };
+    }
+
+    const realIndex = index - 1;
+
+    if (realIndex < 0 || realIndex >= paintingDataRef.current.length) {
+      return { error: 'index out of images, please check the index.' };
+    }
+
+    const { b64_json } = paintingDataRef.current[realIndex];
+
+    try {
+      const resp = await editImages(prompt, b64_json);
+      const image = resp.data[0];
+      const gptImage: GptImage = {
+        prompt: prompt,
+        b64_json: image.b64_json
+      }
+
+      setPaintingData([...paintingDataRef.current, gptImage]);
+      console.log('painting', gptImage);
+      return { result: "completed, please check the results in the modal." };
+    } catch (error) {
+      console.error('modify painting error', error);
+      return { error: error };
+    }
+  };
+
   const [bingSearchData, setBingSearchData] = useState<any>(null);
-  const bing_search_handler: Function = async ({ query }: { [key: string]: any }) => {
+  const bing_search_handler: Function = async ({ query, count = 10, page = 1 }: { [key: string]: any }) => {
 
     const subscriptionKey = localStorage.getItem('bingApiKey') || '';
 
@@ -474,8 +539,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       throw new Error('Bing API key is not set');
     }
 
+    const offset = (page - 1) * count;
     const mkt = 'en-US';
-    const params = { q: query, mkt: mkt };
+    const params = { q: query, mkt: mkt, count: count, offset: offset };
     const headers = { 'Ocp-Apim-Subscription-Key': subscriptionKey };
 
     const response = await axios.get('https://api.bing.microsoft.com/v7.0/search', { headers, params });
@@ -500,6 +566,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     [avatar.definition, avatar_handler],
     [dark.definition, dark_handler],
     [bing.definition, bing_search_handler],
+    [painting.definition, painting_handler],
+    [image_modify.definition, image_modify_handler],
 
     [news.definition, news.handler],
     [douyin.definition, douyin.handler],
@@ -512,7 +580,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     [products_recommend.definition, products_recommend.handler],
     [location.definition, location.handler],
     [feishu.definition, feishu.handler],
-    [painting.definition, painting.handler],
     [pronunciation_assessment.definition, pronunciation_assessment.handler],
     [azure_docs.definition, azure_docs.handler],
     [demo.definition, demo.handler],
@@ -599,6 +666,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       caption, captionRef, setCaption,
       captionQueue, captionQueueRef, setCaptionQueue, updateCaptionQueue, addCaptionQueue,
       bingSearchData, setBingSearchData,
+      paintingData, setPaintingData,
       cameraStatus, cameraStatusRef, setCameraStatus,
       connectStatus, connectStatusRef, setConnectStatus,
       avatarStatus, avatarStatusRef, setAvatarStatus,
