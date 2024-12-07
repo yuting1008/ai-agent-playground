@@ -18,7 +18,7 @@ const LocalStorageViewer: React.FC = () => {
   const {
     isCameraOn,
     isAvatarOn,
-    isWebcamReady,
+    isCameraReady,
     isNightMode,
     isAvatarLoading,
     isAvatarSpeaking,
@@ -126,7 +126,7 @@ const LocalStorageViewer: React.FC = () => {
               <tbody>
 
                 <tr key='isCameraOn'><td className={styles.tdKey}>isCameraOn</td><td className={styles.tdValue}>{JSON.stringify(isCameraOn)}</td></tr>
-                <tr key='isWebcamReady'><td className={styles.tdKey}>isWebcamReady</td><td className={styles.tdValue}>{JSON.stringify(isWebcamReady)}</td></tr>
+                <tr key='isCameraReady'><td className={styles.tdKey}>isCameraReady</td><td className={styles.tdValue}>{JSON.stringify(isCameraReady)}</td></tr>
                 <tr key='photos.length'><td className={styles.tdKey}>photos.length</td><td className={styles.tdValue}>{photos.length} / {CAMERA_PHOTO_LIMIT}</td></tr>
                 <tr key='photos.size'><td className={styles.tdKey}>photos.size</td><td className={styles.tdValue}>{getStringArraySizeUtf8InMB(photos)} MB</td></tr>
 

@@ -114,9 +114,9 @@ interface AppContextType {
   isCameraOnRef: React.MutableRefObject<boolean>;
   setIsCameraOn: React.Dispatch<React.SetStateAction<boolean>>;
 
-  isWebcamReady: boolean;
-  isWebcamReadyRef: React.MutableRefObject<boolean>;
-  setIsWebcamReady: React.Dispatch<React.SetStateAction<boolean>>;
+  isCameraReady: boolean;
+  isCameraReadyRef: React.MutableRefObject<boolean>;
+  setIsCameraReady: React.Dispatch<React.SetStateAction<boolean>>;
 
   needSpeechQueue: string[];
   needSpeechQueueRef: React.MutableRefObject<string[]>;
@@ -175,9 +175,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [isCameraOn, setIsCameraOn] = useState(false);
   const isCameraOnRef = useRef(isCameraOn);
 
-  // isWebcamReady boolean
-  const [isWebcamReady, setIsWebcamReady] = useState(false);
-  const isWebcamReadyRef = useRef(isWebcamReady);
+  // isCameraReady boolean
+  const [isCameraReady, setIsCameraReady] = useState(false);
+  const isCameraReadyRef = useRef(isCameraReady);
 
   // input string
   const [inputValue, setInputValue] = useState('');
@@ -617,7 +617,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       memoryKv, memoryKvRef, setMemoryKv,
       inputValue, inputValueRef, setInputValue,
       isCameraOn, isCameraOnRef, setIsCameraOn,
-      isWebcamReady, isWebcamReadyRef, setIsWebcamReady,
+      isCameraReady, isCameraReadyRef, setIsCameraReady,
       isAvatarOn, isAvatarOnRef, setIsAvatarOn,
       needSpeechQueue, needSpeechQueueRef, setNeedSpeechQueue,
       caption, captionRef, setCaption,

@@ -11,9 +11,10 @@ const Camera: React.FC = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { isCameraOn, isCameraOnRef,
+  const {
+    isCameraOn, isCameraOnRef,
     photos, setPhotos, setIsCameraOn,
-    isWebcamReady, isWebcamReadyRef, setIsWebcamReady,
+    isCameraReady, isCameraReadyRef, setIsCameraReady,
     replaceInstructions
   } = useContexts();
 
@@ -25,17 +26,17 @@ const Camera: React.FC = () => {
     console.log('isCameraOn:', isCameraOn);
     isCameraOnRef.current = isCameraOn;
     if (!isCameraOn) {
-      setIsWebcamReady(false);
+      setIsCameraReady(false);
       setPhotos([]);
     }
   }, [isCameraOn]);
 
   useEffect(() => {
-    console.log(`iseWebcamReady:`, isWebcamReady);
-    isWebcamReadyRef.current = isWebcamReady;
-    isWebcamReady ? replaceInstructions('现在我的摄像头是关闭的', '现在我的摄像头是打开的')
+    console.log(`isCameraReady:`, isCameraReady);
+    isCameraReadyRef.current = isCameraReady;
+    isCameraReady ? replaceInstructions('现在我的摄像头是关闭的', '现在我的摄像头是打开的')
       : replaceInstructions('现在我的摄像头是打开的', '现在我的摄像头是关闭的')
-  }, [isWebcamReady]);
+  }, [isCameraReady]);
 
   useEffect(() => {
     const getCameras = async () => {
@@ -56,11 +57,11 @@ const Camera: React.FC = () => {
   };
 
   const handleWebcamReady = () => {
-    setIsWebcamReady(true);
+    setIsCameraReady(true);
   };
 
   const handleClick = () => {
-    if (isWebcamReady) {
+    if (isCameraReady) {
       setIsModalOpen(true);
     }
   };
@@ -71,7 +72,7 @@ const Camera: React.FC = () => {
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      if (webcamRef.current && isCameraOnRef.current && isWebcamReadyRef.current) {
+      if (webcamRef.current && isCameraOnRef.current && isCameraReadyRef.current) {
         const imageSrc = webcamRef.current.getScreenshot();
         if (imageSrc) {
           setPhotos(prevPhotos => {
@@ -96,7 +97,7 @@ const Camera: React.FC = () => {
       <div>
 
         <button className="content-block-btn"
-          style={{ display: (isCameraOn && !isWebcamReady) ? 'none' : '' }}
+          style={{ display: (isCameraOn && !isCameraReady) ? 'none' : '' }}
           onClick={toggleCamera}>
           {isCameraOn ? <CameraIcon /> : <CameraOff />}
         </button>
@@ -104,7 +105,7 @@ const Camera: React.FC = () => {
         {
           cameraCount > 1 && (
             <button className="content-block-btn switch"
-              style={{ display: !isWebcamReady ? 'none' : '' }}
+              style={{ display: !isCameraReady ? 'none' : '' }}
               onClick={toggleCameraModel}>
               <RefreshCw />
             </button>
@@ -116,7 +117,7 @@ const Camera: React.FC = () => {
 
 
       {
-        isCameraOn && !isWebcamReady && <div className="camLoading"><div className="spinner" key={'camLoading'}></div></div>
+        isCameraOn && !isCameraReady && <div className="camLoading"><div className="spinner" key={'camLoading'}></div></div>
       }
 
 
