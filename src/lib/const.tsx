@@ -7,6 +7,10 @@ export const ALLOW_PROMPT_CHARACTERS = 1500;
 export const CAMERA_PHOTO_LIMIT = 50; // gpt limit 50 images
 export const CAMERA_PHOTO_INTERVAL_MS = 1000;
 
+export const CAMERA_OFF = 'camera_off';
+export const CAMERA_STARTING = 'camera_starting';
+export const CAMERA_READY = 'camera_ready';
+
 export const clientHiEnglish = `Hi!`;
 export const clientHiChinese = `你好！`;
 export const fileUploadInstructions = `我已经上传了数据文件，请告诉我你收到了什么内容的文件，只需要简单解释你收到了什么。不要超过30个字。`;

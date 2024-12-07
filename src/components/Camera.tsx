@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Webcam from 'react-webcam';
 import { useContexts } from '../providers/AppProvider';
-import { CAMERA_PHOTO_INTERVAL_MS, CAMERA_PHOTO_LIMIT } from '../lib/const';
+import { CAMERA_OFF, CAMERA_PHOTO_INTERVAL_MS, CAMERA_PHOTO_LIMIT, CAMERA_READY, CAMERA_STARTING } from '../lib/const';
 import './Camera.scss';
 import { Camera as CameraIcon, CameraOff, RefreshCw } from 'react-feather';
 
@@ -12,9 +12,8 @@ const Camera: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const {
-    isCameraOn, isCameraOnRef,
-    photos, setPhotos, setIsCameraOn,
-    isCameraReady, isCameraReadyRef, setIsCameraReady,
+    photos, setPhotos, 
+    cameraStatus, cameraStatusRef, setCameraStatus,
     replaceInstructions
   } = useContexts();
 
@@ -23,20 +22,19 @@ const Camera: React.FC = () => {
   const [cameraCount, setCameraCount] = useState(0);
 
   useEffect(() => {
-    console.log('isCameraOn:', isCameraOn);
-    isCameraOnRef.current = isCameraOn;
-    if (!isCameraOn) {
-      setIsCameraReady(false);
-      setPhotos([]);
-    }
-  }, [isCameraOn]);
+    console.log('cameraStatus:', cameraStatus);
+    cameraStatusRef.current = cameraStatus;
 
-  useEffect(() => {
-    console.log(`isCameraReady:`, isCameraReady);
-    isCameraReadyRef.current = isCameraReady;
-    isCameraReady ? replaceInstructions('现在我的摄像头是关闭的', '现在我的摄像头是打开的')
-      : replaceInstructions('现在我的摄像头是打开的', '现在我的摄像头是关闭的')
-  }, [isCameraReady]);
+    if (cameraStatus === CAMERA_READY) {
+      replaceInstructions('现在我的摄像头是关闭的', '现在我的摄像头是打开的');
+    }
+
+    if (cameraStatus === CAMERA_OFF) {
+      setPhotos([]);
+      replaceInstructions('现在我的摄像头是打开的', '现在我的摄像头是关闭的');
+    }
+
+  }, [cameraStatus]);
 
   useEffect(() => {
     const getCameras = async () => {
@@ -57,11 +55,11 @@ const Camera: React.FC = () => {
   };
 
   const handleWebcamReady = () => {
-    setIsCameraReady(true);
+    setCameraStatus(CAMERA_READY);
   };
 
   const handleClick = () => {
-    if (isCameraReady) {
+    if (cameraStatus === CAMERA_READY) {
       setIsModalOpen(true);
     }
   };
@@ -72,7 +70,7 @@ const Camera: React.FC = () => {
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      if (webcamRef.current && isCameraOnRef.current && isCameraReadyRef.current) {
+      if (webcamRef.current && cameraStatusRef.current === CAMERA_READY) {
         const imageSrc = webcamRef.current.getScreenshot();
         if (imageSrc) {
           setPhotos(prevPhotos => {
@@ -88,7 +86,11 @@ const Camera: React.FC = () => {
   }, []);
 
   const toggleCamera = () => {
-    setIsCameraOn(prev => !prev);
+    if (cameraStatus === CAMERA_OFF) {
+      setCameraStatus(CAMERA_STARTING);
+    } else {
+      setCameraStatus(CAMERA_OFF);
+    }
   };
 
   return (
@@ -97,15 +99,15 @@ const Camera: React.FC = () => {
       <div>
 
         <button className="content-block-btn"
-          style={{ display: (isCameraOn && !isCameraReady) ? 'none' : '' }}
+          style={{ display: (cameraStatus === CAMERA_STARTING) ? 'none' : '' }}
           onClick={toggleCamera}>
-          {isCameraOn ? <CameraIcon /> : <CameraOff />}
+          {cameraStatus !== CAMERA_OFF ? <CameraIcon /> : <CameraOff />}
         </button>
 
         {
           cameraCount > 1 && (
             <button className="content-block-btn switch"
-              style={{ display: !isCameraReady ? 'none' : '' }}
+              style={{ display: cameraStatus !== CAMERA_READY ? 'none' : '' }}
               onClick={toggleCameraModel}>
               <RefreshCw />
             </button>
@@ -117,12 +119,12 @@ const Camera: React.FC = () => {
 
 
       {
-        isCameraOn && !isCameraReady && <div className="camLoading"><div className="spinner" key={'camLoading'}></div></div>
+        cameraStatus === CAMERA_STARTING && <div className="camLoading"><div className="spinner" key={'camLoading'}></div></div>
       }
 
 
       {
-        isCameraOn && (
+        cameraStatus !== CAMERA_OFF && (
           <Webcam
             audio={false}
             ref={webcamRef}

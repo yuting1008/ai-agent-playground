@@ -28,7 +28,7 @@ import * as exchange_rate_aim from '../tools/exchange_rate_aim';
 import * as exchange_rate_list from '../tools/exchange_rate_list';
 import * as exchange_rate_configs from '../tools/exchange_rate_configs';
 import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
-import { CAMERA_PHOTO_LIMIT } from '../lib/const';
+import { CAMERA_OFF, CAMERA_PHOTO_LIMIT, CAMERA_STARTING } from '../lib/const';
 import { getCompletion, getOpenAIClient } from '../lib/openai';
 import { delayFunction } from '../lib/helper';
 import { Assistant } from 'openai/resources/beta/assistants';
@@ -75,6 +75,10 @@ interface AppContextType {
   llmInstructionsRef: React.MutableRefObject<string>;
   replaceInstructions: (source: string | RegExp, target: string) => string;
 
+  cameraStatus: string;
+  cameraStatusRef: React.MutableRefObject<string>;
+  setCameraStatus: React.Dispatch<React.SetStateAction<string>>;
+
   assistant: Assistant | null;
   assistantRef: React.MutableRefObject<Assistant | null>;
   setAssistant: React.Dispatch<React.SetStateAction<Assistant | null>>;
@@ -109,14 +113,6 @@ interface AppContextType {
   inputValue: string;
   inputValueRef: React.MutableRefObject<string>;
   setInputValue: React.Dispatch<React.SetStateAction<string>>;
-
-  isCameraOn: boolean;
-  isCameraOnRef: React.MutableRefObject<boolean>;
-  setIsCameraOn: React.Dispatch<React.SetStateAction<boolean>>;
-
-  isCameraReady: boolean;
-  isCameraReadyRef: React.MutableRefObject<boolean>;
-  setIsCameraReady: React.Dispatch<React.SetStateAction<boolean>>;
 
   needSpeechQueue: string[];
   needSpeechQueueRef: React.MutableRefObject<string[]>;
@@ -171,13 +167,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setCaptionQueue([...captionQueueRef.current, caption]);
   };
 
-  // isCameraOn boolean
-  const [isCameraOn, setIsCameraOn] = useState(false);
-  const isCameraOnRef = useRef(isCameraOn);
-
-  // isCameraReady boolean
-  const [isCameraReady, setIsCameraReady] = useState(false);
-  const isCameraReadyRef = useRef(isCameraReady);
+  // cameraStatus string
+  const [cameraStatus, setCameraStatus] = useState(CAMERA_OFF);
+  const cameraStatusRef = useRef(cameraStatus);
+  useEffect(() => {
+    cameraStatusRef.current = cameraStatus;
+  }, [cameraStatus]);
 
   // input string
   const [inputValue, setInputValue] = useState('');
@@ -324,12 +319,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // -------- functions ---------
   const camera_on_handler: Function = async ({ on }: { [on: string]: boolean }) => {
     if (on) {
-      setIsCameraOn(true);
+      setCameraStatus(CAMERA_STARTING);
       return { message: 'The camera is starting, please wait a moment to turn on.' };
     }
 
-    setPhotos([]);
-    setIsCameraOn(false);
+    setCameraStatus(CAMERA_OFF);
 
     return { message: 'The camera has been turned off' };
   };
@@ -616,13 +610,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       isAvatarSpeaking, isAvatarSpeakingRef, setIsAvatarSpeaking,
       memoryKv, memoryKvRef, setMemoryKv,
       inputValue, inputValueRef, setInputValue,
-      isCameraOn, isCameraOnRef, setIsCameraOn,
-      isCameraReady, isCameraReadyRef, setIsCameraReady,
       isAvatarOn, isAvatarOnRef, setIsAvatarOn,
       needSpeechQueue, needSpeechQueueRef, setNeedSpeechQueue,
       caption, captionRef, setCaption,
       captionQueue, captionQueueRef, setCaptionQueue, updateCaptionQueue, addCaptionQueue,
       bingSearchData, setBingSearchData,
+      cameraStatus, cameraStatusRef, setCameraStatus,
       realtimeClientRef,
       functionsToolsRef,
       avatarSynthesizerRef,
