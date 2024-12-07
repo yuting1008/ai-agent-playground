@@ -158,7 +158,7 @@ export async function getJsonData(messages: any): Promise<string> {
 }
 
 
-export async function getImages(prompt: string): Promise<string> {
+export async function getImages(prompt: string, n: number = 1): Promise<any> {
   const dallApiKey = localStorage.getItem('dallApiKey') || '';
   const dallTargetUri = localStorage.getItem('dallTargetUri') || '';
 
@@ -177,8 +177,9 @@ export async function getImages(prompt: string): Promise<string> {
       headers: headers,
       body: JSON.stringify({
         'prompt': prompt,
-        'n': 1,
-        'size': '1024x1024'
+        'n': n,
+        'size': '1024x1024',
+        'response_format': 'b64_json'
       })
     });
 
@@ -187,17 +188,24 @@ export async function getImages(prompt: string): Promise<string> {
     }
 
     const data = await response.json();
-    data.message = '绘画完成，请你不要阅读网址，只阅读图画简介';
+    data.prompt = prompt;
 
-    return data || 'error. please try again later.';
+    return {
+      ...data,
+      prompt: prompt,
+    };
   } catch (error) {
     console.error('Error fetching completion:', error);
-    return 'Error fetching completion';
+    return {
+      error: 'Error fetching completion',
+      prompt: prompt,
+      data: []
+    };
   }
 }
 
 
-export async function editImages(prompt: string, image_base_64: string): Promise<string> {
+export async function editImages(prompt: string, image_base_64: string): Promise<any> {
   const completionApiKey = localStorage.getItem('completionApiKey') || '';
   const completionTargetUri = localStorage.getItem('completionTargetUri') || '';
 
@@ -238,9 +246,19 @@ export async function editImages(prompt: string, image_base_64: string): Promise
     }
 
     const data = await response.json();
-    return data || 'error';
+
+    data.prompt = prompt;
+
+    return {
+      ...data,
+      prompt: prompt,
+    };
   } catch (error) {
     console.error('Error fetching completion:', error);
-    return 'Error fetching completion';
+    return {
+      error: 'Error fetching completion',
+      prompt: prompt,
+      data: []
+    };
   }
 }

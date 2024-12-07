@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useContexts } from '../../providers/AppProvider';
-import { Mic, X, Zap } from 'react-feather';
+import { X } from 'react-feather';
 import './BingSearchResult.scss';
 
 interface DeepLink {
@@ -62,7 +62,7 @@ interface BingSearchData {
 const BingSearchResult: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'webpages' | 'entities' | 'related' | 'videos'>('webpages');
 
-    const { bingSearchData, setBingSearchData, isNightMode } = useContexts();
+    const { bingSearchData, setBingSearchData } = useContexts();
 
     if (!bingSearchData) {
         return null;
