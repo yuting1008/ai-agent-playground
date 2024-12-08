@@ -5,6 +5,7 @@ import { Activity } from 'react-feather';
 import { useContexts } from '../../providers/AppProvider';
 import { CONNECT_CONNECTED } from '../../lib/const';
 import { quantile } from "simple-statistics";
+import { calculatePercentiles } from '../../lib/helper';
 
 
 // avgLatency, round to 5
@@ -22,8 +23,6 @@ type TableSheet = {
     name: string,
     items: TableItem[]
 }
-
-
 
 const TrafficMonitor: React.FC = () => {
 
@@ -178,21 +177,25 @@ const TrafficMonitor: React.FC = () => {
             return null;
         }
 
+        console.log('compute', firstTokenLatencyArray, tokenLatencyArray);
+        
         const firstTokenLatencyMin = firstTokenLatencyArray.length > 0 ? Math.min(...firstTokenLatencyArray) : 0;
         const firstTokenLatencyMax = firstTokenLatencyArray.length > 0 ? Math.max(...firstTokenLatencyArray) : 0;
         const firstTokenLatencyAvg = firstTokenLatencyArray.length > 0 ? avgLatency(firstTokenLatencyArray) : 0;
-        const firstTokenLatencyP50 = firstTokenLatencyArray.length > 0 ? quantile(firstTokenLatencyArray, 0.5) : 0;
-        const firstTokenLatencyP90 = firstTokenLatencyArray.length > 0 ? quantile(firstTokenLatencyArray, 0.9) : 0;
-        const firstTokenLatencyP95 = firstTokenLatencyArray.length > 0 ? quantile(firstTokenLatencyArray, 0.95) : 0;
-        const firstTokenLatencyP99 = firstTokenLatencyArray.length > 0 ? quantile(firstTokenLatencyArray, 0.99) : 0;
+        const firstTokenLatencyPercentiles = calculatePercentiles(firstTokenLatencyArray);
+        const firstTokenLatencyP50 = firstTokenLatencyPercentiles['P50'];
+        const firstTokenLatencyP90 = firstTokenLatencyPercentiles['P90'];
+        const firstTokenLatencyP95 = firstTokenLatencyPercentiles['P95'];
+        const firstTokenLatencyP99 = firstTokenLatencyPercentiles['P99'];
 
         const tokenLatencyMin = tokenLatencyArray.length > 0 ? Math.min(...tokenLatencyArray) : 0;
         const tokenLatencyMax = tokenLatencyArray.length > 0 ? Math.max(...tokenLatencyArray) : 0;
         const tokenLatencyAvg = tokenLatencyArray.length > 0 ? avgLatency(tokenLatencyArray) : 0;
-        const tokenLatencyP50 = tokenLatencyArray.length > 0 ? quantile(tokenLatencyArray, 0.5) : 0;
-        const tokenLatencyP90 = tokenLatencyArray.length > 0 ? quantile(tokenLatencyArray, 0.9) : 0;
-        const tokenLatencyP95 = tokenLatencyArray.length > 0 ? quantile(tokenLatencyArray, 0.95) : 0;
-        const tokenLatencyP99 = tokenLatencyArray.length > 0 ? quantile(tokenLatencyArray, 0.99) : 0;
+        const tokenLatencyPercentiles = calculatePercentiles(tokenLatencyArray);
+        const tokenLatencyP50 = tokenLatencyPercentiles['P50'];
+        const tokenLatencyP90 = tokenLatencyPercentiles['P90'];
+        const tokenLatencyP95 = tokenLatencyPercentiles['P95'];
+        const tokenLatencyP99 = tokenLatencyPercentiles['P99'];
 
         const timesTable: TableSheet = {
             name: 'Times',

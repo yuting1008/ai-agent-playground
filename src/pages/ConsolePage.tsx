@@ -211,11 +211,19 @@ export function ConsolePage() {
 
   const latencyRecord = (e: RealtimeEvent) => {
 
+    if (e.event.type === 'input_audio_buffer.append') {
+      return;
+    }
+
     console.log(e.time, e.source, e.event.type);
 
     const { source, event: { type } } = e;
 
-    if (source === 'client' && type === 'conversation.item.create') {
+    if (source === 'client' && type === 'response.create') {
+      resetTokenLatency();
+    }
+
+    if (source === 'server' && type === 'input_audio_buffer.committed') {
       resetTokenLatency();
     }
 

@@ -359,12 +359,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       isFirstTokenRef.current = false;
       lastTokenTimeRef.current = Date.now();
       const latency = Date.now() - sendTimeRef.current;
-      setFirstTokenLatencyArray((prevArray: number[]) => [...prevArray, latency]);
+      if (latency > 0) {
+        setFirstTokenLatencyArray((prevArray: number[]) => [...prevArray, latency]);
+      }
       lastTokenTimeRef.current = Date.now();
     } else {
       const latency = Date.now() - lastTokenTimeRef.current;
       lastTokenTimeRef.current = Date.now();
-      setTokenLatencyArray((prevArray: number[]) => [...prevArray, latency]);
+      if (latency > 0) {
+        setTokenLatencyArray((prevArray: number[]) => [...prevArray, latency]);
+      }
     }
   }
 
