@@ -36,8 +36,9 @@ import { Assistant } from 'openai/resources/beta/assistants';
 import { processAndStoreSentence } from '../lib/sentence';
 import { AvatarSynthesizer } from 'microsoft-cognitiveservices-speech-sdk';
 import axios from 'axios';
-import { GptImage } from '../interfaces/GptImage';
-
+import { GptImage } from '../types/GptImage';
+import { useOnlineStatus } from '../hooks/useOnlineStatus';
+import { useGptImagesDispatch, useGptImagesRef } from '../contexts/GptImagesContext';
 
 interface AppContextType {
 
@@ -130,8 +131,7 @@ interface AppContextType {
   bingSearchData: any;
   setBingSearchData: React.Dispatch<React.SetStateAction<any>>;
 
-  paintingData: any;
-  setPaintingData: React.Dispatch<React.SetStateAction<any>>;
+  isOnline: boolean;
 }
 
 const IS_DEBUG: boolean = window.location.href.includes('localhost');
@@ -139,6 +139,8 @@ const IS_DEBUG: boolean = window.location.href.includes('localhost');
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+
+  const isOnline = useOnlineStatus();
 
   const {
     keyRef, endpointRef,
@@ -470,23 +472,22 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return { ok: true };
   };
 
-  const [paintingData, setPaintingData] = useState<GptImage[]>([]);
-  const paintingDataRef = useRef(paintingData);
-  useEffect(() => {
-    paintingDataRef.current = paintingData;
-  }, [paintingData]);
-
+  const gptImagesDispatch = useGptImagesDispatch()!;
+  const gptImagesRef = useGptImagesRef();
   const painting_handler: Function = async ({ prompt, n = 1 }: { [key: string]: any }) => {
     try {
+
       const resp = await getImages(prompt = prompt, n = n);
       const image = resp.data[0];
+
       const gptImage: GptImage = {
         prompt: prompt,
         b64_json: image.b64_json
       }
 
-      setPaintingData([...paintingDataRef.current, gptImage]);
+      gptImagesDispatch({ type: 'add', gptImage });
       console.log('painting', gptImage);
+      console.log('gptImagesRef', gptImagesRef.current);
 
       return { result: "completed, please check the results in the modal." };
     } catch (error) {
@@ -497,21 +498,21 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const image_modify_handler: Function = async ({ prompt, index = 1 }: { [key: string]: any }) => {
 
-    if (!paintingDataRef.current) {
+    if (!gptImagesRef.current) {
       return { error: 'no painting data, please generate painting first.' };
     }
 
-    if (paintingDataRef.current.length === 0) {
+    if (gptImagesRef.current.length === 0) {
       return { error: 'no painting data, please generate painting first.' };
     }
 
     const realIndex = index - 1;
 
-    if (realIndex < 0 || realIndex >= paintingDataRef.current.length) {
+    if (realIndex < 0 || realIndex >= gptImagesRef.current.length) {
       return { error: 'index out of images, please check the index.' };
     }
 
-    const { b64_json } = paintingDataRef.current[realIndex];
+    const { b64_json } = gptImagesRef.current[realIndex];
 
     try {
       const resp = await editImages(prompt, b64_json);
@@ -521,7 +522,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         b64_json: image.b64_json
       }
 
-      setPaintingData([...paintingDataRef.current, gptImage]);
+      gptImagesDispatch({ type: 'add', gptImage });
       console.log('painting', gptImage);
       return { result: "completed, please check the results in the modal." };
     } catch (error) {
@@ -649,6 +650,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   return (
     <AppContext.Provider value={{
+      isOnline,
       photos, photosRef, setPhotos,
       loading, loadingRef, setLoading,
       debug, debugRef, setDebug,
@@ -666,7 +668,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       caption, captionRef, setCaption,
       captionQueue, captionQueueRef, setCaptionQueue, updateCaptionQueue, addCaptionQueue,
       bingSearchData, setBingSearchData,
-      paintingData, setPaintingData,
       cameraStatus, cameraStatusRef, setCameraStatus,
       connectStatus, connectStatusRef, setConnectStatus,
       avatarStatus, avatarStatusRef, setAvatarStatus,

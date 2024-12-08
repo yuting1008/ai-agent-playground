@@ -68,6 +68,7 @@ body {
 
 body.night-mode {
   background-image: url('./static/img23.jpg');
+  background-color: #000000;
   background-size: auto;
   background-repeat: no-repeat;
   background-position: 20% 20%;

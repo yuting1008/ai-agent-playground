@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useContexts } from '../../providers/AppProvider';
 import { X } from 'react-feather';
 import './BingSearchResult.scss';
-import { GptImage } from '../../interfaces/GptImage';
-import { Mic, Image } from 'react-feather';
+import { GptImage } from '../../types/GptImage';
+import { Image } from 'react-feather';
+import { useGptImages } from '../../contexts/GptImagesContext';
 
 const styles: { [key: string]: React.CSSProperties } = {
     backdrop: {
@@ -54,12 +54,12 @@ const styles: { [key: string]: React.CSSProperties } = {
 
 const PaintingResult: React.FC = () => {
 
-    const { paintingData, setPaintingData } = useContexts();
+    const images = useGptImages();
     const [isShow, setIsShow] = useState(false);
 
     useEffect(() => {
-        setIsShow(paintingData.length > 0);
-    }, [paintingData]);
+        setIsShow(images.length > 0);
+    }, [images]);
 
     const ShowPainting = () => {
         if (!isShow) {
@@ -77,14 +77,15 @@ const PaintingResult: React.FC = () => {
 
                     <div style={styles.content}>
 
-                        {paintingData.length === 0 && <div>No images</div>}
+                        {images.length === 0 && <div>No images</div>}
 
-                        {paintingData.map((image: GptImage) => (
+                        {images.map((image: GptImage, index: number) => (
 
                             <div>
                                 <img
                                     src={`data:image/png;base64,${image.b64_json}`}
                                     alt={image.prompt}
+                                    key={index}
                                     style={styles.img}
                                 />
                             </div>
