@@ -6,7 +6,6 @@
   "dependencies": {
     "@microsoft/microsoft-graph-client": "^3.0.7",
     "@openai/realtime-api-beta": "github:openai/openai-realtime-api-beta",
-    "microsoft-cognitiveservices-speech-sdk": "^1.41.0",
     "@reduxjs/toolkit": "^2.3.0",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
@@ -22,6 +21,7 @@
     "express": "^4.21.1",
     "isomorphic-fetch": "^3.0.0",
     "leaflet": "^1.9.4",
+    "microsoft-cognitiveservices-speech-sdk": "^1.41.0",
     "openai": "^4.73.1",
     "path-browserify": "^1.0.1",
     "react": "^19.0.0",
@@ -38,8 +38,10 @@
     "sass": "^1.78.0",
     "save": "^2.9.0",
     "sharp": "^0.33.5",
+    "simple-statistics": "^7.8.7",
     "typescript": "^4.9.5",
     "use-immer": "^0.10.0",
+    "uuid": "^11.0.3",
     "web-vitals": "^2.1.4",
     "ws": "^8.18.0",
     "xlsx": "^0.18.5"

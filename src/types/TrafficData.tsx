@@ -1,6 +1,8 @@
 export type TrafficData = {
-    prompt: string;
-    b64_json: string;
+    connectionLatency: number[];
+    connectionLatencyAvg: number;
+    connectionLatencyMin: number;
+    connectionLatencyMax: number;
 }
 
 export type TrafficDataAction = {

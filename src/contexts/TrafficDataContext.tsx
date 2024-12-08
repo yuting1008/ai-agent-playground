@@ -2,36 +2,38 @@ import { createContext, useContext, Dispatch } from 'react';
 import { useImmerReducer } from 'use-immer';
 import { TrafficData, TrafficDataAction } from '../types/TrafficData';
 
-const TrafficDataContext = createContext<TrafficData[]>([]);
+const initialTrafficData: TrafficData = {
+  connectionLatency: [],
+  connectionLatencyAvg: 0,
+  connectionLatencyMin: 0,
+  connectionLatencyMax: 0
+};
+
+const TrafficDataContext = createContext<TrafficData>(initialTrafficData);
 
 const TrafficDataDispatchContext = createContext<Dispatch<TrafficDataAction>>(() => {
   throw new Error('TrafficDataDispatchContext not provided');
 });
 
-const initialTrafficData: TrafficData[] = [];
-
-function trafficDataReducer(images: TrafficData[], action: TrafficDataAction) {
+function trafficDataReducer(trafficData: TrafficData, action: TrafficDataAction) {
   switch (action.type) {
 
     case 'add': {
-      return [...images, {
-        prompt: action.trafficData.prompt,
-        b64_json: action.trafficData.b64_json
-      }];
+      return {
+        ...trafficData,
+        ...action.trafficData
+      };
     }
 
     case 'change': {
-      return images.map(t => {
-        if (t.prompt === action.trafficData.prompt) {
-          return action.trafficData;
-        } else {
-          return t;
-        }
-      });
+      return {
+        ...trafficData,
+        ...action.trafficData
+      };
     }
 
     case 'delete': {
-      return images.filter(t => t.prompt !== action.trafficData.prompt);
+      return initialTrafficData;
     }
 
     default: {
@@ -42,13 +44,10 @@ function trafficDataReducer(images: TrafficData[], action: TrafficDataAction) {
 
 export function TrafficDataProvider({ children }: { children: React.ReactNode }) {
 
-  const [images, dispatch] = useImmerReducer(
-    trafficDataReducer,
-    initialTrafficData
-  );
+  const [trafficData, dispatch] = useImmerReducer(trafficDataReducer, initialTrafficData);
 
   return (
-    <TrafficDataContext.Provider value={images}>
+    <TrafficDataContext.Provider value={trafficData}>
       <TrafficDataDispatchContext.Provider value={dispatch}>
         {children}
       </TrafficDataDispatchContext.Provider>

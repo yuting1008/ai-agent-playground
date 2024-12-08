@@ -132,6 +132,22 @@ interface AppContextType {
   setBingSearchData: React.Dispatch<React.SetStateAction<any>>;
 
   isOnline: boolean;
+
+  isFirstTokenRef: React.MutableRefObject<boolean>;
+
+  firstTokenLatencyArray: number[];
+  firstTokenLatencyArrayRef: React.MutableRefObject<number[]>;
+  setFirstTokenLatencyArray: React.Dispatch<React.SetStateAction<number[]>>;
+
+  sendTimeRef: React.MutableRefObject<number>;
+  lastTokenTimeRef: React.MutableRefObject<number>;
+
+  tokenLatencyArray: number[];
+  tokenLatencyArrayRef: React.MutableRefObject<number[]>;
+  setTokenLatencyArray: React.Dispatch<React.SetStateAction<number[]>>;
+
+  resetTokenLatency: () => void;
+  recordTokenLatency: (delta: any) => void;
 }
 
 const IS_DEBUG: boolean = window.location.href.includes('localhost');
@@ -309,6 +325,52 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const avatarVideoRef = useRef<HTMLVideoElement>(null);
   const avatarAudioRef = useRef<HTMLAudioElement>(null);
+
+  // sendTime DateTime
+  const sendTimeRef = useRef(0);
+
+  // lastTokenTime DateTime
+  const lastTokenTimeRef = useRef(0);
+
+  const isFirstTokenRef = useRef<boolean>(false);
+
+  // firstTokenLatencyArray number[]
+  const [firstTokenLatencyArray, setFirstTokenLatencyArray] = useState<number[]>([]);
+  const firstTokenLatencyArrayRef = useRef(firstTokenLatencyArray);
+  useEffect(() => {
+    firstTokenLatencyArrayRef.current = firstTokenLatencyArray;
+  }, [firstTokenLatencyArray]);
+
+  // tokenLatencyArray number[]
+  const [tokenLatencyArray, setTokenLatencyArray] = useState<number[]>([]);
+  const tokenLatencyArrayRef = useRef(tokenLatencyArray);
+  useEffect(() => {
+    tokenLatencyArrayRef.current = tokenLatencyArray;
+  }, [tokenLatencyArray]);
+
+  const resetTokenLatency = () => {
+    isFirstTokenRef.current = true;
+    sendTimeRef.current = Date.now();
+    lastTokenTimeRef.current = 0;
+  }
+
+  const recordTokenLatency = (delta: any) => {
+    if (isFirstTokenRef.current) {
+      isFirstTokenRef.current = false;
+      lastTokenTimeRef.current = Date.now();
+      const latency = Date.now() - sendTimeRef.current;
+      if (latency > 0) {
+        setFirstTokenLatencyArray((prevArray: number[]) => [...prevArray, latency]);
+      }
+      lastTokenTimeRef.current = Date.now();
+    } else {
+      const latency = Date.now() - lastTokenTimeRef.current;
+      lastTokenTimeRef.current = Date.now();
+      if (latency > 0) {
+        setTokenLatencyArray((prevArray: number[]) => [...prevArray, latency]);
+      }
+    }
+  }
 
   // -------- functions ---------
   const camera_on_handler: Function = async ({ on }: { [on: string]: boolean }) => {
@@ -671,6 +733,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       cameraStatus, cameraStatusRef, setCameraStatus,
       connectStatus, connectStatusRef, setConnectStatus,
       avatarStatus, avatarStatusRef, setAvatarStatus,
+      isFirstTokenRef,
+      firstTokenLatencyArray, firstTokenLatencyArrayRef, setFirstTokenLatencyArray,
+      tokenLatencyArray, tokenLatencyArrayRef, setTokenLatencyArray,
+      recordTokenLatency, resetTokenLatency,
+      sendTimeRef, lastTokenTimeRef,
       realtimeClientRef,
       functionsToolsRef,
       avatarSynthesizerRef,
