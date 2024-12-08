@@ -125,8 +125,13 @@ export const AssistantProvider: React.FC<{ children: ReactNode }> = ({ children 
     appendAssistantMessage('assistant', '');
   };
 
+  const { recordTokenLatency } = useContexts();
+
   // textDelta - append text to last assistant message
   const handleAssistantTextDelta = (delta: any) => {
+
+    recordTokenLatency(delta);
+
     if (delta.value != null) {
       setResponseBuffer(latestText => latestText + delta.value);
       appendAssistantToLastMessage(delta.value);

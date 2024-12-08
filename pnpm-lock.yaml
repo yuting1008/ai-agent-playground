@@ -110,12 +110,18 @@ importers:
       sharp:
         specifier: ^0.33.5
         version: 0.33.5
+      simple-statistics:
+        specifier: ^7.8.7
+        version: 7.8.7
       typescript:
         specifier: ^4.9.5
         version: 4.9.5
       use-immer:
         specifier: ^0.10.0
         version: 0.10.0(immer@10.1.1)(react@19.0.0)
+      uuid:
+        specifier: ^11.0.3
+        version: 11.0.3
       web-vitals:
         specifier: ^2.1.4
         version: 2.1.4
@@ -5542,6 +5548,9 @@ packages:
     resolution: {integrity: sha512-bzyZ1e88w9O1iNJbKnOlvYTrWPDl46O1bG0D3XInv+9tkPrxrN8jUUTiFlDkkmKWgn1M6CfIA13SuGqOa9Korw==}
     engines: {node: '>=14'}
 
+  simple-statistics@7.8.7:
+    resolution: {integrity: sha512-ed5FwTNYvkMTfbCai1U+r3symP+lIPKWCqKdudpN4NFNMn9RtDlFtSyAQhCp4oPH0YBjWu/qnW+5q5ZkPB3uHQ==}
+
   simple-swizzle@0.2.2:
     resolution: {integrity: sha512-JA//kQgZtbuY83m+xT+tXJkmJncGMTFT+C+g2h2R9uxkYIrE2yy9sgmcLhCnw57/WSD+Eh3J97FPEDFnbXnDUg==}
 
@@ -6068,6 +6077,10 @@ packages:
   utils-merge@1.0.1:
     resolution: {integrity: sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==}
     engines: {node: '>= 0.4.0'}
+
+  uuid@11.0.3:
+    resolution: {integrity: sha512-d0z310fCWv5dJwnX1Y/MncBAqGMKEzlBb1AOf7z9K8ALnd0utBX/msg/fA0+sbyN1ihbMsLhrBlnl1ak7Wa0rg==}
+    hasBin: true
 
   uuid@8.3.2:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
@@ -12938,6 +12951,8 @@ snapshots:
 
   signal-exit@4.1.0: {}
 
+  simple-statistics@7.8.7: {}
+
   simple-swizzle@0.2.2:
     dependencies:
       is-arrayish: 0.3.2
@@ -13526,6 +13541,8 @@ snapshots:
   utila@0.4.0: {}
 
   utils-merge@1.0.1: {}
+
+  uuid@11.0.3: {}
 
   uuid@8.3.2: {}
 
