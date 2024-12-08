@@ -30,6 +30,7 @@ import BingSearchResult from '../components/functions/BingSearchResult';
 import PaintingResult from '../components/functions/PaintingResult';
 import TrafficMonitor from '../components/functions/TrafficMonitor';
 import BellMessage from '../components/functions/BellMessage';
+import FunctionsList from '../components/functions/FunctionsList';
 
 type AssistantMessageProps = {
   role: 'user' | 'assistant' | 'code';
@@ -94,7 +95,7 @@ interface RealtimeEvent {
 }
 
 export function ConsolePage() {
-  
+
   const {
     connectMessage, setConnectMessage,
     deleteConversationItem,
@@ -206,6 +207,28 @@ export function ConsolePage() {
     window.location.reload();
   }, []);
 
+  const { resetTokenLatency, recordTokenLatency } = useContexts();
+
+  const latencyRecord = (e: RealtimeEvent) => {
+
+    console.log(e.time, e.source, e.event.type);
+
+    const { source, event: { type } } = e;
+
+    if (source === 'client' && type === 'conversation.item.create') {
+      resetTokenLatency();
+    }
+
+    if (source === 'server' && type === 'response.output_item.added') {
+      recordTokenLatency('');
+    }
+
+    if (source === 'server' && type === 'response.audio.delta') {
+      recordTokenLatency('');
+    }
+
+  };
+
   /**
    * Core RealtimeClient and audio capture setup
    * Set all of our instructions, tools, events and more
@@ -229,6 +252,9 @@ export function ConsolePage() {
 
     // handle realtime events from client + server for event logging
     client.on('realtime.event', (realtimeEvent: RealtimeEvent) => {
+
+      latencyRecord(realtimeEvent);
+
       setRealtimeEvents((realtimeEvents) => {
         const lastEvent = realtimeEvents[realtimeEvents.length - 1];
         if (lastEvent?.event.type === realtimeEvent.event.type) {
@@ -372,7 +398,8 @@ export function ConsolePage() {
         {/* <span className="copyright">PRC STU Azure Team</span> */}
         <span className="functions">
           <BingSearchResult />
-          {/* <TrafficMonitor /> */}
+          <TrafficMonitor />
+          <FunctionsList />
           <PaintingResult />
           {/* <BellMessage /> */}
           <NightMode />

@@ -114,10 +114,13 @@ export function InputBar() {
     setInputValue('');
   };
 
+  const { resetTokenLatency } = useContexts();
 
   const sendText = async (inputValue: string) => {
     if (!inputValue.trim()) return;
     setResponseBuffer('');
+
+    resetTokenLatency();
 
     if (isRealtime) {
       cancelRealtimeResponse();
@@ -152,17 +155,17 @@ export function InputBar() {
           <div className="text-input">
 
             <input type="text"
-                   placeholder="Type your message here..."
-                   value={inputValue}
-                   onKeyDown={(e) => {
-                     if (e.key === 'Enter') {
-                       sendText(inputValue);
-                     }
-                     if (e.key === 'Escape') {
-                       setInputValue('');
-                     }
-                   }}
-                   onChange={(e) => setInputValue(e.target.value)}
+              placeholder="Type your message here..."
+              value={inputValue}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  sendText(inputValue);
+                }
+                if (e.key === 'Escape') {
+                  setInputValue('');
+                }
+              }}
+              onChange={(e) => setInputValue(e.target.value)}
             />
 
             <button

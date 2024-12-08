@@ -28,17 +28,31 @@
       gap: 12px;
 
       span {
-        width: 18px;
-        height: 18px;
+        height: 40px;
         cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        margin: 0;
+        font-size: 10px;
+
+        svg {
+          width: 24px;
+          height: 24px;
+          margin: 0;
+          padding: 0;
+        }
+
+        .label {
+          width: 290px;
+        }
 
         &:hover {
           color: #626262;
         }
       }
     }
-
-
 
     .content-title {
       flex-grow: 1;
