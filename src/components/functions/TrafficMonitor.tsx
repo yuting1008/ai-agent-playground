@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useContexts } from '../../providers/AppProvider';
 import { X } from 'react-feather';
 import './BingSearchResult.scss';
-import { GptImage } from '../../interfaces/GptImage';
-import { Activity, Image } from 'react-feather';
+import { GptImage } from '../../types/GptImage';
+import { Activity } from 'react-feather';
+import { useTrafficData } from '../../contexts/TrafficDataContext';
 
 const styles: { [key: string]: React.CSSProperties } = {
     backdrop: {
@@ -54,14 +55,14 @@ const styles: { [key: string]: React.CSSProperties } = {
 
 const TrafficMonitor: React.FC = () => {
 
-    const { paintingData, setPaintingData } = useContexts();
+    const data = useTrafficData();
     const [isShow, setIsShow] = useState(false);
 
     useEffect(() => {
-        setIsShow(paintingData.length > 0);
-    }, [paintingData]);
+        setIsShow(data.length > 0);
+    }, [data]);
 
-    const ShowPainting = () => {
+    const ShowTrafficMonitor = () => {
         if (!isShow) {
             return null;
         }
@@ -77,9 +78,9 @@ const TrafficMonitor: React.FC = () => {
 
                     <div style={styles.content}>
 
-                        {paintingData.length === 0 && <div>No images</div>}
+                        {data.length === 0 && <div>No images</div>}
 
-                        {paintingData.map((image: GptImage) => (
+                        {data.map((image: GptImage) => (
 
                             <div>
                                 <img
@@ -102,7 +103,7 @@ const TrafficMonitor: React.FC = () => {
             <span onClick={() => setIsShow(true)}>
                 <Activity />
             </span>
-            <ShowPainting />
+            <ShowTrafficMonitor />
         </>
     );
 };

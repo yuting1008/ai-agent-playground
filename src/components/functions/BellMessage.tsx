@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useContexts } from '../../providers/AppProvider';
 import { X } from 'react-feather';
 import './BingSearchResult.scss';
-import { GptImage } from '../../interfaces/GptImage';
-import { Activity, Bell } from 'react-feather';
+import { GptImage } from '../../types/GptImage';
+import { Bell } from 'react-feather';
+import { useBellMessages } from '../../contexts/BellMessagesContext';
 
 const styles: { [key: string]: React.CSSProperties } = {
     backdrop: {
@@ -54,14 +54,14 @@ const styles: { [key: string]: React.CSSProperties } = {
 
 const BellMessage: React.FC = () => {
 
-    const { paintingData, setPaintingData } = useContexts();
+    const messages = useBellMessages();
     const [isShow, setIsShow] = useState(false);
 
     useEffect(() => {
-        setIsShow(paintingData.length > 0);
-    }, [paintingData]);
+        setIsShow(messages.length > 0);
+    }, [messages]);
 
-    const ShowPainting = () => {
+    const ShowBellMessage = () => {
         if (!isShow) {
             return null;
         }
@@ -77,14 +77,14 @@ const BellMessage: React.FC = () => {
 
                     <div style={styles.content}>
 
-                        {paintingData.length === 0 && <div>No images</div>}
+                        {messages.length === 0 && <div>No messages</div>}
 
-                        {paintingData.map((image: GptImage) => (
+                        {messages.map((message: GptImage) => (
 
                             <div>
                                 <img
-                                    src={`data:image/png;base64,${image.b64_json}`}
-                                    alt={image.prompt}
+                                    src={`data:image/png;base64,${message.b64_json}`}
+                                    alt={message.prompt}
                                     style={styles.img}
                                 />
                             </div>
@@ -102,7 +102,7 @@ const BellMessage: React.FC = () => {
             <span onClick={() => setIsShow(true)}>
                 <Bell />
             </span>
-            <ShowPainting />
+            <ShowBellMessage />
         </>
     );
 };

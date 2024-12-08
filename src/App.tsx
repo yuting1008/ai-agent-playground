@@ -6,20 +6,26 @@ import { AssistantProvider } from './providers/AssistantProvider';
 import { RealtimeProvider } from './providers/RealtimeProvider';
 import LocalStorageViewer from './pages/LocalStorageViewer';
 import Loading from './pages/Loading';
+import { GptImagesProvider } from './contexts/GptImagesContext';
+import { TrafficDataProvider } from './contexts/TrafficDataContext';
 
 function App() {
   return (
     <div data-component="App">
       <SettingsProvider>
-        <AppProvider>
-            <AssistantProvider>
+        <GptImagesProvider>
+          <TrafficDataProvider>
+            <AppProvider>
+              <AssistantProvider>
                 <RealtimeProvider>
                   <Loading />
                   <LocalStorageViewer />
                   <ConsolePage />
                 </RealtimeProvider>
-            </AssistantProvider>
-        </AppProvider>
+              </AssistantProvider>
+            </AppProvider>
+          </TrafficDataProvider>
+        </GptImagesProvider>
       </SettingsProvider>
     </div>
   );

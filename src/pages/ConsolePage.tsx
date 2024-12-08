@@ -94,7 +94,7 @@ interface RealtimeEvent {
 }
 
 export function ConsolePage() {
-
+  
   const {
     connectMessage, setConnectMessage,
     deleteConversationItem,
