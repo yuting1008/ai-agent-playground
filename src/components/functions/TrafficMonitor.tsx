@@ -6,6 +6,7 @@ import { useContexts } from '../../providers/AppProvider';
 import { CONNECT_CONNECTED } from '../../lib/const';
 import { quantile } from "simple-statistics";
 import { calculatePercentiles } from '../../lib/helper';
+import { v4 as uuidv4 } from "uuid";
 
 
 // avgLatency, round to 5
@@ -130,11 +131,11 @@ const TrafficMonitor: React.FC = () => {
         return <div>
             {table.name && <div>{table.name}</div>}
             <div>
-                <table style={style}>
+                <table key={uuidv4()} style={style}>
                     <tbody>
                         {
                             table.items.map((item) => (
-                                <tr>
+                                <tr key={uuidv4()}>
                                     <td style={styles.key}>{item.key}</td>
                                     <td style={styles.value}>{item.value}</td>
                                     <td style={styles.unit}>{item?.unit || ""}</td>
@@ -165,7 +166,7 @@ const TrafficMonitor: React.FC = () => {
         };
 
         return connectStatus === CONNECT_CONNECTED ? (
-            <div style={styles.tables}>
+            <div key={uuidv4()} style={styles.tables}>
                 {renderTable(styles.table, table1)}
                 {renderTable(styles.table, table2)}
             </div>
