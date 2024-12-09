@@ -1,10 +1,6 @@
 import { useCallback, useState } from 'react';
 
-import {
-  CONNECT_CONNECTED,
-  CONNECT_CONNECTING,
-  CONNECT_DISCONNECTED,
-} from '../lib/const';
+import { CONNECT_CONNECTED, CONNECT_CONNECTING } from '../lib/const';
 
 import './ConsolePage.scss';
 import Camera from '../components/Camera';
@@ -28,7 +24,6 @@ import { useContexts } from '../providers/AppProvider';
 import { InputBarAssistant } from '../components/InputBarAssistant';
 
 export function ConsolePageAssistant() {
-  const { connectStatus, setConnectStatus } = useContexts();
   const {
     assistantRef,
     setAssistant,
@@ -39,11 +34,12 @@ export function ConsolePageAssistant() {
     setThread,
     setResponseBuffer,
     recordTokenLatency,
+    connectStatus,
+    setConnectStatus,
+    resetVars,
+    connectMessage,
+    setConnectMessage,
   } = useContexts();
-
-  const [connectMessage, setConnectMessage] = useState(
-    'Awaiting Connection...',
-  );
 
   const [messagesAssistant, setMessagesAssistant] = useState<any[]>([]);
 
@@ -317,7 +313,7 @@ export function ConsolePageAssistant() {
   }, []);
 
   const disconnectConversation = () => {
-    setConnectStatus(CONNECT_DISCONNECTED);
+    resetVars();
     stopCurrentStreamJob();
     setMessagesAssistant([]);
     setResponseBuffer('');
