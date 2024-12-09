@@ -4,24 +4,28 @@ import { useImmerReducer } from 'use-immer';
 
 const BellMessagesContext = createContext<BellMessage[]>([]);
 
-const BellMessagesDispatchContext = createContext<Dispatch<BellMessageAction>>(() => {
-  throw new Error('BellMessagesDispatchContext not provided');
-});
+const BellMessagesDispatchContext = createContext<Dispatch<BellMessageAction>>(
+  () => {
+    throw new Error('BellMessagesDispatchContext not provided');
+  },
+);
 
 const initialBellMessages: BellMessage[] = [];
 
 function bellMessagesReducer(images: BellMessage[], action: BellMessageAction) {
   switch (action.type) {
-
     case 'add': {
-      return [...images, {
-        prompt: action.bellMessage.prompt,
-        b64_json: action.bellMessage.b64_json
-      }];
+      return [
+        ...images,
+        {
+          prompt: action.bellMessage.prompt,
+          b64_json: action.bellMessage.b64_json,
+        },
+      ];
     }
 
     case 'change': {
-      return images.map(t => {
+      return images.map((t) => {
         if (t.prompt === action.bellMessage.prompt) {
           return action.bellMessage;
         } else {
@@ -31,7 +35,7 @@ function bellMessagesReducer(images: BellMessage[], action: BellMessageAction) {
     }
 
     case 'delete': {
-      return images.filter(t => t.prompt !== action.bellMessage.prompt);
+      return images.filter((t) => t.prompt !== action.bellMessage.prompt);
     }
 
     default: {
@@ -40,11 +44,14 @@ function bellMessagesReducer(images: BellMessage[], action: BellMessageAction) {
   }
 }
 
-export function BellMessagesProvider({ children }: { children: React.ReactNode }) {
-
+export function BellMessagesProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [images, dispatch] = useImmerReducer(
     bellMessagesReducer,
-    initialBellMessages
+    initialBellMessages,
   );
 
   return (

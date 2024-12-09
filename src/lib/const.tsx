@@ -26,44 +26,44 @@ export const fileUploadTooBig = `请告诉用户，你只是一个 Demo，不处
 export const cameraOpen = `请你说你发现摄像头已经进入工作状态，你可以通过摄像头分析实时画面。`;
 export const cameraClose = `请你说你发现摄像头已经关闭，关于摄像头画面的记忆已经清除。`;
 export const notDisplay = [
-    clientHiEnglish,
-    clientHiChinese,
-    fileUploadInstructions,
-    fileUploadTooBig,
-    cameraOpen,
-    cameraClose
+  clientHiEnglish,
+  clientHiChinese,
+  fileUploadInstructions,
+  fileUploadTooBig,
+  cameraOpen,
+  cameraClose,
 ];
 
 export const products = [
-    {
-        id: 1,
-        name: '快乐套餐',
-        price: 199,
-        description: '情侣双人餐，可乐，鸡翅，汉堡，炸鸡腿。',
-        image: 'products/1.jpg'
-    },
-    {
-        id: 2,
-        name: '汉堡',
-        price: 99,
-        description: '只是一个汉堡。',
-        image: 'products/2.jpg'
-    },
-    {
-        id: 3,
-        name: '快乐薯条',
-        price: 50,
-        description: '想上火，来吃薯条！',
-        image: 'products/4.jpg'
-    }
+  {
+    id: 1,
+    name: '快乐套餐',
+    price: 199,
+    description: '情侣双人餐，可乐，鸡翅，汉堡，炸鸡腿。',
+    image: 'products/1.jpg',
+  },
+  {
+    id: 2,
+    name: '汉堡',
+    price: 99,
+    description: '只是一个汉堡。',
+    image: 'products/2.jpg',
+  },
+  {
+    id: 3,
+    name: '快乐薯条',
+    price: 50,
+    description: '想上火，来吃薯条！',
+    image: 'products/4.jpg',
+  },
 ];
 
-
 export const demos = [
-    {
-        name: 'GraphRAG Kit',
-        url: 'https://github.com/TheodoreNiu/graphrag_kit',
-        required_password: false,
-        description: '这是一个使用 GraphRAG 的全生命周期的 WEBUI 解决方案，不需要写代码，只需要操作界面，就能快速构建、测试甚至部署上线基于 GraphRAG 的服务。'
-    }
+  {
+    name: 'GraphRAG Kit',
+    url: 'https://github.com/TheodoreNiu/graphrag_kit',
+    required_password: false,
+    description:
+      '这是一个使用 GraphRAG 的全生命周期的 WEBUI 解决方案，不需要写代码，只需要操作界面，就能快速构建、测试甚至部署上线基于 GraphRAG 的服务。',
+  },
 ];

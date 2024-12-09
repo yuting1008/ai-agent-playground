@@ -5,8 +5,8 @@ export const definition: ToolDefinitionType = {
   description: 'Retrieves the douyin(抖音/tiktok) hot video',
   parameters: {
     type: 'object',
-    properties: {}
-  }
+    properties: {},
+  },
 };
 
 export const handler: Function = async () => {

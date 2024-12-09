@@ -8,9 +8,7 @@ const Loading: React.FC = () => {
 
   return (
     <div style={popupStyles}>
-      <div style={modalStyles}>
-        Please waiting for a moment...
-      </div>
+      <div style={modalStyles}>Please waiting for a moment...</div>
     </div>
   );
 };
@@ -26,7 +24,7 @@ const popupStyles: React.CSSProperties = {
   alignItems: 'center',
   backgroundColor: 'rgba(0, 0, 0, 0.5)',
   zIndex: 99999,
-  transition: 'opacity 0.5s ease-in-out, visibility 0.5s ease-in-out'
+  transition: 'opacity 0.5s ease-in-out, visibility 0.5s ease-in-out',
 };
 
 const modalStyles: React.CSSProperties = {
@@ -38,7 +36,7 @@ const modalStyles: React.CSSProperties = {
   padding: '20px',
   boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
   borderRadius: '8px',
-  textAlign: 'center'
+  textAlign: 'center',
 };
 
 export default Loading;

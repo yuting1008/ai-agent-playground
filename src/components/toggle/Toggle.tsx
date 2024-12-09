@@ -3,12 +3,11 @@ import { useEffect, useRef, useState } from 'react';
 import './Toggle.scss';
 
 export function Toggle({
-                         defaultValue = false,
-                         values,
-                         labels,
-                         onChange = () => {
-                         }
-                       }: {
+  defaultValue = false,
+  values,
+  labels,
+  onChange = () => {},
+}: {
   defaultValue?: string | boolean;
   values?: string[];
   labels?: string[];

@@ -9,15 +9,19 @@ export const definition: ToolDefinitionType = {
     properties: {
       order_id: {
         type: 'string',
-        description: 'The order id'
-      }
+        description: 'The order id',
+      },
     },
-    required: ['order_id']
-  }
+    required: ['order_id'],
+  },
 };
 
-export const handler: Function = async ({ order_id }: { [order_id: string]: string }) => {
+export const handler: Function = async ({
+  order_id,
+}: {
+  [order_id: string]: string;
+}) => {
   return {
-    message: `return of goods for order ${order_id} is completed`
+    message: `return of goods for order ${order_id} is completed`,
   };
 };

@@ -9,15 +9,11 @@ const TasksDispatchContext = createContext<Dispatch<any> | null>(null);
 const initialTasks: Task[] = [
   { id: '0', text: 'Philosopher’s Path', done: true },
   { id: '1', text: 'Visit the temple', done: false },
-  { id: '2', text: 'Drink matcha', done: false }
+  { id: '2', text: 'Drink matcha', done: false },
 ];
 
 export function TasksProvider({ children }: { children: React.ReactNode }) {
-
-  const [tasks, dispatch] = useImmerReducer(
-    tasksReducer,
-    initialTasks
-  );
+  const [tasks, dispatch] = useImmerReducer(tasksReducer, initialTasks);
 
   return (
     <TasksContext.Provider value={tasks}>
@@ -38,17 +34,19 @@ export function useTasksDispatch() {
 
 function tasksReducer(tasks: Task[], action: TaskAction) {
   switch (action.type) {
-
     case 'added': {
-      return [...tasks, {
-        id: action.task.id,
-        text: action.task.text,
-        done: false
-      }];
+      return [
+        ...tasks,
+        {
+          id: action.task.id,
+          text: action.task.text,
+          done: false,
+        },
+      ];
     }
 
     case 'changed': {
-      return tasks.map(t => {
+      return tasks.map((t) => {
         if (t.id === action.task.id) {
           return action.task;
         } else {
@@ -58,7 +56,7 @@ function tasksReducer(tasks: Task[], action: TaskAction) {
     }
 
     case 'deleted': {
-      return tasks.filter(t => t.id !== action.task.id);
+      return tasks.filter((t) => t.id !== action.task.id);
     }
 
     default: {
@@ -66,4 +64,3 @@ function tasksReducer(tasks: Task[], action: TaskAction) {
     }
   }
 }
-

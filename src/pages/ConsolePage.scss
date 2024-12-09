@@ -9,7 +9,7 @@
   overflow: hidden;
   margin: 0px 8px;
 
-  &>div {
+  & > div {
     flex-shrink: 0;
   }
 
@@ -59,7 +59,6 @@
       display: flex;
       align-items: center;
       gap: 12px;
-
 
       img {
         width: 40px;
@@ -136,7 +135,6 @@
       }
     }
 
-
     .content-right {
       width: 330px;
       flex-shrink: 0;
@@ -170,7 +168,7 @@
         }
       }
 
-      &>.content-actions {
+      & > .content-actions {
         flex-grow: 0;
         flex-shrink: 0;
         display: flex;
@@ -178,7 +176,7 @@
         justify-content: center;
       }
 
-      &>div {
+      & > div {
         border-radius: 16px;
         flex-grow: 1;
         flex-shrink: 0;
@@ -235,7 +233,9 @@
 
           &:hover {
             background-color: rgba(0, 0, 0, 0.3);
-            transition: background-color 0.6s ease, transform 0.6s ease;
+            transition:
+              background-color 0.6s ease,
+              transform 0.6s ease;
             color: #fdfbfb;
           }
 
@@ -253,7 +253,7 @@
         }
       }
 
-      &>div.kv {
+      & > div.kv {
         height: 250px;
         max-height: 250px;
         white-space: pre;
@@ -265,7 +265,7 @@
         }
       }
 
-      &>div.camera {
+      & > div.camera {
         height: 230px;
         max-height: 230px;
         white-space: pre;
@@ -296,11 +296,11 @@
         // display: none;
       }
 
-      &>div {
+      & > div {
         flex-grow: 1;
       }
 
-      &>div.events {
+      & > div.events {
         overflow: hidden;
       }
 
@@ -336,7 +336,8 @@
         height: 16px;
       }
 
-      a {}
+      a {
+      }
     }
 
     @media (max-width: 768px) {
@@ -347,7 +348,8 @@
       direction: rtl;
     }
 
-    &.assistant {}
+    &.assistant {
+    }
 
     &:not(:hover) .close {
       display: none;
@@ -436,7 +438,7 @@
 
       &.user::after {
         border-left: 8px solid #80cc29;
-        content: "";
+        content: '';
         position: absolute;
         right: -8px;
         top: 10px;
@@ -455,7 +457,7 @@
 
       &.assistant::before {
         background-color: #ffffff;
-        content: "";
+        content: '';
         position: absolute;
         left: -8px;
         top: 10px;
@@ -579,7 +581,6 @@
   }
 }
 
-
 .loading-spinner {
   display: flex;
   align-items: center;
@@ -609,7 +610,6 @@
   }
 }
 
-
 .remoteVideo {
   background-image: url('../static/avatar.svg');
   background-repeat: no-repeat;
@@ -623,7 +623,6 @@
     width: 100%;
     background-color: transparent;
   }
-
 }
 
 body.night-mode {
@@ -642,7 +641,6 @@ body.night-mode {
   align-items: center;
   gap: 15px;
   background-color: transparent;
-
 
   input {
     width: 100%;
@@ -673,7 +671,6 @@ body.night-mode {
 }
 
 body.night-mode {
-
   .modal {
     background-color: #181818;
   }

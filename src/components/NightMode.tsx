@@ -1,4 +1,3 @@
-
 import './NightMode.scss';
 
 import { useContexts } from '../providers/AppProvider';
@@ -6,8 +5,8 @@ import { useEffect } from 'react';
 import { Sun, Moon } from 'react-feather';
 
 export function NightMode() {
-
-  const { isNightMode, isNightModeRef, setIsNightMode, replaceInstructions } = useContexts();
+  const { isNightMode, isNightModeRef, setIsNightMode, replaceInstructions } =
+    useContexts();
 
   useEffect(() => {
     isNightModeRef.current = isNightMode;
@@ -19,7 +18,6 @@ export function NightMode() {
       document.body.classList.remove('night-mode');
       replaceInstructions('你的界面现在是夜间模式', '你的界面现在是白天模式');
     }
-
   }, [isNightMode]);
 
   const toggleNightMode = () => {
@@ -31,5 +29,5 @@ export function NightMode() {
     <span onClick={toggleNightMode}>
       {isNightModeRef.current ? <Moon /> : <Sun />}
     </span>
-  )
+  );
 }

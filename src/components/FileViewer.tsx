@@ -20,40 +20,41 @@ const TrashIcon = () => (
   </svg>
 );
 
-
-
 const FileViewer = () => {
   const [files, setFiles] = useState<any[]>([]);
 
   const { assistantRef } = useContexts();
 
   const getOrCreateVectorStore = async () => {
-
-    if (!assistantRef?.current){
+    if (!assistantRef?.current) {
       return '';
     }
-  
+
     // if the assistant already has a vector store, return it
-    if (assistantRef?.current.tool_resources?.file_search?.vector_store_ids?.length && assistantRef?.current.tool_resources.file_search.vector_store_ids.length > 0) {
-      return assistantRef?.current.tool_resources.file_search.vector_store_ids[0];
+    if (
+      assistantRef?.current.tool_resources?.file_search?.vector_store_ids
+        ?.length &&
+      assistantRef?.current.tool_resources.file_search.vector_store_ids.length >
+        0
+    ) {
+      return assistantRef?.current.tool_resources.file_search
+        .vector_store_ids[0];
     }
     // otherwise, create a new vector store and attatch it to the assistant
     const vectorStore = await getOpenAIClient().beta.vectorStores.create({
-      name: 'sample-assistant-vector-store'
+      name: 'sample-assistant-vector-store',
     });
     await getOpenAIClient().beta.assistants.update(assistantRef?.current.id, {
       tool_resources: {
         file_search: {
-          vector_store_ids: [vectorStore.id]
-        }
-      }
+          vector_store_ids: [vectorStore.id],
+        },
+      },
     });
     return vectorStore.id;
   };
-  
 
   useEffect(() => {
-
     const interval = setInterval(() => {
       fetchFiles();
     }, 2000);
@@ -63,27 +64,28 @@ const FileViewer = () => {
 
   // list files in assistant's vector store
   const fetchFiles = async () => {
-
-    if (!assistantRef?.current){
+    if (!assistantRef?.current) {
       return;
     }
 
     const vectorStoreId = await getOrCreateVectorStore(); // get or create vector store
-    const fileList = await getOpenAIClient().beta.vectorStores.files.list(vectorStoreId);
+    const fileList =
+      await getOpenAIClient().beta.vectorStores.files.list(vectorStoreId);
 
     const filesArray = await Promise.all(
       fileList.data.map(async (file) => {
         const fileDetails = await getOpenAIClient().files.retrieve(file.id);
-        const vectorFileDetails = await getOpenAIClient().beta.vectorStores.files.retrieve(
-          vectorStoreId,
-          file.id
-        );
+        const vectorFileDetails =
+          await getOpenAIClient().beta.vectorStores.files.retrieve(
+            vectorStoreId,
+            file.id,
+          );
         return {
           file_id: file.id,
           filename: fileDetails.filename,
-          status: vectorFileDetails.status
+          status: vectorFileDetails.status,
         };
-      })
+      }),
     );
 
     setFiles(filesArray);
@@ -106,12 +108,12 @@ const FileViewer = () => {
       // upload using the file stream
       const openaiFile = await getOpenAIClient().files.create({
         file: file,
-        purpose: 'assistants'
+        purpose: 'assistants',
       });
 
       // add file to vector store
       await getOpenAIClient().beta.vectorStores.files.create(vectorStoreId, {
-        file_id: openaiFile.id
+        file_id: openaiFile.id,
       });
     } catch (error) {
       console.error('Error uploading file: ', error);
@@ -123,8 +125,9 @@ const FileViewer = () => {
     <div className="content-actions container_bg">
       <div className={styles.fileViewer}>
         <div
-          className={`${styles.filesList} ${files.length !== 0 ? styles.grow : ''
-            }`}
+          className={`${styles.filesList} ${
+            files.length !== 0 ? styles.grow : ''
+          }`}
         >
           {files.length === 0 ? (
             <div className={styles.title}>Test file search</div>

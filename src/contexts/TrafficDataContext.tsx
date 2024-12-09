@@ -6,29 +6,33 @@ const initialTrafficData: TrafficData = {
   connectionLatency: [],
   connectionLatencyAvg: 0,
   connectionLatencyMin: 0,
-  connectionLatencyMax: 0
+  connectionLatencyMax: 0,
 };
 
 const TrafficDataContext = createContext<TrafficData>(initialTrafficData);
 
-const TrafficDataDispatchContext = createContext<Dispatch<TrafficDataAction>>(() => {
-  throw new Error('TrafficDataDispatchContext not provided');
-});
+const TrafficDataDispatchContext = createContext<Dispatch<TrafficDataAction>>(
+  () => {
+    throw new Error('TrafficDataDispatchContext not provided');
+  },
+);
 
-function trafficDataReducer(trafficData: TrafficData, action: TrafficDataAction) {
+function trafficDataReducer(
+  trafficData: TrafficData,
+  action: TrafficDataAction,
+) {
   switch (action.type) {
-
     case 'add': {
       return {
         ...trafficData,
-        ...action.trafficData
+        ...action.trafficData,
       };
     }
 
     case 'change': {
       return {
         ...trafficData,
-        ...action.trafficData
+        ...action.trafficData,
       };
     }
 
@@ -42,9 +46,15 @@ function trafficDataReducer(trafficData: TrafficData, action: TrafficDataAction)
   }
 }
 
-export function TrafficDataProvider({ children }: { children: React.ReactNode }) {
-
-  const [trafficData, dispatch] = useImmerReducer(trafficDataReducer, initialTrafficData);
+export function TrafficDataProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [trafficData, dispatch] = useImmerReducer(
+    trafficDataReducer,
+    initialTrafficData,
+  );
 
   return (
     <TrafficDataContext.Provider value={trafficData}>

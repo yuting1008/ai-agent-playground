@@ -9,9 +9,9 @@ export const definition: ToolDefinitionType = {
     properties: {
       on: {
         type: 'boolean',
-        description: 'bool of turn on or off avatar.'
-      }
+        description: 'bool of turn on or off avatar.',
+      },
     },
-    required: ['on']
-  }
+    required: ['on'],
+  },
 };

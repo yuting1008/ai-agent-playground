@@ -8,11 +8,11 @@ export const definition: ToolDefinitionType = {
     properties: {
       symbol: {
         type: 'string',
-        description: 'symbol of the stock'
-      }
+        description: 'symbol of the stock',
+      },
     },
-    required: ['symbol']
-  }
+    required: ['symbol'],
+  },
 };
 
 export const handler: Function = async ({ symbol }: { [key: string]: any }) => {
@@ -29,7 +29,7 @@ export const handler: Function = async ({ symbol }: { [key: string]: any }) => {
 
   console.log('fetch quote url', url);
   const result = await fetch(url, {
-    method: 'GET'
+    method: 'GET',
   });
 
   return await result.json();
