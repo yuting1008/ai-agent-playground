@@ -21,6 +21,7 @@ export default function RealtimeMessages({
 }) {
   const deleteConversationItem = useCallback(async (id: string) => {
     realtimeClient.deleteItem(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const isHiddenTool = (item: ItemType) => {

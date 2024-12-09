@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useContexts } from '../providers/AppProvider';
 import './Camera.scss';
 import * as SpeechSDK from 'microsoft-cognitiveservices-speech-sdk';
@@ -23,9 +23,6 @@ const Avatar: React.FC = () => {
     isAvatarSpeaking,
   } = useContexts();
 
-  const cogSvcSubKey = localStorage.getItem('cogSvcSubKey') || '';
-  const cogSvcRegion = localStorage.getItem('cogSvcRegion') || 'westus2';
-
   useEffect(() => {
     if (avatarStatus === AVATAR_STARTING) {
       startAvatarSession();
@@ -46,6 +43,7 @@ const Avatar: React.FC = () => {
         '你的虚拟人形象处于打开状态',
       );
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [avatarStatus]);
 
   useEffect(() => {
@@ -59,15 +57,17 @@ const Avatar: React.FC = () => {
 
     speakAvatar(needSpeechQueue[0]);
     setNeedSpeechQueue(needSpeechQueue.slice(1));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [needSpeechQueue]);
 
   useEffect(() => {
     if (!isAvatarSpeaking) {
       stopAvatarSpeaking();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAvatarSpeaking]);
 
-  const startAvatarSession = async () => {
+  const startAvatarSession = useCallback(async () => {
     try {
       const privateEndpoint = localStorage.getItem('privateEndpoint') || '';
       const cogSvcSubKey = localStorage.getItem('cogSvcSubKey') || '';
@@ -158,7 +158,8 @@ const Avatar: React.FC = () => {
       );
       setAvatarStatus(AVATAR_OFF);
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const setupWebRTCAvatar = async (
     iceServerUrl: string,

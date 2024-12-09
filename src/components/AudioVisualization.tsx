@@ -79,6 +79,7 @@ const AudioVisualization: React.FC<{
     return () => {
       isLoaded = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

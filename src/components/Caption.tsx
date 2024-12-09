@@ -12,6 +12,7 @@ const Caption: React.FC = () => {
     } else {
       setCaption('');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [captionQueue]);
 
   return caption ? (

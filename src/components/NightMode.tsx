@@ -18,6 +18,7 @@ export function NightMode() {
       document.body.classList.remove('night-mode');
       replaceInstructions('你的界面现在是夜间模式', '你的界面现在是白天模式');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isNightMode]);
 
   const toggleNightMode = () => {
