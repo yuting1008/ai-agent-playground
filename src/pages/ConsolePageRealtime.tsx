@@ -316,6 +316,7 @@ export function ConsolePageRealtime() {
     realtimeClientRef.current?.disconnect();
     await wavRecorderRef.current?.end();
     await wavStreamPlayerRef.current?.interrupt();
+    window.location.reload();
   };
 
   /**
