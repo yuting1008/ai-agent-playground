@@ -717,10 +717,6 @@ const SettingsComponent: React.FC<{
 
         handleChange('ttsApiKey', settings.ttsApiKey);
         handleChange('ttsTargetUri', settings.ttsTargetUri);
-
-        alert('Import success, Page will reload.');
-
-        window.location.reload();
       } catch (error) {
         console.error(`import error: ${error}`);
       }

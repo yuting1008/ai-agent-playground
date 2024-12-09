@@ -5,17 +5,12 @@ import { X, Zap } from 'react-feather';
 export default function ConnectButton({
   connectStatus,
   connectConversation,
+  disconnectConversation,
 }: {
   connectStatus: string;
   connectConversation: () => void;
+  disconnectConversation: () => void;
 }) {
-  /**
-   * Disconnect and reset conversation state
-   */
-  const disconnectConversation = () => {
-    window.location.reload();
-  };
-
   return (
     <div className="content-actions">
       <Button

@@ -1,6 +1,10 @@
 import { useCallback, useState } from 'react';
 
-import { CONNECT_CONNECTED, CONNECT_CONNECTING } from '../lib/const';
+import {
+  CONNECT_CONNECTED,
+  CONNECT_CONNECTING,
+  CONNECT_DISCONNECTED,
+} from '../lib/const';
 
 import './ConsolePage.scss';
 import Camera from '../components/Camera';
@@ -311,6 +315,16 @@ export function ConsolePageAssistant() {
     setConnectStatus(CONNECT_CONNECTED);
   }, []);
 
+  const disconnectConversation = () => {
+    setConnectStatus(CONNECT_DISCONNECTED);
+    stopCurrentStreamJob();
+    setMessagesAssistant([]);
+    setResponseBuffer('');
+    setThreadJob(null);
+    setThread(null);
+    setAssistant(null);
+  };
+
   /**
    * Render the application
    */
@@ -347,11 +361,12 @@ export function ConsolePageAssistant() {
 
         <SettingsComponent connectStatus={connectStatus} />
 
-        <FileViewer />
+        <FileViewer connectStatus={connectStatus} />
 
         <ConnectButton
           connectStatus={connectStatus}
           connectConversation={connectConversation}
+          disconnectConversation={disconnectConversation}
         />
       </div>
     </>
