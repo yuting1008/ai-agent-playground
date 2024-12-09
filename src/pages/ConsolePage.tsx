@@ -296,7 +296,7 @@ export function ConsolePage() {
 
     client.on('conversation.updated', async ({ item, delta }: any) => {
 
-      if (item.object === 'realtime.item' && item.type === 'message' && item.role === 'assistant' && avatarStatusRef.current === AVATAR_READY) {
+      if (item.object === 'realtime.item' && item.type === 'message' && item.role === 'assistant') {
         setResponseBuffer(item.formatted.transcript);
       }
 
@@ -398,7 +398,7 @@ export function ConsolePage() {
   return (
     <div data-component="ConsolePage">
 
-      <OpenAITTS />
+      {/* <OpenAITTS /> */}
       <Caption />
 
       <div className="content-top">
@@ -484,18 +484,6 @@ export function ConsolePage() {
                           {JSON.parse(conversationItem?.output)?.sources?.map((item: any) => {
                             if (item.screenshot_sas_url && item.screenshot_sas_url.length > 1) {
                               return <div>
-
-                                {/* <ReactMarkdown
-                                  components={{
-                                    a: ({ node, ...props }) => (
-                                      <a {...props} target="_blank" rel="noopener noreferrer">
-                                        {props.children}
-                                      </a>
-                                    )
-                                  }}
-                                >
-                                  {JSON.parse(conversationItem?.output)?.response}
-                                </ReactMarkdown> */}
 
                                 <div className="icon_file_link">
                                   <img src="/pdf.svg" alt="file" /><a href={item.pdf_sas_url}

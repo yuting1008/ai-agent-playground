@@ -16,13 +16,13 @@ importers:
         version: https://codeload.github.com/openai/openai-realtime-api-beta/tar.gz/a5cb94824f625423858ebacb9f769226ca98945f
       '@reduxjs/toolkit':
         specifier: ^2.3.0
-        version: 2.3.0(react-redux@9.1.2(@types/react@18.3.12)(react@19.0.0)(redux@5.0.1))(react@19.0.0)
+        version: 2.3.0(react-redux@9.1.2(@types/react@18.3.12)(react@18.3.1)(redux@5.0.1))(react@18.3.1)
       '@testing-library/jest-dom':
         specifier: ^5.17.0
         version: 5.17.0
       '@testing-library/react':
         specifier: ^13.4.0
-        version: 13.4.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+        version: 13.4.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@testing-library/user-event':
         specifier: ^13.5.0
         version: 13.5.0(@testing-library/dom@8.20.1)
@@ -69,35 +69,35 @@ importers:
         specifier: ^1.0.1
         version: 1.0.1
       react:
-        specifier: ^19.0.0
-        version: 19.0.0
+        specifier: ^18.3.1
+        version: 18.3.1
       react-dom:
-        specifier: ^19.0.0
-        version: 19.0.0(react@19.0.0)
+        specifier: ^18.3.1
+        version: 18.3.1(react@18.3.1)
       react-error-boundary:
         specifier: ^4.1.2
-        version: 4.1.2(react@19.0.0)
+        version: 4.1.2(react@18.3.1)
       react-feather:
         specifier: ^2.0.10
-        version: 2.0.10(react@19.0.0)
+        version: 2.0.10(react@18.3.1)
       react-icons:
         specifier: ^5.3.0
-        version: 5.3.0(react@19.0.0)
+        version: 5.3.0(react@18.3.1)
       react-leaflet:
         specifier: ^4.2.1
-        version: 4.2.1(leaflet@1.9.4)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+        version: 4.2.1(leaflet@1.9.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react-markdown:
         specifier: ^9.0.1
-        version: 9.0.1(@types/react@18.3.12)(react@19.0.0)
+        version: 9.0.1(@types/react@18.3.12)(react@18.3.1)
       react-redux:
         specifier: ^9.1.2
-        version: 9.1.2(@types/react@18.3.12)(react@19.0.0)(redux@5.0.1)
+        version: 9.1.2(@types/react@18.3.12)(react@18.3.1)(redux@5.0.1)
       react-scripts:
         specifier: ^5.0.1
-        version: 5.0.1(@babel/plugin-syntax-flow@7.26.0(@babel/core@7.26.0))(@babel/plugin-transform-react-jsx@7.25.9(@babel/core@7.26.0))(@types/babel__core@7.20.5)(eslint@8.57.1)(react@19.0.0)(sass@1.81.0)(type-fest@0.21.3)(typescript@4.9.5)
+        version: 5.0.1(@babel/plugin-syntax-flow@7.26.0(@babel/core@7.26.0))(@babel/plugin-transform-react-jsx@7.25.9(@babel/core@7.26.0))(@types/babel__core@7.20.5)(eslint@8.57.1)(react@18.3.1)(sass@1.81.0)(type-fest@0.21.3)(typescript@4.9.5)
       react-webcam:
         specifier: ^7.2.0
-        version: 7.2.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+        version: 7.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       redux:
         specifier: ^5.0.1
         version: 5.0.1
@@ -110,18 +110,12 @@ importers:
       sharp:
         specifier: ^0.33.5
         version: 0.33.5
-      simple-statistics:
-        specifier: ^7.8.7
-        version: 7.8.7
       typescript:
         specifier: ^4.9.5
         version: 4.9.5
       use-immer:
         specifier: ^0.10.0
-        version: 0.10.0(immer@10.1.1)(react@19.0.0)
-      uuid:
-        specifier: ^11.0.3
-        version: 11.0.3
+        version: 0.10.0(immer@10.1.1)(react@18.3.1)
       web-vitals:
         specifier: ^2.1.4
         version: 2.1.4
@@ -5156,10 +5150,10 @@ packages:
       typescript:
         optional: true
 
-  react-dom@19.0.0:
-    resolution: {integrity: sha512-4GV5sHFG0e/0AD4X+ySy6UJd3jVl1iNsNHdpad0qhABJ11twS3TTBnseqsKurKcsNqCEFeGL3uLpVChpIO3QfQ==}
+  react-dom@18.3.1:
+    resolution: {integrity: sha512-5m4nQKp+rZRb09LNH59GM4BxTh9251/ylbKIbpe7TpGxfJ+9kv6BLkLBXIjjspbgbnIBNqlI23tRnTWT0snUIw==}
     peerDependencies:
-      react: ^19.0.0
+      react: ^18.3.1
 
   react-error-boundary@4.1.2:
     resolution: {integrity: sha512-GQDxZ5Jd+Aq/qUxbCm1UtzmL/s++V7zKgE8yMktJiCQXCCFZnMZh9ng+6/Ne6PjNSXH0L9CjeOEREfRnq6Duag==}
@@ -5235,8 +5229,8 @@ packages:
       react: '>=16.2.0'
       react-dom: '>=16.2.0'
 
-  react@19.0.0:
-    resolution: {integrity: sha512-V8AVnmPIICiWpGfm6GLzCR/W5FXLchHop40W4nXBmdlEceh16rCN8O8LNWm5bh5XUX91fh7KpA+W0TgMKmgTpQ==}
+  react@18.3.1:
+    resolution: {integrity: sha512-wS+hAgJShR0KhEvPJArfuPVN1+Hz1t0Y6n5jLrGQbkb4urgPE/0Rve+1kMB1v/oWgHgm4WIcV+i7F2pTVj+2iQ==}
     engines: {node: '>=0.10.0'}
 
   read-cache@1.0.0:
@@ -5455,8 +5449,8 @@ packages:
     resolution: {integrity: sha512-5LBh1Tls8c9xgGjw3QrMwETmTMVk0oFgvrFSvWx62llR2hcEInrKNZ2GZCCuuy2lvWrdl5jhbpeqc5hRYKFOcw==}
     engines: {node: '>=10'}
 
-  scheduler@0.25.0:
-    resolution: {integrity: sha512-xFVuu11jh+xcO7JOAGJNOXld8/TcEHK/4CituBUeUb5hqxJLj9YuemAEuvm9gQ/+pgXYfbQuqAkiYu+u7YEsNA==}
+  scheduler@0.23.2:
+    resolution: {integrity: sha512-UOShsPwz7NrMUqhR6t0hWjFduvOzbtv7toDH1/hIrfRNIDBnnBWd0CwJTGvTpngVlmwGCdP9/Zl/tVrDqcuYzQ==}
 
   schema-utils@2.7.0:
     resolution: {integrity: sha512-0ilKFI6QQF5nxDZLFn2dMjvc4hjg/Wkg7rHd3jK6/A4a1Hl9VFdQWvgB1UMGoU94pad1P/8N7fMcEnLnSiju8A==}
@@ -5547,9 +5541,6 @@ packages:
   signal-exit@4.1.0:
     resolution: {integrity: sha512-bzyZ1e88w9O1iNJbKnOlvYTrWPDl46O1bG0D3XInv+9tkPrxrN8jUUTiFlDkkmKWgn1M6CfIA13SuGqOa9Korw==}
     engines: {node: '>=14'}
-
-  simple-statistics@7.8.7:
-    resolution: {integrity: sha512-ed5FwTNYvkMTfbCai1U+r3symP+lIPKWCqKdudpN4NFNMn9RtDlFtSyAQhCp4oPH0YBjWu/qnW+5q5ZkPB3uHQ==}
 
   simple-swizzle@0.2.2:
     resolution: {integrity: sha512-JA//kQgZtbuY83m+xT+tXJkmJncGMTFT+C+g2h2R9uxkYIrE2yy9sgmcLhCnw57/WSD+Eh3J97FPEDFnbXnDUg==}
@@ -6077,10 +6068,6 @@ packages:
   utils-merge@1.0.1:
     resolution: {integrity: sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==}
     engines: {node: '>= 0.4.0'}
-
-  uuid@11.0.3:
-    resolution: {integrity: sha512-d0z310fCWv5dJwnX1Y/MncBAqGMKEzlBb1AOf7z9K8ALnd0utBX/msg/fA0+sbyN1ihbMsLhrBlnl1ak7Wa0rg==}
-    hasBin: true
 
   uuid@8.3.2:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
@@ -7830,21 +7817,21 @@ snapshots:
       type-fest: 0.21.3
       webpack-dev-server: 4.15.2(webpack@5.96.1)
 
-  '@react-leaflet/core@2.1.0(leaflet@1.9.4)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)':
+  '@react-leaflet/core@2.1.0(leaflet@1.9.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       leaflet: 1.9.4
-      react: 19.0.0
-      react-dom: 19.0.0(react@19.0.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
 
-  '@reduxjs/toolkit@2.3.0(react-redux@9.1.2(@types/react@18.3.12)(react@19.0.0)(redux@5.0.1))(react@19.0.0)':
+  '@reduxjs/toolkit@2.3.0(react-redux@9.1.2(@types/react@18.3.12)(react@18.3.1)(redux@5.0.1))(react@18.3.1)':
     dependencies:
       immer: 10.1.1
       redux: 5.0.1
       redux-thunk: 3.1.0(redux@5.0.1)
       reselect: 5.1.1
     optionalDependencies:
-      react: 19.0.0
-      react-redux: 9.1.2(@types/react@18.3.12)(react@19.0.0)(redux@5.0.1)
+      react: 18.3.1
+      react-redux: 9.1.2(@types/react@18.3.12)(react@18.3.1)(redux@5.0.1)
 
   '@rollup/plugin-babel@5.3.1(@babel/core@7.26.0)(@types/babel__core@7.20.5)(rollup@2.79.2)':
     dependencies:
@@ -7991,13 +7978,13 @@ snapshots:
       lodash: 4.17.21
       redent: 3.0.0
 
-  '@testing-library/react@13.4.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)':
+  '@testing-library/react@13.4.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@babel/runtime': 7.26.0
       '@testing-library/dom': 8.20.1
       '@types/react-dom': 18.3.1
-      react: 19.0.0
-      react-dom: 19.0.0(react@19.0.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
 
   '@testing-library/user-event@13.5.0(@testing-library/dom@8.20.1)':
     dependencies:
@@ -12417,26 +12404,27 @@ snapshots:
       - supports-color
       - vue-template-compiler
 
-  react-dom@19.0.0(react@19.0.0):
+  react-dom@18.3.1(react@18.3.1):
     dependencies:
-      react: 19.0.0
-      scheduler: 0.25.0
+      loose-envify: 1.4.0
+      react: 18.3.1
+      scheduler: 0.23.2
 
-  react-error-boundary@4.1.2(react@19.0.0):
+  react-error-boundary@4.1.2(react@18.3.1):
     dependencies:
       '@babel/runtime': 7.26.0
-      react: 19.0.0
+      react: 18.3.1
 
   react-error-overlay@6.0.11: {}
 
-  react-feather@2.0.10(react@19.0.0):
+  react-feather@2.0.10(react@18.3.1):
     dependencies:
       prop-types: 15.8.1
-      react: 19.0.0
+      react: 18.3.1
 
-  react-icons@5.3.0(react@19.0.0):
+  react-icons@5.3.0(react@18.3.1):
     dependencies:
-      react: 19.0.0
+      react: 18.3.1
 
   react-is@16.13.1: {}
 
@@ -12444,14 +12432,14 @@ snapshots:
 
   react-is@18.3.1: {}
 
-  react-leaflet@4.2.1(leaflet@1.9.4)(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
+  react-leaflet@4.2.1(leaflet@1.9.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
-      '@react-leaflet/core': 2.1.0(leaflet@1.9.4)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      '@react-leaflet/core': 2.1.0(leaflet@1.9.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       leaflet: 1.9.4
-      react: 19.0.0
-      react-dom: 19.0.0(react@19.0.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
 
-  react-markdown@9.0.1(@types/react@18.3.12)(react@19.0.0):
+  react-markdown@9.0.1(@types/react@18.3.12)(react@18.3.1):
     dependencies:
       '@types/hast': 3.0.4
       '@types/react': 18.3.12
@@ -12459,7 +12447,7 @@ snapshots:
       hast-util-to-jsx-runtime: 2.3.2
       html-url-attributes: 3.0.1
       mdast-util-to-hast: 13.2.0
-      react: 19.0.0
+      react: 18.3.1
       remark-parse: 11.0.0
       remark-rehype: 11.1.1
       unified: 11.0.5
@@ -12468,18 +12456,18 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  react-redux@9.1.2(@types/react@18.3.12)(react@19.0.0)(redux@5.0.1):
+  react-redux@9.1.2(@types/react@18.3.12)(react@18.3.1)(redux@5.0.1):
     dependencies:
       '@types/use-sync-external-store': 0.0.3
-      react: 19.0.0
-      use-sync-external-store: 1.2.2(react@19.0.0)
+      react: 18.3.1
+      use-sync-external-store: 1.2.2(react@18.3.1)
     optionalDependencies:
       '@types/react': 18.3.12
       redux: 5.0.1
 
   react-refresh@0.11.0: {}
 
-  react-scripts@5.0.1(@babel/plugin-syntax-flow@7.26.0(@babel/core@7.26.0))(@babel/plugin-transform-react-jsx@7.25.9(@babel/core@7.26.0))(@types/babel__core@7.20.5)(eslint@8.57.1)(react@19.0.0)(sass@1.81.0)(type-fest@0.21.3)(typescript@4.9.5):
+  react-scripts@5.0.1(@babel/plugin-syntax-flow@7.26.0(@babel/core@7.26.0))(@babel/plugin-transform-react-jsx@7.25.9(@babel/core@7.26.0))(@types/babel__core@7.20.5)(eslint@8.57.1)(react@18.3.1)(sass@1.81.0)(type-fest@0.21.3)(typescript@4.9.5):
     dependencies:
       '@babel/core': 7.26.0
       '@pmmmwh/react-refresh-webpack-plugin': 0.5.15(react-refresh@0.11.0)(type-fest@0.21.3)(webpack-dev-server@4.15.2(webpack@5.96.1))(webpack@5.96.1)
@@ -12513,7 +12501,7 @@ snapshots:
       postcss-normalize: 10.0.1(browserslist@4.24.2)(postcss@8.4.49)
       postcss-preset-env: 7.8.3(postcss@8.4.49)
       prompts: 2.4.2
-      react: 19.0.0
+      react: 18.3.1
       react-app-polyfill: 3.0.0
       react-dev-utils: 12.0.1(eslint@8.57.1)(typescript@4.9.5)(webpack@5.96.1)
       react-refresh: 0.11.0
@@ -12566,12 +12554,14 @@ snapshots:
       - webpack-hot-middleware
       - webpack-plugin-serve
 
-  react-webcam@7.2.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
+  react-webcam@7.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
-      react: 19.0.0
-      react-dom: 19.0.0(react@19.0.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
 
-  react@19.0.0: {}
+  react@18.3.1:
+    dependencies:
+      loose-envify: 1.4.0
 
   read-cache@1.0.0:
     dependencies:
@@ -12801,7 +12791,9 @@ snapshots:
     dependencies:
       xmlchars: 2.2.0
 
-  scheduler@0.25.0: {}
+  scheduler@0.23.2:
+    dependencies:
+      loose-envify: 1.4.0
 
   schema-utils@2.7.0:
     dependencies:
@@ -12950,8 +12942,6 @@ snapshots:
   signal-exit@3.0.7: {}
 
   signal-exit@4.1.0: {}
-
-  simple-statistics@7.8.7: {}
 
   simple-swizzle@0.2.2:
     dependencies:
@@ -13520,14 +13510,14 @@ snapshots:
       querystringify: 2.2.0
       requires-port: 1.0.0
 
-  use-immer@0.10.0(immer@10.1.1)(react@19.0.0):
+  use-immer@0.10.0(immer@10.1.1)(react@18.3.1):
     dependencies:
       immer: 10.1.1
-      react: 19.0.0
+      react: 18.3.1
 
-  use-sync-external-store@1.2.2(react@19.0.0):
+  use-sync-external-store@1.2.2(react@18.3.1):
     dependencies:
-      react: 19.0.0
+      react: 18.3.1
 
   util-deprecate@1.0.2: {}
 
@@ -13541,8 +13531,6 @@ snapshots:
   utila@0.4.0: {}
 
   utils-merge@1.0.1: {}
-
-  uuid@11.0.3: {}
 
   uuid@8.3.2: {}
 

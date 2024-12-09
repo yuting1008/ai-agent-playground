@@ -92,7 +92,7 @@ const PaintingResult: React.FC = () => {
 
                         {images.map((image: GptImage, index: number) => (
 
-                            <div>
+                            <div key={index}>
                                 <img
                                     src={`data:image/png;base64,${image.b64_json}`}
                                     alt={image.prompt}

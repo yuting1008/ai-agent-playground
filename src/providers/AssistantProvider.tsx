@@ -9,11 +9,9 @@ import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/clie
 
 interface AssistantContextType {
   messagesAssistant: any[];
-  messagesAssistantRef: React.MutableRefObject<any[]>;
   setMessagesAssistant: React.Dispatch<React.SetStateAction<any[]>>;
 
   assistantRunning: boolean;
-  assistantRunningRef: React.MutableRefObject<boolean>;
   setAssistantRunning: React.Dispatch<React.SetStateAction<boolean>>;
 
   functionCallHandler: (call: any) => Promise<string | undefined>;
@@ -37,17 +35,9 @@ export const AssistantProvider: React.FC<{ children: ReactNode }> = ({ children 
   // ------------------------ vars ------------------------
   // messagesAssistant
   const [messagesAssistant, setMessagesAssistant] = useState<any[]>([]);
-  const messagesAssistantRef = useRef(messagesAssistant);
-  useEffect(() => {
-    messagesAssistantRef.current = messagesAssistant;
-  }, [messagesAssistant]);
 
   // assistantRunning boolean
   const [assistantRunning, setAssistantRunning] = useState(false);
-  const assistantRunningRef = useRef(assistantRunning);
-  useEffect(() => {
-    assistantRunningRef.current = assistantRunning;
-  }, [assistantRunning]);
 
   const { functionsToolsRef, llmInstructions } = useContexts();
 
@@ -296,12 +286,12 @@ export const AssistantProvider: React.FC<{ children: ReactNode }> = ({ children 
 
   return (
     <AssistantContext.Provider value={{
-      messagesAssistant, messagesAssistantRef, setMessagesAssistant,
+      messagesAssistant, setMessagesAssistant,
       functionCallHandler,
       setupAssistant,
       stopCurrentStreamJob,
       createThread,
-      assistantRunning, assistantRunningRef, setAssistantRunning,
+      assistantRunning, setAssistantRunning,
       sendAssistantMessage
     }}>
       {children}
