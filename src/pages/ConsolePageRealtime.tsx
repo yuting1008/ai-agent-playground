@@ -170,6 +170,7 @@ export function ConsolePageRealtime() {
     return () => {
       client.reset();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const startTimeRef = useRef<string>(new Date().toISOString());
@@ -271,6 +272,7 @@ export function ConsolePageRealtime() {
         realtimeClientRef.current.appendInputAudio(data.mono),
       );
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const latencyRecord = (e: RealtimeEvent) => {

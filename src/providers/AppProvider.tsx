@@ -301,6 +301,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
         setNeedSpeechQueue([...needSpeechQueue, sentence.sentence]);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [responseBuffer]);
 
   // speechSentencesCacheArray array
@@ -733,6 +734,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
         }
       })();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [llmInstructions]);
 
   const replaceInstructions = (source: string | RegExp, target: string) => {

@@ -313,6 +313,7 @@ export function ConsolePageAssistant() {
     setConnectMessage('Creating Thread...');
     await createThread();
     setConnectStatus(CONNECT_CONNECTED);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const disconnectConversation = () => {

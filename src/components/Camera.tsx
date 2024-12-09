@@ -41,6 +41,7 @@ const Camera: React.FC = () => {
       setPhotos([]);
       replaceInstructions('现在我的摄像头是打开的', '现在我的摄像头是关闭的');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cameraStatus]);
 
   useEffect(() => {
@@ -93,6 +94,7 @@ const Camera: React.FC = () => {
     return () => {
       clearInterval(intervalId);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const toggleCamera = () => {

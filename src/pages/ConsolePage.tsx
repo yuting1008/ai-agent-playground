@@ -30,6 +30,7 @@ export function ConsolePage() {
     if (hour >= 18 || hour < 6) {
       setIsNightMode(true);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /**

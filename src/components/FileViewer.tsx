@@ -32,6 +32,7 @@ const FileViewer = ({ connectStatus }: { connectStatus: string }) => {
     }, 2000);
 
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getOrCreateVectorStore = async () => {
