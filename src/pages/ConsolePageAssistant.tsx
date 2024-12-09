@@ -320,6 +320,7 @@ export function ConsolePageAssistant() {
     setThreadJob(null);
     setThread(null);
     setAssistant(null);
+    window.location.reload();
   };
 
   /**

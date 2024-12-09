@@ -640,6 +640,8 @@ const SettingsComponent: React.FC<{
 
       ttsTargetUri: localStorage.getItem('ttsTargetUri') || '',
       ttsApiKey: localStorage.getItem('ttsApiKey') || '',
+
+      bingApiKey: localStorage.getItem('bingApiKey') || '',
     };
     const content = JSON.stringify(settings, null, 2);
     const blob = new Blob([content], { type: 'application/json' });
@@ -681,7 +683,8 @@ const SettingsComponent: React.FC<{
           !settings.newsKey ||
           !settings.mxnzpAppId ||
           !settings.mxnzpAppSecret ||
-          !settings.language
+          !settings.language ||
+          !settings.bingApiKey
         ) {
           alert('Import failed, Please check your settings.');
           return;
@@ -714,9 +717,14 @@ const SettingsComponent: React.FC<{
         handleChange('assistantType', settings.assistantType);
 
         handleChange('prompt', settings.prompt);
+        handleChange('bingApiKey', settings.bingApiKey);
 
         handleChange('ttsApiKey', settings.ttsApiKey);
         handleChange('ttsTargetUri', settings.ttsTargetUri);
+
+        alert('Import success');
+
+        window.location.reload();
       } catch (error) {
         console.error(`import error: ${error}`);
       }
@@ -767,6 +775,7 @@ const SettingsComponent: React.FC<{
 
   const closeModal = () => {
     setIsModalOpen(false);
+    window.location.reload();
   };
 
   return connectStatus === CONNECT_CONNECTED ? null : (
