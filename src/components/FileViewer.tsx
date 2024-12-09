@@ -54,13 +54,17 @@ const FileViewer = ({ connectStatus }: { connectStatus: string }) => {
     const vectorStore = await getOpenAIClient().beta.vectorStores.create({
       name: 'sample-assistant-vector-store',
     });
-    await getOpenAIClient().beta.assistants.update(assistantRef?.current.id, {
-      tool_resources: {
-        file_search: {
-          vector_store_ids: [vectorStore.id],
+
+    if (assistantRef?.current.id) {
+      await getOpenAIClient().beta.assistants.update(assistantRef?.current.id, {
+        tool_resources: {
+          file_search: {
+            vector_store_ids: [vectorStore.id],
+          },
         },
-      },
-    });
+      });
+    }
+
     return vectorStore.id;
   };
 

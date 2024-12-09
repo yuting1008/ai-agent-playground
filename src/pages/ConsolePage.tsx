@@ -48,8 +48,8 @@ export function ConsolePage() {
         <span className="functions">
           <BingSearchResult />
           <TrafficMonitor />
-          <FunctionsList />
           <PaintingResult />
+          <FunctionsList />
           <NightMode />
         </span>
       </div>

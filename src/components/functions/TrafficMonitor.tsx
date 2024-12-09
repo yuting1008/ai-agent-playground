@@ -309,6 +309,10 @@ const TrafficMonitor: React.FC = () => {
     );
   };
 
+  if (connectStatus !== CONNECT_CONNECTED) {
+    return null;
+  }
+
   return (
     <>
       <ShowTrafficMonitor

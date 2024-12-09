@@ -49,6 +49,7 @@ export function ConsolePageRealtime() {
     setConnectStatus,
     resetTokenLatency,
     recordTokenLatency,
+    setIsAvatarSpeaking,
   } = useContexts();
 
   const endpoint = localStorage.getItem('endpoint') || '';
@@ -98,7 +99,17 @@ export function ConsolePageRealtime() {
 
     // handle realtime events from client + server for event logging
     client.on('realtime.event', (realtimeEvent: RealtimeEvent) => {
+      const {
+        time,
+        source,
+        event: { type },
+      } = realtimeEvent;
+
       latencyRecord(realtimeEvent);
+
+      if (source === 'server' && type === 'input_audio_buffer.speech_started') {
+        setIsAvatarSpeaking(false);
+      }
     });
 
     client.on('error', (event: any) => {
@@ -245,7 +256,7 @@ export function ConsolePageRealtime() {
       setConnectStatus(CONNECT_DISCONNECTED);
       setConnectMessage(tip);
       alert(`${tip}\n${e}\n\nKey is "${key}"`);
-      window.location.href = '/';
+      window.location.reload();
       return;
     }
 
@@ -276,16 +287,15 @@ export function ConsolePageRealtime() {
   }, []);
 
   const latencyRecord = (e: RealtimeEvent) => {
-    if (e.event.type === 'input_audio_buffer.append') {
-      return;
-    }
-
-    console.log(e.time, e.source, e.event.type);
-
     const {
+      time,
       source,
       event: { type },
     } = e;
+
+    if (e.event.type === 'input_audio_buffer.append') {
+      return;
+    }
 
     if (source === 'client' && type === 'response.create') {
       resetTokenLatency();

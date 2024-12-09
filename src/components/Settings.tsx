@@ -767,7 +767,6 @@ const SettingsComponent: React.FC<{
 
   const closeModal = () => {
     setIsModalOpen(false);
-    window.location.reload();
   };
 
   return connectStatus === CONNECT_CONNECTED ? null : (
