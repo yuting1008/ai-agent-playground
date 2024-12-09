@@ -23,12 +23,42 @@
     padding: 8px 16px;
     min-height: 40px;
 
+    .functions {
+      display: flex;
+      gap: 12px;
+
+      span {
+        height: 40px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        margin: 0;
+        font-size: 10px;
+
+        svg {
+          width: 24px;
+          height: 24px;
+          margin: 0;
+          padding: 0;
+        }
+
+        .label {
+          width: 290px;
+        }
+
+        &:hover {
+          color: #626262;
+        }
+      }
+    }
+
     .content-title {
       flex-grow: 1;
       display: flex;
       align-items: center;
       gap: 12px;
-
 
       img {
         width: 40px;
@@ -104,7 +134,6 @@
         }
       }
     }
-
 
     .content-right {
       width: 330px;
@@ -197,14 +226,16 @@
           height: 32px;
           width: 32px;
           overflow: hidden;
-          z-index: 9999;
+          z-index: 999;
           text-align: center;
           white-space: pre;
           cursor: pointer;
 
           &:hover {
             background-color: rgba(0, 0, 0, 0.3);
-            transition: background-color 0.6s ease, transform 0.6s ease;
+            transition:
+              background-color 0.6s ease,
+              transform 0.6s ease;
             color: #fdfbfb;
           }
 
@@ -407,7 +438,7 @@
 
       &.user::after {
         border-left: 8px solid #80cc29;
-        content: "";
+        content: '';
         position: absolute;
         right: -8px;
         top: 10px;
@@ -426,7 +457,7 @@
 
       &.assistant::before {
         background-color: #ffffff;
-        content: "";
+        content: '';
         position: absolute;
         left: -8px;
         top: 10px;
@@ -550,7 +581,6 @@
   }
 }
 
-
 .loading-spinner {
   display: flex;
   align-items: center;
@@ -580,7 +610,6 @@
   }
 }
 
-
 .remoteVideo {
   background-image: url('../static/avatar.svg');
   background-repeat: no-repeat;
@@ -594,7 +623,6 @@
     width: 100%;
     background-color: transparent;
   }
-
 }
 
 body.night-mode {
@@ -613,7 +641,6 @@ body.night-mode {
   align-items: center;
   gap: 15px;
   background-color: transparent;
-
 
   input {
     width: 100%;
@@ -639,7 +666,15 @@ body.night-mode {
   }
 }
 
+.modal {
+  background-color: #ffffff;
+}
+
 body.night-mode {
+  .modal {
+    background-color: #181818;
+  }
+
   .text-input {
     button {
       color: #d0d0d0;

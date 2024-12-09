@@ -5,8 +5,8 @@ export const definition: ToolDefinitionType = {
   description: 'Retrieves the current news.',
   parameters: {
     type: 'object',
-    properties: {}
-  }
+    properties: {},
+  },
 };
 
 export const handler: Function = async () => {

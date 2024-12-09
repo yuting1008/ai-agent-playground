@@ -1,10 +1,10 @@
-import React from "react";
-import styles from "./Weather-widget.module.css";
+import React from 'react';
+import styles from './Weather-widget.module.css';
 
 const WeatherWidget = ({
-  location = "---",
-  temperature = "---",
-  conditions = "Sunny",
+  location = '---',
+  temperature = '---',
+  conditions = 'Sunny',
   isEmpty = false,
 }) => {
   const conditionClassMap = {
@@ -27,14 +27,15 @@ const WeatherWidget = ({
   }
 
   const weatherClass = `${styles.weatherWidget} ${
-    conditionClassMap[conditions as keyof typeof conditionClassMap] || styles.weatherBGSunny
+    conditionClassMap[conditions as keyof typeof conditionClassMap] ||
+    styles.weatherBGSunny
   }`;
 
   return (
     <div className={weatherClass}>
       <div className={styles.weatherWidgetData}>
         <p>{location}</p>
-        <h2>{temperature !== "---" ? `${temperature}°F` : temperature}</h2>
+        <h2>{temperature !== '---' ? `${temperature}°F` : temperature}</h2>
         <p>{conditions}</p>
       </div>
     </div>

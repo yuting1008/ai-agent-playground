@@ -1,8 +1,6 @@
 import { AzureOpenAI } from 'openai';
 
-
 export const getOpenAIClientSSt = (ttsApiKey: string, ttsTargetUri: string) => {
-
   if (!ttsApiKey || !ttsTargetUri) {
     return null;
   }
@@ -17,9 +15,8 @@ export const getOpenAIClientSSt = (ttsApiKey: string, ttsTargetUri: string) => {
     apiVersion: apiVersion,
     apiKey: ttsApiKey,
     deployment: deployment,
-    dangerouslyAllowBrowser: true
+    dangerouslyAllowBrowser: true,
   });
-
 };
 
 export const getOpenAIClient = () => {
@@ -27,7 +24,9 @@ export const getOpenAIClient = () => {
   const completionTargetUri = localStorage.getItem('completionTargetUri') || '';
 
   if (!completionApiKey || !completionTargetUri) {
-    throw new Error('Missing API key or target URI, Please check your settings');
+    throw new Error(
+      'Missing API key or target URI, Please check your settings',
+    );
   }
 
   const urlInfo = extractUrlInfo(completionTargetUri);
@@ -40,32 +39,32 @@ export const getOpenAIClient = () => {
     apiVersion: apiVersion,
     apiKey: completionApiKey,
     deployment: deployment,
-    dangerouslyAllowBrowser: true
+    dangerouslyAllowBrowser: true,
   });
-
 };
-
 
 const getAssistantFileById = async (fileId: string) => {
   const [file, fileContent] = await Promise.all([
     getOpenAIClient().files.retrieve(fileId),
-    getOpenAIClient().files.content(fileId)
+    getOpenAIClient().files.content(fileId),
   ]);
   return {
     file,
-    fileContent
+    fileContent,
   };
 };
 
-
-export function extractUrlInfo(url: string): { deployment: string; apiVersion: string; endpoint: string } | null {
+export function extractUrlInfo(
+  url: string,
+): { deployment: string; apiVersion: string; endpoint: string } | null {
   try {
     const urlObj = new URL(url);
 
     // Extract deployment from the path
     const pathSegments = urlObj.pathname.split('/');
     const deploymentIndex = pathSegments.indexOf('deployments');
-    const deployment = deploymentIndex !== -1 ? pathSegments[deploymentIndex + 1] : null;
+    const deployment =
+      deploymentIndex !== -1 ? pathSegments[deploymentIndex + 1] : null;
 
     // Extract api-version from query parameters
     const apiVersion = urlObj.searchParams.get('api-version');
@@ -94,18 +93,18 @@ export async function getCompletion(messages: any): Promise<string> {
 
   const headers = {
     'Content-Type': 'application/json',
-    'api-key': completionApiKey
+    'api-key': completionApiKey,
   };
 
   const raw = JSON.stringify({
-    'messages': messages
+    messages: messages,
   });
 
   try {
     const response = await fetch(completionTargetUri, {
       method: 'POST',
       headers: headers,
-      body: raw
+      body: raw,
     });
 
     if (!response.ok) {
@@ -119,7 +118,6 @@ export async function getCompletion(messages: any): Promise<string> {
     return 'Error fetching completion';
   }
 }
-
 
 export async function getJsonData(messages: any): Promise<string> {
   const completionApiKey = localStorage.getItem('completionApiKey') || '';
@@ -131,18 +129,18 @@ export async function getJsonData(messages: any): Promise<string> {
 
   const headers = {
     'Content-Type': 'application/json',
-    'api-key': completionApiKey
+    'api-key': completionApiKey,
   };
 
   const raw = JSON.stringify({
-    messages: messages
+    messages: messages,
   });
 
   try {
     const response = await fetch(completionTargetUri, {
       method: 'POST',
       headers: headers,
-      body: raw
+      body: raw,
     });
 
     if (!response.ok) {
@@ -157,8 +155,7 @@ export async function getJsonData(messages: any): Promise<string> {
   }
 }
 
-
-export async function getImages(prompt: string): Promise<string> {
+export async function getImages(prompt: string, n: number = 1): Promise<any> {
   const dallApiKey = localStorage.getItem('dallApiKey') || '';
   const dallTargetUri = localStorage.getItem('dallTargetUri') || '';
 
@@ -168,7 +165,7 @@ export async function getImages(prompt: string): Promise<string> {
 
   const headers = {
     'Content-Type': 'application/json',
-    'api-key': dallApiKey
+    'api-key': dallApiKey,
   };
 
   try {
@@ -176,10 +173,11 @@ export async function getImages(prompt: string): Promise<string> {
       method: 'POST',
       headers: headers,
       body: JSON.stringify({
-        'prompt': prompt,
-        'n': 1,
-        'size': '1024x1024'
-      })
+        prompt: prompt,
+        n: n,
+        size: '1024x1024',
+        response_format: 'b64_json',
+      }),
     });
 
     if (!response.ok) {
@@ -187,17 +185,26 @@ export async function getImages(prompt: string): Promise<string> {
     }
 
     const data = await response.json();
-    data.message = '绘画完成，请你不要阅读网址，只阅读图画简介';
+    data.prompt = prompt;
 
-    return data || 'error. please try again later.';
+    return {
+      ...data,
+      prompt: prompt,
+    };
   } catch (error) {
     console.error('Error fetching completion:', error);
-    return 'Error fetching completion';
+    return {
+      error: 'Error fetching completion',
+      prompt: prompt,
+      data: [],
+    };
   }
 }
 
-
-export async function editImages(prompt: string, image_base_64: string): Promise<string> {
+export async function editImages(
+  prompt: string,
+  image_base_64: string,
+): Promise<any> {
   const completionApiKey = localStorage.getItem('completionApiKey') || '';
   const completionTargetUri = localStorage.getItem('completionTargetUri') || '';
 
@@ -207,7 +214,7 @@ export async function editImages(prompt: string, image_base_64: string): Promise
 
   const headers = {
     'Content-Type': 'application/json',
-    'api-key': completionApiKey
+    'api-key': completionApiKey,
   };
 
   // image_base_64 to io read
@@ -226,11 +233,11 @@ export async function editImages(prompt: string, image_base_64: string): Promise
       method: 'POST',
       headers: headers,
       body: JSON.stringify({
-        'prompt': prompt,
-        'n': 1,
-        'size': '1024x1024',
-        'image': imageBlob
-      })
+        prompt: prompt,
+        n: 1,
+        size: '1024x1024',
+        image: imageBlob,
+      }),
     });
 
     if (!response.ok) {
@@ -238,9 +245,19 @@ export async function editImages(prompt: string, image_base_64: string): Promise
     }
 
     const data = await response.json();
-    return data || 'error';
+
+    data.prompt = prompt;
+
+    return {
+      ...data,
+      prompt: prompt,
+    };
   } catch (error) {
     console.error('Error fetching completion:', error);
-    return 'Error fetching completion';
+    return {
+      error: 'Error fetching completion',
+      prompt: prompt,
+      data: [],
+    };
   }
 }

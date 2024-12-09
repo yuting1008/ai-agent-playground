@@ -1,24 +1,39 @@
 import React, { useRef, useState } from 'react';
-import { fileUploadInstructions, fileUploadTooBig } from '../lib/const';
+import {
+  CONNECT_CONNECTED,
+  fileUploadInstructions,
+  fileUploadTooBig,
+} from '../lib/const';
 import './FileUploadComponent.scss';
 import { Upload } from 'react-feather';
 import { Button } from './button/Button';
 import { DATA_BEGIN, DATA_END } from '../lib/instructions';
 import { useContexts } from '../providers/AppProvider';
+import { RealtimeClient } from '@theodoreniu/realtime-api-beta';
 
-const FileUploadComponent: React.FC = () => {
-
-  const { realtimeClientRef } = useContexts();
+const FileUploadComponent: React.FC<{
+  connectStatus: string;
+  realtimeClient: RealtimeClient;
+}> = ({ connectStatus, realtimeClient }) => {
+  const { replaceInstructions } = useContexts();
 
   const [fileName, setFileName] = useState<string>('Upload File');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { replaceInstructions } = useContexts();
+  if (connectStatus !== CONNECT_CONNECTED) {
+    return null;
+  }
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const selectedFile = event.target.files?.[0];
 
-    if (selectedFile && (selectedFile.type === 'text/plain' || selectedFile.name.endsWith('.xlsx'))) {
+    if (
+      selectedFile &&
+      (selectedFile.type === 'text/plain' ||
+        selectedFile.name.endsWith('.xlsx'))
+    ) {
       setFileName(selectedFile.name);
 
       if (selectedFile.type === 'text/plain') {
@@ -34,7 +49,9 @@ const FileUploadComponent: React.FC = () => {
               const workbook = XLSX.read(data, { type: 'array' });
               const firstSheetName = workbook.SheetNames[0];
               const worksheet = workbook.Sheets[firstSheetName];
-              const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+              const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+                header: 1,
+              });
               console.log('Excel文件内容:', jsonData);
               updateSession(JSON.stringify(jsonData));
             });
@@ -49,15 +66,13 @@ const FileUploadComponent: React.FC = () => {
   };
 
   const updateSession = (content: string) => {
-
-    if (realtimeClientRef?.current.isConnected()) {
-
+    if (realtimeClient.isConnected()) {
       if (content.length > 20000) {
-        realtimeClientRef?.current.sendUserMessageContent([
+        realtimeClient.sendUserMessageContent([
           {
             type: `input_text`,
-            text: fileUploadTooBig
-          }
+            text: fileUploadTooBig,
+          },
         ]);
         return;
       }
@@ -65,16 +80,15 @@ const FileUploadComponent: React.FC = () => {
       console.log('content', content.length);
 
       updateDataFile(content);
-      
+
       console.log('update instructions');
 
-      realtimeClientRef?.current.sendUserMessageContent([
+      realtimeClient.sendUserMessageContent([
         {
           type: `input_text`,
-          text: fileUploadInstructions
-        }
+          text: fileUploadInstructions,
+        },
       ]);
-
     }
   };
 
@@ -91,10 +105,8 @@ const FileUploadComponent: React.FC = () => {
     }
   };
 
-
   return (
     <div className="content-actions">
-
       <Button
         label={fileName}
         icon={Upload}
@@ -110,7 +122,6 @@ const FileUploadComponent: React.FC = () => {
         onChange={handleFileChange}
         style={{ display: 'none' }}
       />
-
     </div>
   );
 };

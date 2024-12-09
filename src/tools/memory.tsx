@@ -9,14 +9,13 @@ export const definition: ToolDefinitionType = {
       key: {
         type: 'string',
         description:
-          'The key of the memory value. Always use lowercase and underscores, no other characters.'
+          'The key of the memory value. Always use lowercase and underscores, no other characters.',
       },
       value: {
         type: 'string',
-        description: 'Value can be anything represented as a string'
-      }
+        description: 'Value can be anything represented as a string',
+      },
     },
-    required: ['key', 'value']
-  }
+    required: ['key', 'value'],
+  },
 };
-

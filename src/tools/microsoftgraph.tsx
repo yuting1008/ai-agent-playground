@@ -7,15 +7,12 @@ export const definition: ToolDefinitionType = {
   description: 'Get user details from Microsoft Graph API',
   parameters: {
     type: 'object',
-    properties: {}
-  }
+    properties: {},
+  },
 };
 
-
 export const handler: Function = async () => {
-
   return {
-    message: '接入微软内部系统的程序还在开发中'
+    message: '接入微软内部系统的程序还在开发中',
   };
-
 };

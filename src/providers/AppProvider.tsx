@@ -1,13 +1,19 @@
-import React, { createContext, ReactNode, useContext, useEffect, useRef, useState } from 'react';
+import React, {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { instructions } from '../lib/instructions';
-import { RealtimeClient } from '@theodoreniu/realtime-api-beta';
-import { useSettings } from './SettingsProvider';
 
 import * as memory from '../tools/memory';
 import * as weather from '../tools/weather';
 import * as avatar from '../tools/avatar';
 import * as order_get from '../tools/order_get';
 import * as order_return from '../tools/order_return';
+import * as bing from '../tools/bing';
 import * as dark from '../tools/dark';
 import * as news from '../tools/news';
 import * as douyin from '../tools/douyin';
@@ -20,6 +26,7 @@ import * as camera_current from '../tools/camera_current';
 import * as camera_on from '../tools/camera_on';
 import * as camera_video from '../tools/camera_video';
 import * as painting from '../tools/painting';
+import * as image_modify from '../tools/painting_modify';
 import * as pronunciation_assessment from '../tools/pronunciation_assessment';
 import * as azure_docs from '../tools/azure_docs';
 import * as quote from '../tools/quote';
@@ -27,27 +34,40 @@ import * as exchange_rate_aim from '../tools/exchange_rate_aim';
 import * as exchange_rate_list from '../tools/exchange_rate_list';
 import * as exchange_rate_configs from '../tools/exchange_rate_configs';
 import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
-import { CAMERA_PHOTO_LIMIT } from '../lib/const';
-import { getCompletion, getOpenAIClient } from '../lib/openai';
+import {
+  AVATAR_OFF,
+  AVATAR_READY,
+  AVATAR_STARTING,
+  CAMERA_OFF,
+  CAMERA_PHOTO_LIMIT,
+  CAMERA_STARTING,
+  CONNECT_DISCONNECTED,
+} from '../lib/const';
+import {
+  editImages,
+  getCompletion,
+  getImages,
+  getOpenAIClient,
+} from '../lib/openai';
 import { delayFunction } from '../lib/helper';
 import { Assistant } from 'openai/resources/beta/assistants';
 import { processAndStoreSentence } from '../lib/sentence';
 import { AvatarSynthesizer } from 'microsoft-cognitiveservices-speech-sdk';
-
+import axios from 'axios';
+import { GptImage } from '../types/GptImage';
+import { useOnlineStatus } from '../hooks/useOnlineStatus';
+import {
+  useGptImagesDispatch,
+  useGptImagesRef,
+} from '../contexts/GptImagesContext';
 
 interface AppContextType {
-
   photos: string[];
   photosRef: React.MutableRefObject<string[]>;
   setPhotos: React.Dispatch<React.SetStateAction<string[]>>;
 
   loading: boolean;
-  loadingRef: React.MutableRefObject<boolean>;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
-
-  isAvatarStarted: boolean;
-  isAvatarStartedRef: React.MutableRefObject<boolean>;
-  setIsAvatarStarted: React.Dispatch<React.SetStateAction<boolean>>;
 
   debug: boolean;
   debugRef: React.MutableRefObject<boolean>;
@@ -61,18 +81,29 @@ interface AppContextType {
   threadJobRef: React.MutableRefObject<any | null>;
   setThreadJob: React.Dispatch<React.SetStateAction<any | null>>;
 
-  assistantResponseBuffer: string;
-  assistantResponseBufferRef: React.MutableRefObject<string>;
-  setAssistantResponseBuffer: React.Dispatch<React.SetStateAction<string>>;
+  responseBuffer: string;
+  responseBufferRef: React.MutableRefObject<string>;
+  setResponseBuffer: React.Dispatch<React.SetStateAction<string>>;
 
   speechSentencesCacheArray: string[];
   speechSentencesCacheArrayRef: React.MutableRefObject<string[]>;
   setSpeechSentencesCacheArray: React.Dispatch<React.SetStateAction<string[]>>;
 
-  realtimeInstructions: string;
-  realtimeInstructionsRef: React.MutableRefObject<string>;
-  setRealtimeInstructions: React.Dispatch<React.SetStateAction<string>>;
+  llmInstructions: string;
+  llmInstructionsRef: React.MutableRefObject<string>;
   replaceInstructions: (source: string | RegExp, target: string) => string;
+
+  cameraStatus: string;
+  cameraStatusRef: React.MutableRefObject<string>;
+  setCameraStatus: React.Dispatch<React.SetStateAction<string>>;
+
+  connectStatus: string;
+  connectStatusRef: React.MutableRefObject<string>;
+  setConnectStatus: React.Dispatch<React.SetStateAction<string>>;
+
+  avatarStatus: string;
+  avatarStatusRef: React.MutableRefObject<string>;
+  setAvatarStatus: React.Dispatch<React.SetStateAction<string>>;
 
   assistant: Assistant | null;
   assistantRef: React.MutableRefObject<Assistant | null>;
@@ -82,18 +113,7 @@ interface AppContextType {
   isNightModeRef: React.MutableRefObject<boolean>;
   setIsNightMode: React.Dispatch<React.SetStateAction<boolean>>;
 
-  realtimeClientRef: React.MutableRefObject<RealtimeClient>;
-
-  isAvatarOn: boolean;
-  isAvatarOnRef: React.MutableRefObject<boolean>;
-  setIsAvatarOn: React.Dispatch<React.SetStateAction<boolean>>;
-
-  isAvatarLoading: boolean;
-  isAvatarLoadingRef: React.MutableRefObject<boolean>;
-  setIsAvatarLoading: React.Dispatch<React.SetStateAction<boolean>>;
-
   isAvatarSpeaking: boolean;
-  isAvatarSpeakingRef: React.MutableRefObject<boolean>;
   setIsAvatarSpeaking: React.Dispatch<React.SetStateAction<boolean>>;
 
   avatarSynthesizerRef: React.MutableRefObject<AvatarSynthesizer | null>;
@@ -108,14 +128,6 @@ interface AppContextType {
   inputValue: string;
   inputValueRef: React.MutableRefObject<string>;
   setInputValue: React.Dispatch<React.SetStateAction<string>>;
-
-  isCameraOn: boolean;
-  isCameraOnRef: React.MutableRefObject<boolean>;
-  setIsCameraOn: React.Dispatch<React.SetStateAction<boolean>>;
-
-  isWebcamReady: boolean;
-  isWebcamReadyRef: React.MutableRefObject<boolean>;
-  setIsWebcamReady: React.Dispatch<React.SetStateAction<boolean>>;
 
   needSpeechQueue: string[];
   needSpeechQueueRef: React.MutableRefObject<string[]>;
@@ -132,16 +144,40 @@ interface AppContextType {
   setCaptionQueue: React.Dispatch<React.SetStateAction<string[]>>;
   updateCaptionQueue: (caption: string) => void;
   addCaptionQueue: (caption: string) => void;
+
+  bingSearchData: any;
+  setBingSearchData: React.Dispatch<React.SetStateAction<any>>;
+
+  isOnline: boolean;
+
+  isFirstTokenRef: React.MutableRefObject<boolean>;
+
+  firstTokenLatencyArray: number[];
+  firstTokenLatencyArrayRef: React.MutableRefObject<number[]>;
+  setFirstTokenLatencyArray: React.Dispatch<React.SetStateAction<number[]>>;
+
+  sendTimeRef: React.MutableRefObject<number>;
+  lastTokenTimeRef: React.MutableRefObject<number>;
+
+  tokenLatencyArray: number[];
+  tokenLatencyArrayRef: React.MutableRefObject<number[]>;
+  setTokenLatencyArray: React.Dispatch<React.SetStateAction<number[]>>;
+
+  resetTokenLatency: () => void;
+  recordTokenLatency: (delta: any) => void;
 }
 
 const IS_DEBUG: boolean = window.location.href.includes('localhost');
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const AppProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
+  const isOnline = useOnlineStatus();
 
-  const { keyRef, endpointRef } = useSettings();
-  const { cogSvcSubKeyRef, cogSvcRegionRef } = useSettings();
+  const cogSvcSubKey = localStorage.getItem('cogSvcSubKey') || '';
+  const cogSvcRegion = localStorage.getItem('cogSvcRegion') || 'westus2';
 
   // caption string
   const [caption, setCaption] = useState('');
@@ -165,13 +201,26 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setCaptionQueue([...captionQueueRef.current, caption]);
   };
 
-  // isCameraOn boolean
-  const [isCameraOn, setIsCameraOn] = useState(false);
-  const isCameraOnRef = useRef(isCameraOn);
+  // cameraStatus string
+  const [cameraStatus, setCameraStatus] = useState(CAMERA_OFF);
+  const cameraStatusRef = useRef(cameraStatus);
+  useEffect(() => {
+    cameraStatusRef.current = cameraStatus;
+  }, [cameraStatus]);
 
-  // isWebcamReady boolean
-  const [isWebcamReady, setIsWebcamReady] = useState(false);
-  const isWebcamReadyRef = useRef(isWebcamReady);
+  // connectStatus string
+  const [connectStatus, setConnectStatus] = useState(CONNECT_DISCONNECTED);
+  const connectStatusRef = useRef(connectStatus);
+  useEffect(() => {
+    connectStatusRef.current = connectStatus;
+  }, [connectStatus]);
+
+  // avatarStatus string
+  const [avatarStatus, setAvatarStatus] = useState(AVATAR_OFF);
+  const avatarStatusRef = useRef(avatarStatus);
+  useEffect(() => {
+    avatarStatusRef.current = avatarStatus;
+  }, [avatarStatus]);
 
   // input string
   const [inputValue, setInputValue] = useState('');
@@ -196,14 +245,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   // loading
   const [loading, setLoading] = useState<boolean>(false);
-  const loadingRef = useRef(loading);
-  useEffect(() => {
-    loadingRef.current = loading;
-  }, [loading]);
-
-  // isAvatarStarted
-  const [isAvatarStarted, setIsAvatarStarted] = useState<boolean>(false);
-  const isAvatarStartedRef = useRef(isAvatarStarted);
 
   // assistant object
   const [assistant, setAssistant] = useState<Assistant | null>(null);
@@ -234,20 +275,25 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     needSpeechQueueRef.current = needSpeechQueue;
   }, [needSpeechQueue]);
 
-  // assistantResponseBuffer string
-  const [assistantResponseBuffer, setAssistantResponseBuffer] = useState<string>('');
-  const assistantResponseBufferRef = useRef(assistantResponseBuffer);
+  // responseBuffer string
+  const [responseBuffer, setResponseBuffer] = useState<string>('');
+  const responseBufferRef = useRef(responseBuffer);
   useEffect(() => {
-    assistantResponseBufferRef.current = assistantResponseBuffer;
+    console.log('responseBuffer', responseBuffer);
+    responseBufferRef.current = responseBuffer;
 
-    if (!assistantResponseBuffer) {
+    if (!responseBuffer) {
       setNeedSpeechQueue([]);
       setCaptionQueue([]);
       setIsAvatarSpeaking(false);
       return;
     }
 
-    const sentences = processAndStoreSentence(assistantResponseBuffer, isAvatarStarted, speechSentencesCacheArrayRef);
+    const sentences = processAndStoreSentence(
+      responseBuffer,
+      avatarStatus === AVATAR_READY,
+      speechSentencesCacheArrayRef,
+    );
 
     for (const sentence of sentences) {
       if (!sentence.exists) {
@@ -255,88 +301,24 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setNeedSpeechQueue([...needSpeechQueue, sentence.sentence]);
       }
     }
-
-  }, [assistantResponseBuffer]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [responseBuffer]);
 
   // speechSentencesCacheArray array
-  const [speechSentencesCacheArray, setSpeechSentencesCacheArray] = useState<string[]>([]);
+  const [speechSentencesCacheArray, setSpeechSentencesCacheArray] = useState<
+    string[]
+  >([]);
   const speechSentencesCacheArrayRef = useRef(speechSentencesCacheArray);
   useEffect(() => {
     speechSentencesCacheArrayRef.current = speechSentencesCacheArray;
   }, [speechSentencesCacheArray]);
 
-  const prompt = localStorage.getItem('prompt') || '';
-
-  // realtime instructions string
-  const updateInstructions = prompt ? `${instructions}\n\nOther requirements of the user: \n${prompt}` : instructions;
-  const [realtimeInstructions, setRealtimeInstructions] = useState<string>(updateInstructions);
-  const realtimeInstructionsRef = useRef(realtimeInstructions);
-  useEffect(() => {
-    realtimeInstructionsRef.current = realtimeInstructions;
-
-    if (assistant) {
-      assistant.instructions = realtimeInstructions;
-      (async () => {
-        try {
-          const res = await getOpenAIClient().beta.assistants.update(assistant.id, {
-            instructions: realtimeInstructions
-          });
-          console.log('assistant instructions updated', res);
-        } catch (error) {
-          console.error('Error:', error);
-        }
-      })();
-    }
-
-    if (realtimeClientRef?.current.isConnected()) {
-      const res = realtimeClientRef.current.updateSession({ instructions: realtimeInstructions });
-      console.log('realtime instructions updated', res);
-    }
-
-  }, [realtimeInstructions]);
-
-  const replaceInstructions = (source: string | RegExp, target: string) => {
-    const new_instructions = realtimeInstructionsRef.current.replace(source, target);
-    setRealtimeInstructions(new_instructions);
-    return new_instructions;
-  };
-
   // isNightMode boolean
   const [isNightMode, setIsNightMode] = useState<boolean>(false);
   const isNightModeRef = useRef(isNightMode);
 
-  // realtime client
-  const realtimeClientRef = useRef<RealtimeClient>(
-    new RealtimeClient(
-      {
-        apiKey: keyRef.current,
-        url: endpointRef.current,
-        debug: false,
-        dangerouslyAllowAPIKeyInBrowser: true
-      }
-    )
-  );
-
-  // isAvatarOn boolean
-  const [isAvatarOn, setIsAvatarOn] = useState<boolean>(false);
-  const isAvatarOnRef = useRef(isAvatarOn);
-  useEffect(() => {
-    isAvatarOnRef.current = isAvatarOn;
-  }, [isAvatarOn]);
-
-  // isAvatarLoading boolean
-  const [isAvatarLoading, setIsAvatarLoading] = useState<boolean>(false);
-  const isAvatarLoadingRef = useRef(isAvatarLoading);
-  useEffect(() => {
-    isAvatarLoadingRef.current = isAvatarLoading;
-  }, [isAvatarLoading]);
-
   // isAvatarSpeaking boolean
   const [isAvatarSpeaking, setIsAvatarSpeaking] = useState<boolean>(false);
-  const isAvatarSpeakingRef = useRef(isAvatarSpeaking);
-  useEffect(() => {
-    isAvatarSpeakingRef.current = isAvatarSpeaking;
-  }, [isAvatarSpeaking]);
 
   // memoryKv
   const [memoryKv, setMemoryKv] = useState<{ [key: string]: any }>({});
@@ -351,22 +333,81 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const avatarVideoRef = useRef<HTMLVideoElement>(null);
   const avatarAudioRef = useRef<HTMLAudioElement>(null);
 
-  // -------- handlers ---------
-  const camera_on_handler: Function = async ({ on }: { [on: string]: boolean }) => {
+  // sendTime DateTime
+  const sendTimeRef = useRef(0);
+
+  // lastTokenTime DateTime
+  const lastTokenTimeRef = useRef(0);
+
+  const isFirstTokenRef = useRef<boolean>(false);
+
+  // firstTokenLatencyArray number[]
+  const [firstTokenLatencyArray, setFirstTokenLatencyArray] = useState<
+    number[]
+  >([]);
+  const firstTokenLatencyArrayRef = useRef(firstTokenLatencyArray);
+  useEffect(() => {
+    firstTokenLatencyArrayRef.current = firstTokenLatencyArray;
+  }, [firstTokenLatencyArray]);
+
+  // tokenLatencyArray number[]
+  const [tokenLatencyArray, setTokenLatencyArray] = useState<number[]>([]);
+  const tokenLatencyArrayRef = useRef(tokenLatencyArray);
+  useEffect(() => {
+    tokenLatencyArrayRef.current = tokenLatencyArray;
+  }, [tokenLatencyArray]);
+
+  const resetTokenLatency = () => {
+    isFirstTokenRef.current = true;
+    sendTimeRef.current = Date.now();
+    lastTokenTimeRef.current = 0;
+  };
+
+  const recordTokenLatency = (delta: any) => {
+    if (isFirstTokenRef.current) {
+      isFirstTokenRef.current = false;
+      lastTokenTimeRef.current = Date.now();
+      const latency = Date.now() - sendTimeRef.current;
+      if (latency > 0) {
+        setFirstTokenLatencyArray((prevArray: number[]) => [
+          ...prevArray,
+          latency,
+        ]);
+      }
+      lastTokenTimeRef.current = Date.now();
+    } else {
+      const latency = Date.now() - lastTokenTimeRef.current;
+      lastTokenTimeRef.current = Date.now();
+      if (latency > 0) {
+        setTokenLatencyArray((prevArray: number[]) => [...prevArray, latency]);
+      }
+    }
+  };
+
+  // -------- functions ---------
+  const camera_on_handler: Function = async ({
+    on,
+  }: {
+    [on: string]: boolean;
+  }) => {
     if (on) {
-      setIsCameraOn(true);
-      return { message: 'The camera is starting, please wait a moment to turn on.' };
+      setCameraStatus(CAMERA_STARTING);
+      return {
+        message: 'The camera is starting, please wait a moment to turn on.',
+      };
     }
 
-    setPhotos([]);
-    setIsCameraOn(false);
+    setCameraStatus(CAMERA_OFF);
 
     return { message: 'The camera has been turned off' };
   };
 
-  const camera_current_handler: Function = async ({ prompt = '' }: { [key: string]: string | undefined }) => {
+  const camera_current_handler: Function = async ({
+    prompt = '',
+  }: {
+    [key: string]: string | undefined;
+  }) => {
     try {
-
       if (prompt) {
         prompt = `User questions about these frames are: ${prompt}`;
       }
@@ -381,8 +422,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       let content: any = [
         {
           type: 'text',
-          text: `Can you describe what you saw? ${prompt}`
-        }
+          text: `Can you describe what you saw? ${prompt}`,
+        },
       ];
 
       const photoIndex = photosRef.current.length >= 1 ? 1 : 0;
@@ -390,15 +431,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       content.push({
         type: 'image_url',
         image_url: {
-          url: photosRef.current[photoIndex]
-        }
+          url: photosRef.current[photoIndex],
+        },
       });
 
       const messages = [
         {
           role: 'user',
-          content: content
-        }
+          content: content,
+        },
       ];
 
       const resp = await getCompletion(messages);
@@ -411,13 +452,19 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
-  const camera_video_handler: Function = async ({ prompt = '', seconds = CAMERA_PHOTO_LIMIT }: { [key: string]: any }) => {
-
+  const camera_video_handler: Function = async ({
+    prompt = '',
+    seconds = CAMERA_PHOTO_LIMIT,
+  }: {
+    [key: string]: any;
+  }) => {
     console.log('prompt', prompt);
     console.log('seconds', seconds);
 
     if (seconds && seconds > CAMERA_PHOTO_LIMIT) {
-      return { error: `The maximum number of seconds is ${CAMERA_PHOTO_LIMIT}` };
+      return {
+        error: `The maximum number of seconds is ${CAMERA_PHOTO_LIMIT}`,
+      };
     }
 
     if (photosRef.current && photosRef.current.length === 0) {
@@ -431,8 +478,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     let content: any = [
       {
         type: 'text',
-        text: `I'm going to give you a set of video frames from the video head capture, just captured. The images are displayed in reverse chronological order. Can you describe what you saw? If there are more pictures, it is continuous, please tell me the complete event that happened just now. ${prompt}`
-      }
+        text: `I'm going to give you a set of video frames from the video head capture, just captured. The images are displayed in reverse chronological order. Can you describe what you saw? If there are more pictures, it is continuous, please tell me the complete event that happened just now. ${prompt}`,
+      },
     ];
 
     // for photos
@@ -442,23 +489,20 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         content.push({
           type: 'image_url',
           image_url: {
-            url: photo
-          }
+            url: photo,
+          },
         });
       }
 
       photoCount++;
-
     });
 
-
     try {
-
       const messages = [
         {
           role: 'user',
-          content: content
-        }
+          content: content,
+        },
       ];
 
       const resp = await getCompletion(messages);
@@ -470,10 +514,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
       return { error: error };
     }
-
   };
 
-  const memory_handler: Function = async ({ key, value }: { [key: string]: any }) => {
+  const memory_handler: Function = async ({
+    key,
+    value,
+  }: {
+    [key: string]: any;
+  }) => {
     setMemoryKv((memoryKv) => {
       const newKv = { ...memoryKv };
       newKv[key] = value;
@@ -482,21 +530,27 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return { ok: true };
   };
 
-  const avatar_handler: Function = async ({ on }: { [key: string]: boolean }) => {
+  const avatar_handler: Function = async ({
+    on,
+  }: {
+    [key: string]: boolean;
+  }) => {
     if (on) {
-
-      if (!cogSvcSubKeyRef.current || !cogSvcRegionRef.current) {
-        return { message: 'Please set your Cognitive Services subscription key and region.' };
+      if (!cogSvcSubKey || !cogSvcRegion) {
+        return {
+          message:
+            'Please set your Cognitive Services subscription key and region.',
+        };
       }
 
-      setIsAvatarOn(true);
+      setAvatarStatus(AVATAR_STARTING);
 
       let checkTime = 0;
 
       while (checkTime < 10) {
         await delayFunction(1000);
         checkTime++;
-        if (isAvatarStartedRef.current) {
+        if (avatarStatusRef.current === AVATAR_READY) {
           return { message: 'ok' };
         }
       }
@@ -504,7 +558,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       return { message: 'Error, please check your error message.' };
     }
 
-    setIsAvatarOn(false);
+    setAvatarStatus(AVATAR_OFF);
 
     return { message: 'done' };
   };
@@ -512,6 +566,109 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const dark_handler: Function = ({ on }: { [on: string]: boolean }) => {
     setIsNightMode(on);
     return { ok: true };
+  };
+
+  const gptImagesDispatch = useGptImagesDispatch()!;
+  const gptImagesRef = useGptImagesRef();
+  const painting_handler: Function = async ({
+    prompt,
+    n = 1,
+  }: {
+    [key: string]: any;
+  }) => {
+    try {
+      const resp = await getImages((prompt = prompt), (n = n));
+      const image = resp.data[0];
+
+      const gptImage: GptImage = {
+        prompt: prompt,
+        b64_json: image.b64_json,
+      };
+
+      gptImagesDispatch({ type: 'add', gptImage });
+      console.log('painting', gptImage);
+      console.log('gptImagesRef', gptImagesRef.current);
+
+      return { result: 'completed, please check the results in the modal.' };
+    } catch (error) {
+      console.error('painting error', error);
+      return { error: error };
+    }
+  };
+
+  const image_modify_handler: Function = async ({
+    prompt,
+    index = 1,
+  }: {
+    [key: string]: any;
+  }) => {
+    if (!gptImagesRef.current) {
+      return { error: 'no painting data, please generate painting first.' };
+    }
+
+    if (gptImagesRef.current.length === 0) {
+      return { error: 'no painting data, please generate painting first.' };
+    }
+
+    const realIndex = index - 1;
+
+    if (realIndex < 0 || realIndex >= gptImagesRef.current.length) {
+      return { error: 'index out of images, please check the index.' };
+    }
+
+    const { b64_json } = gptImagesRef.current[realIndex];
+
+    try {
+      const resp = await editImages(prompt, b64_json);
+      const image = resp.data[0];
+      const gptImage: GptImage = {
+        prompt: prompt,
+        b64_json: image.b64_json,
+      };
+
+      gptImagesDispatch({ type: 'add', gptImage });
+      console.log('painting', gptImage);
+      return { result: 'completed, please check the results in the modal.' };
+    } catch (error) {
+      console.error('modify painting error', error);
+      return { error: error };
+    }
+  };
+
+  const [bingSearchData, setBingSearchData] = useState<any>(null);
+  const bing_search_handler: Function = async ({
+    query,
+    count = 10,
+    page = 1,
+  }: {
+    [key: string]: any;
+  }) => {
+    const subscriptionKey = localStorage.getItem('bingApiKey') || '';
+
+    if (!subscriptionKey) {
+      throw new Error('Bing API key is not set');
+    }
+
+    const offset = (page - 1) * count;
+    const mkt = 'en-US';
+    const params = { q: query, mkt: mkt, count: count, offset: offset };
+    const headers = { 'Ocp-Apim-Subscription-Key': subscriptionKey };
+
+    const response = await axios.get(
+      'https://api.bing.microsoft.com/v7.0/search',
+      { headers, params },
+    );
+    const data = response.data;
+
+    setBingSearchData(data);
+
+    console.log(data);
+
+    return {
+      message:
+        "ok, please check the results in the modal. you don't need to say anything.",
+      data: data,
+    };
   };
 
   // functions_tools array
@@ -522,6 +679,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     [memory.definition, memory_handler],
     [avatar.definition, avatar_handler],
     [dark.definition, dark_handler],
+    [bing.definition, bing_search_handler],
+    [painting.definition, painting_handler],
+    [image_modify.definition, image_modify_handler],
 
     [news.definition, news.handler],
     [douyin.definition, douyin.handler],
@@ -534,13 +694,54 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     [products_recommend.definition, products_recommend.handler],
     [location.definition, location.handler],
     [feishu.definition, feishu.handler],
-    [painting.definition, painting.handler],
     [pronunciation_assessment.definition, pronunciation_assessment.handler],
     [azure_docs.definition, azure_docs.handler],
     [demo.definition, demo.handler],
     [quote.definition, quote.handler],
     [stock_recommend.definition, stock_recommend.handler],
   ]);
+
+  // instructions string
+  const prompt = localStorage.getItem('prompt') || '';
+  let updateInstructions = prompt
+    ? `${instructions}\n\nOther requirements of the user: \n${prompt}`
+    : instructions;
+  updateInstructions += `\n\nYou have the following tools and abilities:`;
+  for (const tool of functionsToolsRef.current) {
+    updateInstructions += `\n${tool[0].name}: ${tool[0].description}`;
+  }
+
+  const [llmInstructions, setLlmInstructions] =
+    useState<string>(updateInstructions);
+  const llmInstructionsRef = useRef(llmInstructions);
+
+  useEffect(() => {
+    llmInstructionsRef.current = llmInstructions;
+
+    if (assistant) {
+      assistant.instructions = llmInstructions;
+      (async () => {
+        try {
+          const res = await getOpenAIClient().beta.assistants.update(
+            assistant.id,
+            {
+              instructions: llmInstructions,
+            },
+          );
+          console.log('assistant instructions updated', res);
+        } catch (error) {
+          console.error('Error:', error);
+        }
+      })();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [llmInstructions]);
+
+  const replaceInstructions = (source: string | RegExp, target: string) => {
+    const new_instructions = llmInstructionsRef.current.replace(source, target);
+    setLlmInstructions(new_instructions);
+    return new_instructions;
+  };
 
   const handleKeyDown = (event: KeyboardEvent) => {
     if (
@@ -563,36 +764,86 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   }, []);
 
   return (
-    <AppContext.Provider value={{
-      photos, photosRef, setPhotos,
-      loading, loadingRef, setLoading,
-      isAvatarStarted, isAvatarStartedRef, setIsAvatarStarted,
-      debug, debugRef, setDebug,
-      assistant: assistant, assistantRef: assistantRef, setAssistant: setAssistant,
-      thread, threadRef, setThread,
-      threadJob, threadJobRef, setThreadJob,
-      assistantResponseBuffer, assistantResponseBufferRef, setAssistantResponseBuffer,
-      speechSentencesCacheArray, speechSentencesCacheArrayRef, setSpeechSentencesCacheArray,
-      realtimeInstructions, realtimeInstructionsRef, setRealtimeInstructions, replaceInstructions,
-      isNightMode, isNightModeRef, setIsNightMode,
-      realtimeClientRef,
-      isAvatarLoading, isAvatarLoadingRef, setIsAvatarLoading,
-      isAvatarSpeaking, isAvatarSpeakingRef, setIsAvatarSpeaking,
-      avatarSynthesizerRef,
-      peerConnectionRef,
-      avatarVideoRef,
-      avatarAudioRef,
-      memoryKv, memoryKvRef, setMemoryKv,
-      inputValue, inputValueRef, setInputValue,
-      isCameraOn, isCameraOnRef, setIsCameraOn,
-      isWebcamReady, isWebcamReadyRef, setIsWebcamReady,
-      isAvatarOn, isAvatarOnRef, setIsAvatarOn,
-      functionsToolsRef,
-      needSpeechQueue, needSpeechQueueRef, setNeedSpeechQueue,
-      caption, captionRef, setCaption,
-      captionQueue, captionQueueRef, setCaptionQueue, 
-      updateCaptionQueue, addCaptionQueue,
-    }}>
+    <AppContext.Provider
+      value={{
+        isOnline,
+        photos,
+        photosRef,
+        setPhotos,
+        loading,
+        setLoading,
+        debug,
+        debugRef,
+        setDebug,
+        assistant,
+        assistantRef,
+        setAssistant,
+        thread,
+        threadRef,
+        setThread,
+        threadJob,
+        threadJobRef,
+        setThreadJob,
+        responseBuffer,
+        responseBufferRef,
+        setResponseBuffer,
+        speechSentencesCacheArray,
+        speechSentencesCacheArrayRef,
+        setSpeechSentencesCacheArray,
+        llmInstructions,
+        llmInstructionsRef,
+        replaceInstructions,
+        isNightMode,
+        isNightModeRef,
+        setIsNightMode,
+        isAvatarSpeaking,
+        setIsAvatarSpeaking,
+        memoryKv,
+        memoryKvRef,
+        setMemoryKv,
+        inputValue,
+        inputValueRef,
+        setInputValue,
+        needSpeechQueue,
+        needSpeechQueueRef,
+        setNeedSpeechQueue,
+        caption,
+        captionRef,
+        setCaption,
+        captionQueue,
+        captionQueueRef,
+        setCaptionQueue,
+        updateCaptionQueue,
+        addCaptionQueue,
+        bingSearchData,
+        setBingSearchData,
+        cameraStatus,
+        cameraStatusRef,
+        setCameraStatus,
+        connectStatus,
+        connectStatusRef,
+        setConnectStatus,
+        avatarStatus,
+        avatarStatusRef,
+        setAvatarStatus,
+        isFirstTokenRef,
+        firstTokenLatencyArray,
+        firstTokenLatencyArrayRef,
+        setFirstTokenLatencyArray,
+        tokenLatencyArray,
+        tokenLatencyArrayRef,
+        setTokenLatencyArray,
+        recordTokenLatency,
+        resetTokenLatency,
+        sendTimeRef,
+        lastTokenTimeRef,
+        functionsToolsRef,
+        avatarSynthesizerRef,
+        peerConnectionRef,
+        avatarVideoRef,
+        avatarAudioRef,
+      }}
+    >
       {children}
     </AppContext.Provider>
   );

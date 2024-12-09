@@ -1,39 +1,53 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useContexts } from '../providers/AppProvider';
 import './Camera.scss';
-import { useSettings } from '../providers/SettingsProvider';
 import * as SpeechSDK from 'microsoft-cognitiveservices-speech-sdk';
 import { htmlEncodeAvatar } from '../lib/helper';
+import { AVATAR_OFF, AVATAR_READY, AVATAR_STARTING } from '../lib/const';
 
 const Avatar: React.FC = () => {
-
   const {
-    isAvatarOn, isAvatarOnRef, setIsAvatarOn,
-    isAvatarStarted, isAvatarStartedRef, isAvatarLoading,
-    avatarVideoRef, avatarAudioRef,
-    peerConnectionRef, avatarSynthesizerRef,
-    needSpeechQueue, setNeedSpeechQueue,
-    setIsAvatarLoading, setIsAvatarStarted,
-    replaceInstructions, setIsAvatarSpeaking, isAvatarSpeaking } = useContexts();
-
-  const {
-    cogSvcSubKeyRef, cogSvcRegionRef,
-  } = useSettings();
-
-  useEffect(() => {
-    isAvatarOnRef.current = isAvatarOn;
-    isAvatarOn ? startAvatarSession() : stopAvatarSession();
-  }, [isAvatarOn]);
-
-  useEffect(() => {
-    isAvatarStartedRef.current = isAvatarStarted;
-    isAvatarStartedRef.current ? replaceInstructions('你的虚拟人形象处于关闭状态', '你的虚拟人形象处于打开状态')
-      : replaceInstructions('你的虚拟人形象处于打开状态', '你的虚拟人形象处于关闭状态');
-  }, [isAvatarStarted]);
-
+    avatarStatus,
+    setAvatarStatus,
+    avatarVideoRef,
+    avatarAudioRef,
+    peerConnectionRef,
+    avatarSynthesizerRef,
+    needSpeechQueue,
+    setNeedSpeechQueue,
+    setCaptionQueue,
+    addCaptionQueue,
+    updateCaptionQueue,
+    replaceInstructions,
+    setIsAvatarSpeaking,
+    isAvatarSpeaking,
+  } = useContexts();
 
   useEffect(() => {
-    if (!isAvatarStarted) {
+    if (avatarStatus === AVATAR_STARTING) {
+      startAvatarSession();
+    }
+
+    if (avatarStatus === AVATAR_OFF) {
+      setCaptionQueue([]);
+      stopAvatarSession();
+      replaceInstructions(
+        '你的虚拟人形象处于打开状态',
+        '你的虚拟人形象处于关闭状态',
+      );
+    }
+
+    if (avatarStatus === AVATAR_READY) {
+      replaceInstructions(
+        '你的虚拟人形象处于关闭状态',
+        '你的虚拟人形象处于打开状态',
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [avatarStatus]);
+
+  useEffect(() => {
+    if (avatarStatus !== AVATAR_READY) {
       return;
     }
 
@@ -43,39 +57,48 @@ const Avatar: React.FC = () => {
 
     speakAvatar(needSpeechQueue[0]);
     setNeedSpeechQueue(needSpeechQueue.slice(1));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [needSpeechQueue]);
 
   useEffect(() => {
     if (!isAvatarSpeaking) {
       stopAvatarSpeaking();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAvatarSpeaking]);
 
-  const startAvatarSession = async () => {
+  const startAvatarSession = useCallback(async () => {
     try {
-
       const privateEndpoint = localStorage.getItem('privateEndpoint') || '';
+      const cogSvcSubKey = localStorage.getItem('cogSvcSubKey') || '';
+      const cogSvcRegion = localStorage.getItem('cogSvcRegion') || 'westus2';
 
-      if (!cogSvcSubKeyRef.current || !cogSvcRegionRef.current) {
-        alert('Please set your Cognitive Services subscription key, region, and private endpoint.');
-        setIsAvatarLoading(false);
-        setIsAvatarStarted(false);
+      if (!cogSvcSubKey || !cogSvcRegion) {
+        alert(
+          'Please set your Cognitive Services subscription key, region, and private endpoint.',
+        );
+        setAvatarStatus(AVATAR_OFF);
         return;
       }
 
-      setIsAvatarLoading(true);
+      setAvatarStatus(AVATAR_STARTING);
       console.log('starting avatar session...');
 
       let speechSynthesisConfig;
       if (privateEndpoint) {
         console.log(`using private endpoint: ${privateEndpoint}`);
         speechSynthesisConfig = SpeechSDK.SpeechConfig.fromEndpoint(
-          new URL(`wss://${privateEndpoint}/tts/cognitiveservices/websocket/v1?enableTalkingAvatar=true`),
-          cogSvcSubKeyRef.current
+          new URL(
+            `wss://${privateEndpoint}/tts/cognitiveservices/websocket/v1?enableTalkingAvatar=true`,
+          ),
+          cogSvcSubKey,
         );
       } else {
-        speechSynthesisConfig = SpeechSDK.SpeechConfig.fromSubscription(cogSvcSubKeyRef.current, cogSvcRegionRef.current);
-        console.log(`using public endpoint: ${cogSvcRegionRef.current}`);
+        speechSynthesisConfig = SpeechSDK.SpeechConfig.fromSubscription(
+          cogSvcSubKey,
+          cogSvcRegion,
+        );
+        console.log(`using public endpoint: ${cogSvcRegion}`);
       }
 
       const videoFormat = new SpeechSDK.AvatarVideoFormat();
@@ -83,29 +106,31 @@ const Avatar: React.FC = () => {
       videoFormat.height = 250;
       videoFormat.setCropRange(
         new SpeechSDK.Coordinate(600, 0),
-        new SpeechSDK.Coordinate(1360, 520)
+        new SpeechSDK.Coordinate(1360, 520),
       );
       console.log('videoFormat: ' + videoFormat);
 
       const avatarConfig = new SpeechSDK.AvatarConfig(
         'harry',
         'business',
-        videoFormat
+        videoFormat,
       );
       console.log('avatarConfig: ' + avatarConfig);
       avatarConfig.customized = false;
-      avatarConfig.backgroundImage = new URL('https://playground.azuretsp.com/images/avatar_bg.jpg');
+      avatarConfig.backgroundImage = new URL(
+        'https://playground.azuretsp.com/images/avatar_bg.jpg',
+      );
 
       // Get token
       const response = await fetch(
         privateEndpoint
           ? `https://${privateEndpoint}/tts/cognitiveservices/avatar/relay/token/v1`
-          : `https://${cogSvcRegionRef.current}.tts.speech.microsoft.com/cognitiveservices/avatar/relay/token/v1`,
+          : `https://${cogSvcRegion}.tts.speech.microsoft.com/cognitiveservices/avatar/relay/token/v1`,
         {
           headers: {
-            'Ocp-Apim-Subscription-Key': cogSvcSubKeyRef.current
-          }
-        }
+            'Ocp-Apim-Subscription-Key': cogSvcSubKey,
+          },
+        },
       );
 
       const responseData = await response.json();
@@ -113,43 +138,52 @@ const Avatar: React.FC = () => {
 
       avatarSynthesizerRef.current = new SpeechSDK.AvatarSynthesizer(
         speechSynthesisConfig,
-        avatarConfig
+        avatarConfig,
       );
 
       await setupWebRTCAvatar(
         responseData.Urls[0],
         responseData.Username,
-        responseData.Password
+        responseData.Password,
       );
 
-      console.log('avatarSynthesizerRef.current: ' + avatarSynthesizerRef.current);
-
+      console.log(
+        'avatarSynthesizerRef.current: ' + avatarSynthesizerRef.current,
+      );
     } catch (error) {
       console.log(error);
-      alert(`Avatar session failed to start. Please check your configuration or network.\n` + error);
-      setIsAvatarLoading(false);
-      setIsAvatarStarted(false);
+      alert(
+        `Avatar session failed to start. Please check your configuration or network.\n` +
+          error,
+      );
+      setAvatarStatus(AVATAR_OFF);
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const setupWebRTCAvatar = async (
     iceServerUrl: string,
     iceServerUsername: string,
-    iceServerCredential: string
+    iceServerCredential: string,
   ) => {
     const useTcpForWebRTC = false;
 
     peerConnectionRef.current = new RTCPeerConnection({
-      iceServers: [{
-        urls: [useTcpForWebRTC ? iceServerUrl.replace(':3478', ':443?transport=tcp') : iceServerUrl],
-        username: iceServerUsername,
-        credential: iceServerCredential
-      }],
-      iceTransportPolicy: useTcpForWebRTC ? 'relay' : 'all'
+      iceServers: [
+        {
+          urls: [
+            useTcpForWebRTC
+              ? iceServerUrl.replace(':3478', ':443?transport=tcp')
+              : iceServerUrl,
+          ],
+          username: iceServerUsername,
+          credential: iceServerCredential,
+        },
+      ],
+      iceTransportPolicy: useTcpForWebRTC ? 'relay' : 'all',
     });
 
     peerConnectionRef.current.ontrack = (event) => {
-
       const video = avatarVideoRef.current;
       const audio = avatarAudioRef.current;
 
@@ -171,30 +205,33 @@ const Avatar: React.FC = () => {
       }
 
       video.onloadedmetadata = () => {
-        setIsAvatarStarted(true);
-        setIsAvatarLoading(false);
+        setAvatarStatus(AVATAR_READY);
       };
     };
 
     // Add transceivers
-    peerConnectionRef.current.addTransceiver('video', { direction: 'sendrecv' });
-    peerConnectionRef.current.addTransceiver('audio', { direction: 'sendrecv' });
+    peerConnectionRef.current.addTransceiver('video', {
+      direction: 'sendrecv',
+    });
+    peerConnectionRef.current.addTransceiver('audio', {
+      direction: 'sendrecv',
+    });
 
     // Start avatar
     console.log('starting avatar...');
     if (!avatarSynthesizerRef.current) return;
-    const result = await avatarSynthesizerRef.current.startAvatarAsync(peerConnectionRef.current);
+    const result = await avatarSynthesizerRef.current.startAvatarAsync(
+      peerConnectionRef.current,
+    );
     if (result.reason === SpeechSDK.ResultReason.SynthesizingAudioCompleted) {
       console.log('Avatar started successfully');
     } else {
       throw new Error(JSON.stringify(result));
     }
-
   };
 
   const stopAvatarSession = () => {
-    setIsAvatarStarted(false);
-    setIsAvatarLoading(false);
+    console.log('stopping avatar session...');
     setIsAvatarSpeaking(false);
 
     avatarSynthesizerRef.current?.close();
@@ -208,10 +245,12 @@ const Avatar: React.FC = () => {
   };
 
   const toggleAvatar = () => {
-    setIsAvatarOn(!isAvatarOnRef.current);
+    if (avatarStatus === AVATAR_OFF) {
+      setAvatarStatus(AVATAR_STARTING);
+    } else {
+      setAvatarStatus(AVATAR_OFF);
+    }
   };
-
-  const { addCaptionQueue, updateCaptionQueue } = useContexts();
 
   const speakAvatar = async (spokenText: string) => {
     if (!avatarSynthesizerRef.current) return;
@@ -230,7 +269,8 @@ const Avatar: React.FC = () => {
             </voice>
           </speak>`;
 
-      const result = await avatarSynthesizerRef.current.speakSsmlAsync(spokenSsml);
+      const result =
+        await avatarSynthesizerRef.current.speakSsmlAsync(spokenSsml);
 
       if (result.reason === SpeechSDK.ResultReason.SynthesizingAudioCompleted) {
         console.log(`Speech completed: ${spokenText}`);
@@ -239,7 +279,6 @@ const Avatar: React.FC = () => {
         updateCaptionQueue(spokenText);
         throw new Error('Speech synthesis failed: ' + JSON.stringify(result));
       }
-
     } catch (error) {
       console.log(error);
     }
@@ -257,31 +296,35 @@ const Avatar: React.FC = () => {
 
   return (
     <div className="content-actions container_bg remoteVideo">
-
-      {
-        isAvatarLoading && <div className="camLoading">
+      {avatarStatus === AVATAR_STARTING && (
+        <div className="camLoading">
           <div className="spinner" key={'avatarLoading'}></div>
         </div>
-      }
+      )}
 
-      <button className="content-block-btn"
+      <button
+        className="content-block-btn"
         onClick={toggleAvatar}
-        style={{ display: isAvatarLoading ? 'none' : '' }}
+        style={{ display: avatarStatus === AVATAR_STARTING ? 'none' : '' }}
       >
-        {isAvatarStarted ? 'Off' : 'On'}
+        {avatarStatus === AVATAR_READY ? 'Off' : 'On'}
       </button>
 
-      <video ref={avatarVideoRef} style={{ display: (isAvatarStarted && avatarSynthesizerRef.current) ? '' : 'none' }}>
+      <video
+        ref={avatarVideoRef}
+        style={{ display: avatarStatus === AVATAR_READY ? '' : 'none' }}
+      >
         Your browser does not support the video tag.
       </video>
 
-      <audio ref={avatarAudioRef} style={{ display: (isAvatarStarted && avatarSynthesizerRef.current) ? '' : 'none' }}>
+      <audio
+        ref={avatarAudioRef}
+        style={{ display: avatarStatus === AVATAR_READY ? '' : 'none' }}
+      >
         Your browser does not support the audio tag.
       </audio>
-
     </div>
   );
 };
-
 
 export default Avatar;
