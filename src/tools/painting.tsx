@@ -2,13 +2,14 @@ import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/clie
 
 export const definition: ToolDefinitionType = {
   name: 'painting',
-  description: 'Painting by text, text to image. respond wait message to the user before calling the tool.',
+  description:
+    'Painting by text, text to image. respond wait message to the user before calling the tool.',
   parameters: {
     type: 'object',
     properties: {
       prompt: {
         type: 'string',
-        description: 'prompt of the image'
+        description: 'prompt of the image',
       },
       // n: {
       //   type: 'number',
@@ -17,6 +18,6 @@ export const definition: ToolDefinitionType = {
       // }
     },
     required: ['prompt'],
-    strict: true
-  }
+    strict: true,
+  },
 };

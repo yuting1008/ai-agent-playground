@@ -12,16 +12,18 @@ const initialGptImages: GptImage[] = [];
 
 function gptImagesReducer(images: GptImage[], action: GptImageAction) {
   switch (action.type) {
-
     case 'add': {
-      return [...images, {
-        prompt: action.gptImage.prompt,
-        b64_json: action.gptImage.b64_json
-      }];
+      return [
+        ...images,
+        {
+          prompt: action.gptImage.prompt,
+          b64_json: action.gptImage.b64_json,
+        },
+      ];
     }
 
     case 'change': {
-      return images.map(t => {
+      return images.map((t) => {
         if (t.prompt === action.gptImage.prompt) {
           return action.gptImage;
         } else {
@@ -31,7 +33,7 @@ function gptImagesReducer(images: GptImage[], action: GptImageAction) {
     }
 
     case 'delete': {
-      return images.filter(t => t.prompt !== action.gptImage.prompt);
+      return images.filter((t) => t.prompt !== action.gptImage.prompt);
     }
 
     default: {
@@ -41,8 +43,10 @@ function gptImagesReducer(images: GptImage[], action: GptImageAction) {
 }
 
 export function GptImagesProvider({ children }: { children: React.ReactNode }) {
-
-  const [images, dispatch] = useImmerReducer(gptImagesReducer, initialGptImages);
+  const [images, dispatch] = useImmerReducer(
+    gptImagesReducer,
+    initialGptImages,
+  );
 
   return (
     <GptImagesContext.Provider value={images}>

@@ -12,7 +12,11 @@ interface DropdownProps {
   onChange: (value: string) => void;
 }
 
-const Dropdown: React.FC<DropdownProps> = ({ options, selectedValue, onChange }) => {
+const Dropdown: React.FC<DropdownProps> = ({
+  options,
+  selectedValue,
+  onChange,
+}) => {
   return (
     <div className="language_options">
       <select value={selectedValue} onChange={(e) => onChange(e.target.value)}>

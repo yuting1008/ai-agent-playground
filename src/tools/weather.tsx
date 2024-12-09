@@ -9,26 +9,30 @@ export const definition: ToolDefinitionType = {
     properties: {
       lat: {
         type: 'number',
-        description: 'Latitude'
+        description: 'Latitude',
       },
       lng: {
         type: 'number',
-        description: 'Longitude'
+        description: 'Longitude',
       },
       location: {
         type: 'string',
-        description: 'Name of the location'
-      }
+        description: 'Name of the location',
+      },
     },
-    required: ['lat', 'lng', 'location']
-  }
+    required: ['lat', 'lng', 'location'],
+  },
 };
 
-
-export const handler: Function = async ({ lat, lng, location }: { [key: string]: any }) => {
-
+export const handler: Function = async ({
+  lat,
+  lng,
+  location,
+}: {
+  [key: string]: any;
+}) => {
   const result = await fetch(
-    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,wind_speed_10m`
+    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,wind_speed_10m`,
   );
 
   return await result.json();

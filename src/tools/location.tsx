@@ -2,15 +2,15 @@ import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/clie
 
 export const definition: ToolDefinitionType = {
   name: 'get_ip',
-  description: 'Retrieves the ip and ip location, you can get my location from ip',
+  description:
+    'Retrieves the ip and ip location, you can get my location from ip',
   parameters: {
     type: 'object',
-    properties: {}
-  }
+    properties: {},
+  },
 };
 
 export const handler: Function = async () => {
-
   const url = `https://ip-api.io/json`;
   console.log('fetch ip', url);
 

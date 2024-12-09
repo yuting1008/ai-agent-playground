@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 
 const TodoComponent = () => {
-
-  const [endpoint, setEndpoint] = useState(localStorage.getItem('endpoint') || '');
+  const [endpoint, setEndpoint] = useState(
+    localStorage.getItem('endpoint') || '',
+  );
   const [key, setKey] = useState(localStorage.getItem('key') || '');
   const [isVisible, setIsVisible] = useState(false);
 
@@ -15,7 +16,6 @@ const TodoComponent = () => {
     localStorage.setItem('key', key.trim());
   }, [endpoint, key]);
 
-
   const handleEndpointChange = (e: any) => {
     setEndpoint(e.target.value);
   };
@@ -23,7 +23,6 @@ const TodoComponent = () => {
   const handleKeyChange = (e: any) => {
     setKey(e.target.value);
   };
-
 
   return (
     <div className="planned container_bg">

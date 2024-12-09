@@ -23,7 +23,6 @@ const ProductList: React.FC<ProductListProps> = (props) => {
         {products.map((product: Product) => (
           <li key={product.id}>
             <div className="product-item">
-
               <div className="product-image">
                 <img src={product.image} alt={product.name} />
               </div>
@@ -33,7 +32,6 @@ const ProductList: React.FC<ProductListProps> = (props) => {
                 <p>价格：{product.price} 元</p>
                 <p>{product.description}</p>
               </div>
-
             </div>
           </li>
         ))}

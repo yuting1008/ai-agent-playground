@@ -9,9 +9,9 @@ function ChangeView({ center, zoom }: { center: LatLngTuple; zoom: number }) {
 }
 
 export function Map({
-                      center,
-                      location = 'My Location'
-                    }: {
+  center,
+  location = 'My Location',
+}: {
   center: LatLngTuple;
   location?: string;
 }) {

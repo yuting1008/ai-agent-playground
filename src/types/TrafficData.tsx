@@ -1,11 +1,11 @@
 export type TrafficData = {
-    connectionLatency: number[];
-    connectionLatencyAvg: number;
-    connectionLatencyMin: number;
-    connectionLatencyMax: number;
-}
+  connectionLatency: number[];
+  connectionLatencyAvg: number;
+  connectionLatencyMin: number;
+  connectionLatencyMax: number;
+};
 
 export type TrafficDataAction = {
-    type: 'add' | 'change' | 'delete';
-    trafficData: TrafficData;
-}
+  type: 'add' | 'change' | 'delete';
+  trafficData: TrafficData;
+};

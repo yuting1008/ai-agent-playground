@@ -2,17 +2,18 @@ import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/clie
 
 export const definition: ToolDefinitionType = {
   name: 'stock_recommend',
-  description: 'Get latest analyst recommendation trends for a company about stock. data from Finnhub API.',
+  description:
+    'Get latest analyst recommendation trends for a company about stock. data from Finnhub API.',
   parameters: {
     type: 'object',
     properties: {
       symbol: {
         type: 'string',
-        description: 'Symbol of the company'
-      }
+        description: 'Symbol of the company',
+      },
     },
-    required: ['symbol']
-  }
+    required: ['symbol'],
+  },
 };
 
 export const handler: Function = async ({ symbol }: { [key: string]: any }) => {
@@ -24,7 +25,7 @@ export const handler: Function = async ({ symbol }: { [key: string]: any }) => {
   const url = `https://finnhub.io/api/v1/stock/recommendation?symbol=${symbol}&token=${quoteToken}`;
   console.log('url', url);
   const result = await fetch(url, {
-    method: 'GET'
+    method: 'GET',
   });
 
   return await result.json();
