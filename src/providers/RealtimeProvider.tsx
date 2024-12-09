@@ -13,7 +13,6 @@ interface RealtimeContextType {
   wavStreamPlayerRef: React.MutableRefObject<WavStreamPlayer>;
   
   isRecording: boolean;
-  isRecordingRef: React.MutableRefObject<boolean>;
   setIsRecording: React.Dispatch<React.SetStateAction<boolean>>;
 
   deleteConversationItem: (id: string) => Promise<void>;
@@ -21,19 +20,15 @@ interface RealtimeContextType {
   startRecording: () => Promise<void>;
 
   connectMessage: string;
-  connectMessageRef: React.MutableRefObject<string>;
   setConnectMessage: React.Dispatch<React.SetStateAction<string>>;
 
   canPushToTalk: boolean;
-  canPushToTalkRef: React.MutableRefObject<boolean>;
   setCanPushToTalk: React.Dispatch<React.SetStateAction<boolean>>;
 
   items: ItemType[];
-  itemsRef: React.MutableRefObject<ItemType[]>;
   setItems: React.Dispatch<React.SetStateAction<ItemType[]>>;
 
   realtimeEvents: RealtimeEvent[];
-  realtimeEventsRef: React.MutableRefObject<RealtimeEvent[]>;
   setRealtimeEvents: React.Dispatch<React.SetStateAction<RealtimeEvent[]>>;
 }
 
@@ -78,10 +73,7 @@ export const RealtimeProvider: React.FC<{ children: ReactNode }> = ({ children }
    * - coords, marker are for get_weather() function
    */
   const [items, setItems] = useState<ItemType[]>([]);
-  const itemsRef = useRef<ItemType[]>([]);
   useEffect(() => {
-    itemsRef.current = items;
-
     // Auto-scroll the conversation logs
     const conversationEls = [].slice.call(
       document.body.querySelectorAll('[data-conversation-content]')
@@ -94,31 +86,15 @@ export const RealtimeProvider: React.FC<{ children: ReactNode }> = ({ children }
   }, [items]);
 
   const [realtimeEvents, setRealtimeEvents] = useState<RealtimeEvent[]>([]);
-  const realtimeEventsRef = useRef<RealtimeEvent[]>([]);
-  useEffect(() => {
-    realtimeEventsRef.current = realtimeEvents;
-  }, [realtimeEvents]);
 
   // isRecording boolean
   const [isRecording, setIsRecording] = useState(false);
-  const isRecordingRef = useRef(false);
-  useEffect(() => {
-    isRecordingRef.current = isRecording;
-  }, [isRecording]);
 
   // connectMessage string
   const [connectMessage, setConnectMessage] = useState('Awaiting Connection...');
-  const connectMessageRef = useRef('Awaiting Connection...');
-  useEffect(() => {
-    connectMessageRef.current = connectMessage;
-  }, [connectMessage]);
 
   // canPushToTalk boolean
   const [canPushToTalk, setCanPushToTalk] = useState(true);
-  const canPushToTalkRef = useRef(true);
-  useEffect(() => {
-    canPushToTalkRef.current = canPushToTalk;
-  }, [canPushToTalk]);
 
 
   const deleteConversationItem = useCallback(async (id: string) => {
@@ -152,7 +128,6 @@ export const RealtimeProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
     await wavRecorder.record((data) => client.appendInputAudio(data.mono));
   };
-
 
   /**
    * In push-to-talk mode, stop recording
@@ -206,22 +181,17 @@ export const RealtimeProvider: React.FC<{ children: ReactNode }> = ({ children }
       wavRecorderRef,
       wavStreamPlayerRef,
       isRecording,
-      isRecordingRef,
       setIsRecording,
       deleteConversationItem,
       cancelRealtimeResponse,
       startRecording,
       connectMessage,
-      connectMessageRef,
       setConnectMessage,
       canPushToTalk,
-      canPushToTalkRef,
       setCanPushToTalk,
       items,
-      itemsRef,
       setItems,
       realtimeEvents,
-      realtimeEventsRef,
       setRealtimeEvents,
     }}>
       {children}

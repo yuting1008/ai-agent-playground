@@ -86,7 +86,7 @@ const FunctionsList: React.FC = () => {
 
                 <div style={styles.content}>
                     {functionsToolsRef.current.map((item) => (
-                        <div style={styles.functionItem}>
+                        <div style={styles.functionItem} key={item[0].name}>
                             <div style={styles.functionItemName}>{item[0].name}</div>
                             <div style={styles.functionItemDescription}>{item[0].description}</div>
                         </div>

@@ -41,6 +41,7 @@ const Avatar: React.FC = () => {
 
 
   useEffect(() => {
+
     if (avatarStatus !== AVATAR_READY) {
       return;
     }

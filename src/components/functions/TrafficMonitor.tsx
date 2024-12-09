@@ -1,18 +1,10 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { X } from 'react-feather';
 import './BingSearchResult.scss';
 import { Activity } from 'react-feather';
 import { useContexts } from '../../providers/AppProvider';
 import { CONNECT_CONNECTED } from '../../lib/const';
-import { quantile } from "simple-statistics";
-import { calculatePercentiles } from '../../lib/helper';
-import { v4 as uuidv4 } from "uuid";
-
-
-// avgLatency, round to 5
-function avgLatency(array: number[]) {
-    return Math.round(array.reduce((sum, latency) => sum + latency, 0) / array.length * 100) / 100;
-}
+import { avgLatency, calculatePercentiles } from '../../lib/helper';
 
 type TableItem = {
     value: string;
@@ -131,11 +123,11 @@ const TrafficMonitor: React.FC = () => {
         return <div>
             {table.name && <div>{table.name}</div>}
             <div>
-                <table key={uuidv4()} style={style}>
+                <table key={table.name} style={style}>
                     <tbody>
                         {
-                            table.items.map((item) => (
-                                <tr key={uuidv4()}>
+                            table.items.map((item, idx) => (
+                                <tr key={`${table.name}-${idx}`}>
                                     <td style={styles.key}>{item.key}</td>
                                     <td style={styles.value}>{item.value}</td>
                                     <td style={styles.unit}>{item?.unit || ""}</td>
@@ -166,7 +158,7 @@ const TrafficMonitor: React.FC = () => {
         };
 
         return connectStatus === CONNECT_CONNECTED ? (
-            <div key={uuidv4()} style={styles.tables}>
+            <div style={styles.tables}>
                 {renderTable(styles.table, table1)}
                 {renderTable(styles.table, table2)}
             </div>
@@ -178,8 +170,10 @@ const TrafficMonitor: React.FC = () => {
             return null;
         }
 
-        console.log('compute', firstTokenLatencyArray, tokenLatencyArray);
-        
+        console.log('ShowTrafficMonitor Render');
+
+        // return null;
+
         const firstTokenLatencyMin = firstTokenLatencyArray.length > 0 ? Math.min(...firstTokenLatencyArray) : 0;
         const firstTokenLatencyMax = firstTokenLatencyArray.length > 0 ? Math.max(...firstTokenLatencyArray) : 0;
         const firstTokenLatencyAvg = firstTokenLatencyArray.length > 0 ? avgLatency(firstTokenLatencyArray) : 0;
@@ -261,11 +255,11 @@ const TrafficMonitor: React.FC = () => {
 
     return (
         <>
+            <ShowTrafficMonitor />
             <span onClick={() => setIsShow(true)}>
                 <ShowTopBar />
                 <Activity />
             </span>
-            <ShowTrafficMonitor />
         </>
     );
 };

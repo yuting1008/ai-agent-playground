@@ -31,7 +31,7 @@ import * as exchange_rate_configs from '../tools/exchange_rate_configs';
 import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
 import { AVATAR_OFF, AVATAR_READY, AVATAR_STARTING, CAMERA_OFF, CAMERA_PHOTO_LIMIT, CAMERA_STARTING, CONNECT_DISCONNECTED } from '../lib/const';
 import { editImages, getCompletion, getImages, getOpenAIClient } from '../lib/openai';
-import { delayFunction } from '../lib/helper';
+import { avgLatency, calculatePercentiles, delayFunction } from '../lib/helper';
 import { Assistant } from 'openai/resources/beta/assistants';
 import { processAndStoreSentence } from '../lib/sentence';
 import { AvatarSynthesizer } from 'microsoft-cognitiveservices-speech-sdk';
@@ -39,6 +39,7 @@ import axios from 'axios';
 import { GptImage } from '../types/GptImage';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import { useGptImagesDispatch, useGptImagesRef } from '../contexts/GptImagesContext';
+import { Metric } from '../types/Metric';
 
 interface AppContextType {
 
@@ -47,7 +48,6 @@ interface AppContextType {
   setPhotos: React.Dispatch<React.SetStateAction<string[]>>;
 
   loading: boolean;
-  loadingRef: React.MutableRefObject<boolean>;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 
   debug: boolean;
@@ -229,10 +229,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   // loading
   const [loading, setLoading] = useState<boolean>(false);
-  const loadingRef = useRef(loading);
-  useEffect(() => {
-    loadingRef.current = loading;
-  }, [loading]);
 
   // assistant object
   const [assistant, setAssistant] = useState<Assistant | null>(null);
@@ -267,6 +263,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [responseBuffer, setResponseBuffer] = useState<string>('');
   const responseBufferRef = useRef(responseBuffer);
   useEffect(() => {
+    console.log('responseBuffer', responseBuffer);
     responseBufferRef.current = responseBuffer;
 
     if (!responseBuffer) {
@@ -276,7 +273,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       return;
     }
 
-    const sentences = processAndStoreSentence(responseBuffer, avatarStatusRef?.current === AVATAR_READY, speechSentencesCacheArrayRef);
+    const sentences = processAndStoreSentence(responseBuffer, avatarStatus === AVATAR_READY, speechSentencesCacheArrayRef);
 
     for (const sentence of sentences) {
       if (!sentence.exists) {
@@ -355,6 +352,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   }
 
   const recordTokenLatency = (delta: any) => {
+
     if (isFirstTokenRef.current) {
       isFirstTokenRef.current = false;
       lastTokenTimeRef.current = Date.now();
@@ -714,7 +712,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     <AppContext.Provider value={{
       isOnline,
       photos, photosRef, setPhotos,
-      loading, loadingRef, setLoading,
+      loading, setLoading,
       debug, debugRef, setDebug,
       assistant, assistantRef, setAssistant,
       thread, threadRef, setThread,

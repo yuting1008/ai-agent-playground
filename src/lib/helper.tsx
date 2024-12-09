@@ -19,9 +19,12 @@ export const htmlEncodeAvatar = (text: string): string => {
   return String(text).replace(/[&<>"'\/]/g, (match) => entityMap[match]);
 };
 
+export function avgLatency(array: number[]) {
+  return Math.round(array.reduce((sum, latency) => sum + latency, 0) / array.length * 100) / 100;
+}
 
 export function calculatePercentiles(latencyArray: number[], percentiles: number[] = [0.5, 0.9, 0.95, 0.99]) {
-
+  // console.log('calculatePercentiles', latencyArray);
   if (latencyArray.length === 0) {
     const result: { [key: string]: number } = {};
     percentiles.forEach((p) => {
