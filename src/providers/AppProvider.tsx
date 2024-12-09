@@ -165,6 +165,11 @@ interface AppContextType {
 
   resetTokenLatency: () => void;
   recordTokenLatency: (delta: any) => void;
+
+  resetVars: () => void;
+
+  connectMessage: string;
+  setConnectMessage: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const IS_DEBUG: boolean = window.location.href.includes('localhost');
@@ -268,6 +273,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
     threadJobRef.current = threadJob;
   }, [threadJob]);
 
+  // connectMessage string
+  const [connectMessage, setConnectMessage] = useState(
+    'Awaiting Connection...',
+  );
+
   // needSpeechQueue string[]
   const [needSpeechQueue, setNeedSpeechQueue] = useState<string[]>([]);
   const needSpeechQueueRef = useRef<string[]>([]);
@@ -356,6 +366,23 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
   useEffect(() => {
     tokenLatencyArrayRef.current = tokenLatencyArray;
   }, [tokenLatencyArray]);
+
+  // reset vars
+  const resetVars = () => {
+    setConnectStatus(CONNECT_DISCONNECTED);
+    setResponseBuffer('');
+    setInputValue('');
+    setCaptionQueue([]);
+    setNeedSpeechQueue([]);
+    setSpeechSentencesCacheArray([]);
+    setFirstTokenLatencyArray([]);
+    setTokenLatencyArray([]);
+    setMemoryKv({});
+    setBingSearchData(null);
+    setPhotos([]);
+    setAvatarStatus(AVATAR_OFF);
+    setConnectMessage('Awaiting Connection...');
+  };
 
   const resetTokenLatency = () => {
     isFirstTokenRef.current = true;
@@ -842,6 +869,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
         peerConnectionRef,
         avatarVideoRef,
         avatarAudioRef,
+        resetVars,
+        connectMessage,
+        setConnectMessage,
       }}
     >
       {children}

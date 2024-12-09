@@ -50,6 +50,9 @@ export function ConsolePageRealtime() {
     resetTokenLatency,
     recordTokenLatency,
     setIsAvatarSpeaking,
+    resetVars,
+    connectMessage,
+    setConnectMessage,
   } = useContexts();
 
   const endpoint = localStorage.getItem('endpoint') || '';
@@ -100,7 +103,6 @@ export function ConsolePageRealtime() {
     // handle realtime events from client + server for event logging
     client.on('realtime.event', (realtimeEvent: RealtimeEvent) => {
       const {
-        time,
         source,
         event: { type },
       } = realtimeEvent;
@@ -114,7 +116,7 @@ export function ConsolePageRealtime() {
 
     client.on('error', (event: any) => {
       console.error(event);
-      setConnectStatus(CONNECT_DISCONNECTED);
+      resetVars();
       setConnectMessage(event.message);
     });
 
@@ -219,11 +221,6 @@ export function ConsolePageRealtime() {
     }
   }, [items]);
 
-  // connectMessage string
-  const [connectMessage, setConnectMessage] = useState(
-    'Awaiting Connection...',
-  );
-
   /**
    * Connect to conversation:
    * WavRecorder tasK speech input, WavStreamPlayer output, client is API client
@@ -288,7 +285,6 @@ export function ConsolePageRealtime() {
 
   const latencyRecord = (e: RealtimeEvent) => {
     const {
-      time,
       source,
       event: { type },
     } = e;
@@ -315,7 +311,7 @@ export function ConsolePageRealtime() {
   };
 
   const disconnectConversation = async () => {
-    setConnectStatus(CONNECT_DISCONNECTED);
+    resetVars();
     setItems([]);
     realtimeClientRef.current?.disconnect();
     await wavRecorderRef.current?.end();
