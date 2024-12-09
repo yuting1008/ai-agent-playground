@@ -302,6 +302,14 @@ export function ConsolePageRealtime() {
     }
   };
 
+  const disconnectConversation = async () => {
+    setConnectStatus(CONNECT_DISCONNECTED);
+    setItems([]);
+    realtimeClientRef.current?.disconnect();
+    await wavRecorderRef.current?.end();
+    await wavStreamPlayerRef.current?.interrupt();
+  };
+
   /**
    * Render the application
    */
@@ -351,6 +359,7 @@ export function ConsolePageRealtime() {
         <ConnectButton
           connectStatus={connectStatus}
           connectConversation={connectConversation}
+          disconnectConversation={disconnectConversation}
         />
 
         <AudioVisualization

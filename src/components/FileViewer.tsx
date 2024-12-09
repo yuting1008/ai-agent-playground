@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import styles from './FileViewer.module.css';
 import { getOpenAIClient } from '../lib/openai';
 import { useContexts } from '../providers/AppProvider';
+import { CONNECT_CONNECTED } from '../lib/const';
 
 const TrashIcon = () => (
   <svg
@@ -20,10 +21,18 @@ const TrashIcon = () => (
   </svg>
 );
 
-const FileViewer = () => {
+const FileViewer = ({ connectStatus }: { connectStatus: string }) => {
   const [files, setFiles] = useState<any[]>([]);
 
   const { assistantRef } = useContexts();
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchFiles();
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const getOrCreateVectorStore = async () => {
     if (!assistantRef?.current) {
@@ -53,14 +62,6 @@ const FileViewer = () => {
     });
     return vectorStore.id;
   };
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      fetchFiles();
-    }, 2000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   // list files in assistant's vector store
   const fetchFiles = async () => {
@@ -120,6 +121,10 @@ const FileViewer = () => {
       alert(error);
     }
   };
+
+  if (connectStatus !== CONNECT_CONNECTED) {
+    return null;
+  }
 
   return (
     <div className="content-actions container_bg">
