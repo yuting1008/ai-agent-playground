@@ -40,6 +40,7 @@ import {
   AVATAR_STARTING,
   CAMERA_OFF,
   CAMERA_PHOTO_LIMIT,
+  CAMERA_READY,
   CAMERA_STARTING,
   CONNECT_DISCONNECTED,
 } from '../lib/const';
@@ -52,7 +53,6 @@ import {
 import { delayFunction } from '../lib/helper';
 import { Assistant } from 'openai/resources/beta/assistants';
 import { processAndStoreSentence } from '../lib/sentence';
-import { AvatarSynthesizer } from 'microsoft-cognitiveservices-speech-sdk';
 import axios from 'axios';
 import { GptImage } from '../types/GptImage';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
@@ -116,11 +116,6 @@ interface AppContextType {
   isAvatarSpeaking: boolean;
   setIsAvatarSpeaking: React.Dispatch<React.SetStateAction<boolean>>;
 
-  avatarSynthesizerRef: React.MutableRefObject<AvatarSynthesizer | null>;
-  peerConnectionRef: React.MutableRefObject<RTCPeerConnection | null>;
-  avatarVideoRef: React.MutableRefObject<HTMLVideoElement | null>;
-  avatarAudioRef: React.MutableRefObject<HTMLAudioElement | null>;
-
   memoryKv: { [key: string]: any };
   memoryKvRef: React.MutableRefObject<{ [key: string]: any }>;
   setMemoryKv: React.Dispatch<React.SetStateAction<{ [key: string]: any }>>;
@@ -166,19 +161,20 @@ interface AppContextType {
   resetTokenLatency: () => void;
   recordTokenLatency: (delta: any) => void;
 
-  resetVars: () => void;
-
   connectMessage: string;
   setConnectMessage: React.Dispatch<React.SetStateAction<string>>;
+
+  setAppKey: React.Dispatch<React.SetStateAction<number>>;
 }
 
 const IS_DEBUG: boolean = window.location.href.includes('localhost');
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-export const AppProvider: React.FC<{ children: ReactNode }> = ({
-  children,
-}) => {
+export const AppProvider: React.FC<{
+  children: ReactNode;
+  setAppKey: React.Dispatch<React.SetStateAction<number>>;
+}> = ({ children, setAppKey }) => {
   const isOnline = useOnlineStatus();
 
   const cogSvcSubKey = localStorage.getItem('cogSvcSubKey') || '';
@@ -289,7 +285,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
   const [responseBuffer, setResponseBuffer] = useState<string>('');
   const responseBufferRef = useRef(responseBuffer);
   useEffect(() => {
-    console.log('responseBuffer', responseBuffer);
     responseBufferRef.current = responseBuffer;
 
     if (!responseBuffer) {
@@ -337,12 +332,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
     memoryKvRef.current = memoryKv;
   }, [memoryKv]);
 
-  // avatarSynthesizer
-  const avatarSynthesizerRef = useRef<any>(null);
-  const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
-  const avatarVideoRef = useRef<HTMLVideoElement>(null);
-  const avatarAudioRef = useRef<HTMLAudioElement>(null);
-
   // sendTime DateTime
   const sendTimeRef = useRef(0);
 
@@ -366,23 +355,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
   useEffect(() => {
     tokenLatencyArrayRef.current = tokenLatencyArray;
   }, [tokenLatencyArray]);
-
-  // reset vars
-  const resetVars = () => {
-    setConnectStatus(CONNECT_DISCONNECTED);
-    setResponseBuffer('');
-    setInputValue('');
-    setCaptionQueue([]);
-    setNeedSpeechQueue([]);
-    setSpeechSentencesCacheArray([]);
-    setFirstTokenLatencyArray([]);
-    setTokenLatencyArray([]);
-    setMemoryKv({});
-    setBingSearchData(null);
-    setPhotos([]);
-    setAvatarStatus(AVATAR_OFF);
-    setConnectMessage('Awaiting Connection...');
-  };
 
   const resetTokenLatency = () => {
     isFirstTokenRef.current = true;
@@ -418,6 +390,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
     [on: string]: boolean;
   }) => {
     if (on) {
+      if (cameraStatusRef.current === CAMERA_READY) {
+        return {
+          message: 'The camera is already on.',
+        };
+      }
+
       setCameraStatus(CAMERA_STARTING);
       return {
         message: 'The camera is starting, please wait a moment to turn on.',
@@ -567,6 +545,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
         return {
           message:
             'Please set your Cognitive Services subscription key and region.',
+        };
+      }
+
+      if (avatarStatusRef.current === AVATAR_READY) {
+        return {
+          message: 'The avatar is already on.',
         };
       }
 
@@ -865,13 +849,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
         sendTimeRef,
         lastTokenTimeRef,
         functionsToolsRef,
-        avatarSynthesizerRef,
-        peerConnectionRef,
-        avatarVideoRef,
-        avatarAudioRef,
-        resetVars,
         connectMessage,
         setConnectMessage,
+        setAppKey,
       }}
     >
       {children}

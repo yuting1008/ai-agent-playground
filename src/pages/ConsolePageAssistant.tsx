@@ -36,7 +36,6 @@ export function ConsolePageAssistant() {
     recordTokenLatency,
     connectStatus,
     setConnectStatus,
-    resetVars,
     connectMessage,
     setConnectMessage,
   } = useContexts();
@@ -312,17 +311,6 @@ export function ConsolePageAssistant() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const disconnectConversation = () => {
-    resetVars();
-    stopCurrentStreamJob();
-    setMessagesAssistant([]);
-    setResponseBuffer('');
-    setThreadJob(null);
-    setThread(null);
-    setAssistant(null);
-    window.location.reload();
-  };
-
   /**
    * Render the application
    */
@@ -364,7 +352,6 @@ export function ConsolePageAssistant() {
         <ConnectButton
           connectStatus={connectStatus}
           connectConversation={connectConversation}
-          disconnectConversation={disconnectConversation}
         />
       </div>
     </>
