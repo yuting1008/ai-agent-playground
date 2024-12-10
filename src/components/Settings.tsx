@@ -835,12 +835,12 @@ const SettingsComponent: React.FC<{
                 >
                   {SPEECH}
                 </button>
-                <button
+                {/* <button
                   onClick={() => setActiveTab(TTS)}
                   className={activeTab === TTS ? 'active' : ''}
                 >
                   {TTS}
-                </button>
+                </button> */}
                 <button
                   onClick={() => setActiveTab(COMPLETION)}
                   className={activeTab === COMPLETION ? 'active' : ''}

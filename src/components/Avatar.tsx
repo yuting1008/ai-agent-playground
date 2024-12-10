@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useContexts } from '../providers/AppProvider';
 import './Camera.scss';
 import * as SpeechSDK from 'microsoft-cognitiveservices-speech-sdk';
@@ -9,10 +9,6 @@ const Avatar: React.FC = () => {
   const {
     avatarStatus,
     setAvatarStatus,
-    avatarVideoRef,
-    avatarAudioRef,
-    peerConnectionRef,
-    avatarSynthesizerRef,
     needSpeechQueue,
     setNeedSpeechQueue,
     setCaptionQueue,
@@ -22,6 +18,11 @@ const Avatar: React.FC = () => {
     setIsAvatarSpeaking,
     isAvatarSpeaking,
   } = useContexts();
+
+  const avatarSynthesizerRef = useRef<any>(null);
+  const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
+  const avatarVideoRef = useRef<HTMLVideoElement>(null);
+  const avatarAudioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
     if (avatarStatus === AVATAR_STARTING) {

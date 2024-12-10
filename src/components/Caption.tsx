@@ -6,6 +6,14 @@ const Caption: React.FC = () => {
   const { caption, setCaption, captionQueue, captionQueueRef } = useContexts();
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setCaption('');
+    }, 15000);
+
+    return () => clearTimeout(timer);
+  }, [caption, setCaption]);
+
+  useEffect(() => {
     captionQueueRef.current = captionQueue;
     if (captionQueue.length > 0) {
       setCaption(captionQueue[0]);

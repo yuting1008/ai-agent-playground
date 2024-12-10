@@ -125,14 +125,6 @@ const Camera: React.FC = () => {
     ) : null;
   };
 
-  const CameraLoading = () => {
-    return cameraStatus === CAMERA_STARTING ? (
-      <div className="camLoading">
-        <div className="spinner" key={'camLoading'}></div>
-      </div>
-    ) : null;
-  };
-
   const PhotosBrowser = () => {
     return isModalOpen ? (
       <div style={styles.modalOverlay}>
@@ -167,7 +159,11 @@ const Camera: React.FC = () => {
         <RefreshCameraIcon />
       </div>
 
-      <CameraLoading />
+      {cameraStatus === CAMERA_STARTING && (
+        <div className="camLoading">
+          <div className="spinner" key={'camLoading'}></div>
+        </div>
+      )}
 
       {cameraStatus !== CAMERA_OFF && (
         <Webcam
