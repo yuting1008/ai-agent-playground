@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { X } from 'react-feather';
 import { Activity } from 'react-feather';
 import { useContexts } from '../../providers/AppProvider';
@@ -163,8 +163,6 @@ const TrafficMonitor: React.FC = () => {
 
     console.log('ShowTrafficMonitor Render');
 
-    // return null;
-
     const firstTokenLatencyMin =
       firstTokenLatencyArray.length > 0
         ? Math.min(...firstTokenLatencyArray)
@@ -241,7 +239,10 @@ const TrafficMonitor: React.FC = () => {
 
     return (
       <div style={importModalStyles.backdrop}>
-        <div style={importModalStyles.modal} className={'modal'}>
+        <div
+          style={{ ...importModalStyles.modal, width: '600px' }}
+          className={'modal'}
+        >
           <div style={importModalStyles.header}>
             <h2>Traffic Monitor</h2>
             <button
