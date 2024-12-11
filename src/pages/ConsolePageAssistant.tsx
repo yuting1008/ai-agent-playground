@@ -36,7 +36,6 @@ export function ConsolePageAssistant() {
     recordTokenLatency,
     connectStatus,
     setConnectStatus,
-    resetVars,
     connectMessage,
     setConnectMessage,
   } = useContexts();
@@ -162,19 +161,24 @@ export function ConsolePageAssistant() {
   const handleAssistantRequiresAction = async (
     event: AssistantStreamEvent.ThreadRunRequiresAction,
   ) => {
-    setLoading(true);
-    const runId = event.data.id;
-    const toolCalls = event.data.required_action.submit_tool_outputs.tool_calls;
-    // loop over tool calls and call function handler
-    const toolCallOutputs = await Promise.all(
-      toolCalls.map(async (toolCall: any) => {
-        const result = await functionCallHandler(toolCall);
-        return { output: result, tool_call_id: toolCall.id };
-      }),
-    );
-    setAssistantRunning(true);
-    await submitAssistantActionResult(runId, toolCallOutputs);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const runId = event.data.id;
+      const toolCalls =
+        event.data.required_action.submit_tool_outputs.tool_calls;
+      // loop over tool calls and call function handler
+      const toolCallOutputs = await Promise.all(
+        toolCalls.map(async (toolCall: any) => {
+          const result = await functionCallHandler(toolCall);
+          return { output: result, tool_call_id: toolCall.id };
+        }),
+      );
+      setAssistantRunning(true);
+      await submitAssistantActionResult(runId, toolCallOutputs);
+      setLoading(false);
+    } catch (error) {
+      console.error('handleAssistantRequiresAction error', error);
+    }
   };
 
   // handleRunCompleted - re-enable the input form
@@ -280,6 +284,16 @@ export function ConsolePageAssistant() {
   };
 
   const sendAssistantMessage = async (text: string) => {
+    if (!threadRef.current?.id) {
+      alert('Thread not found');
+      return;
+    }
+
+    if (!assistantRef?.current?.id) {
+      alert('Assistant not found');
+      return;
+    }
+
     await getOpenAIClient().beta.threads.messages.create(
       threadRef.current?.id,
       {
@@ -291,7 +305,7 @@ export function ConsolePageAssistant() {
     const stream = getOpenAIClient().beta.threads.runs.stream(
       threadRef.current?.id,
       {
-        assistant_id: assistantRef?.current?.id || '',
+        assistant_id: assistantRef?.current?.id,
       },
     );
 
@@ -311,17 +325,6 @@ export function ConsolePageAssistant() {
     setConnectStatus(CONNECT_CONNECTED);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const disconnectConversation = () => {
-    resetVars();
-    stopCurrentStreamJob();
-    setMessagesAssistant([]);
-    setResponseBuffer('');
-    setThreadJob(null);
-    setThread(null);
-    setAssistant(null);
-    window.location.reload();
-  };
 
   /**
    * Render the application
@@ -364,7 +367,6 @@ export function ConsolePageAssistant() {
         <ConnectButton
           connectStatus={connectStatus}
           connectConversation={connectConversation}
-          disconnectConversation={disconnectConversation}
         />
       </div>
     </>

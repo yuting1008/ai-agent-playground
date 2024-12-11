@@ -58,6 +58,10 @@ body {
   .container_bg {
     background-color: rgba(237, 237, 237, 0.7);
   }
+
+  a {
+    color: #000000;
+  }
 }
 
 #root {
@@ -73,6 +77,10 @@ body.night-mode {
   background-repeat: no-repeat;
   background-position: 20% 20%;
   color: #dddddd;
+
+  a {
+    color: #ffffff;
+  }
 
   input {
     color: #dddddd;

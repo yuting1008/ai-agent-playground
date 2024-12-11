@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useContexts } from '../../providers/AppProvider';
 import { X } from 'react-feather';
-import './BingSearchResult.scss';
+import { modalStyles } from '../../styles/modalStyles';
 
 interface DeepLink {
   name: string;
@@ -67,78 +67,32 @@ const BingSearchResult: React.FC = () => {
   const { bingSearchData, setBingSearchData } = useContexts();
   const { isNightMode } = useContexts();
 
-  const styles: { [key: string]: React.CSSProperties } = {
-    backdrop: {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      width: '100vw',
-      height: '100vh',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      zIndex: 9999,
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      wordBreak: 'break-all',
-      scrollbarColor: isNightMode
-        ? 'rgba(0, 0, 0, 0.5) transparent'
-        : 'transparent',
-    },
-    modal: {
-      borderRadius: '4px',
-      width: '80%',
-      maxHeight: '80%',
-      overflowY: 'auto',
-      boxShadow: '0 0 10px rgba(0,0,0,0.3)',
-      position: 'relative',
-    },
-    header: {
-      padding: '10px 15px',
-      borderBottom: '1px solid #ccc',
-      display: 'flex',
-      justifyContent: 'space-between',
-
-      position: 'sticky', // 使用 sticky 定位
-      top: 0, // 确保 header 保持在顶部
-      backgroundColor: isNightMode ? '#222' : 'white', // 添加背景色，以确保内容滚动时不会遮挡
-      zIndex: 1, // 设置 z-index 确保它在其他内容之上
-    },
-    closeBtn: {
-      background: 'none',
-      border: 'none',
-      fontSize: '16px',
-      cursor: 'pointer',
-    },
-    tabs: {
-      display: 'flex',
-      borderBottom: '1px solid #ccc',
-    },
-    tab: {
-      padding: '10px 15px',
-      cursor: 'pointer',
-      border: 'none',
-      marginRight: '5px',
-    },
-    activeTab: {
-      padding: '10px 15px',
-      cursor: 'pointer',
-      border: 'none',
-      marginRight: '5px',
-      fontWeight: 'bold',
-    },
-    content: {
-      padding: '20px',
-    },
-  };
-
   if (!bingSearchData) {
     return null;
   }
 
   const { webPages, entities, relatedSearches, videos } = bingSearchData || {};
+  const styles = modalStyles({ isNightMode });
+
+  const tabStyles = {
+    h2: {
+      fontWeight: 400,
+    },
+    ul: {
+      listStyle: 'none',
+      padding: 0,
+      margin: 0,
+    },
+    li: {
+      marginBottom: '10px',
+    },
+    a: {
+      color: 'green',
+    },
+  };
 
   return (
-    <div style={styles.backdrop} className="bing-search-result">
+    <div style={styles.backdrop}>
       <div style={styles.modal} className={'modal'}>
         <div style={styles.header}>
           <h2>Bing Results: {bingSearchData?.queryContext?.originalQuery}</h2>
@@ -178,10 +132,15 @@ const BingSearchResult: React.FC = () => {
         <div style={styles.content}>
           {activeTab === 'webpages' && webPages && (
             <div>
-              <ul>
+              <ul style={tabStyles.ul}>
                 {webPages.value.map((item: any, idx: number) => (
-                  <li key={idx}>
-                    <a href={item.url} target="_blank" rel="noreferrer">
+                  <li key={idx} style={tabStyles.li}>
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      style={tabStyles.a}
+                      rel="noreferrer"
+                    >
                       {item.name}
                     </a>
                     <br />
@@ -193,9 +152,9 @@ const BingSearchResult: React.FC = () => {
           )}
           {activeTab === 'entities' && entities && (
             <div>
-              <ul>
+              <ul style={tabStyles.ul}>
                 {entities.value.map((entity: any, idx: number) => (
-                  <li key={idx}>
+                  <li key={idx} style={tabStyles.li}>
                     <strong>{entity.name}</strong>: {entity.description}
                   </li>
                 ))}
@@ -204,9 +163,9 @@ const BingSearchResult: React.FC = () => {
           )}
           {activeTab === 'related' && relatedSearches && (
             <div>
-              <ul>
+              <ul style={tabStyles.ul}>
                 {relatedSearches.value.map((rel: any, idx: number) => (
-                  <li key={idx}>
+                  <li key={idx} style={tabStyles.li}>
                     <a href={rel.webSearchUrl} target="_blank" rel="noreferrer">
                       {rel.displayText}
                     </a>
@@ -217,9 +176,9 @@ const BingSearchResult: React.FC = () => {
           )}
           {activeTab === 'videos' && videos && (
             <div>
-              <ul>
+              <ul style={tabStyles.ul}>
                 {videos.value.map((video: any, idx: number) => (
-                  <li key={idx}>
+                  <li key={idx} style={tabStyles.li}>
                     <a href={video.contentUrl} target="_blank" rel="noreferrer">
                       {video.name}
                     </a>

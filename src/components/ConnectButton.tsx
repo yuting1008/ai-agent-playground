@@ -1,16 +1,21 @@
 import { Button } from '../components/button/Button';
 import { CONNECT_CONNECTED, CONNECT_CONNECTING } from '../lib/const';
 import { X, Zap } from 'react-feather';
+import { useContexts } from '../providers/AppProvider';
 
 export default function ConnectButton({
   connectStatus,
   connectConversation,
-  disconnectConversation,
 }: {
   connectStatus: string;
   connectConversation: () => void;
-  disconnectConversation: () => void;
 }) {
+  const { resetApp } = useContexts();
+
+  const disconnectConversation = () => {
+    resetApp();
+  };
+
   return (
     <div className="content-actions">
       <Button

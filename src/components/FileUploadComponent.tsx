@@ -4,7 +4,6 @@ import {
   fileUploadInstructions,
   fileUploadTooBig,
 } from '../lib/const';
-import './FileUploadComponent.scss';
 import { Upload } from 'react-feather';
 import { Button } from './button/Button';
 import { DATA_BEGIN, DATA_END } from '../lib/instructions';
@@ -15,7 +14,7 @@ const FileUploadComponent: React.FC<{
   connectStatus: string;
   realtimeClient: RealtimeClient;
 }> = ({ connectStatus, realtimeClient }) => {
-  const { replaceInstructions } = useContexts();
+  const { replaceInstructions, isNightMode } = useContexts();
 
   const [fileName, setFileName] = useState<string>('Upload File');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -81,14 +80,12 @@ const FileUploadComponent: React.FC<{
 
       updateDataFile(content);
 
-      console.log('update instructions');
-
-      realtimeClient.sendUserMessageContent([
-        {
-          type: `input_text`,
-          text: fileUploadInstructions,
-        },
-      ]);
+      // realtimeClient.sendUserMessageContent([
+      //   {
+      //     type: `input_text`,
+      //     text: fileUploadInstructions,
+      //   },
+      // ]);
     }
   };
 

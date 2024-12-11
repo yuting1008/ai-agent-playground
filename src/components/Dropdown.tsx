@@ -1,5 +1,5 @@
 import React from 'react';
-import './Dropdown.scss';
+import { useContexts } from '../providers/AppProvider';
 
 interface Option {
   value: string;
@@ -17,11 +17,36 @@ const Dropdown: React.FC<DropdownProps> = ({
   selectedValue,
   onChange,
 }) => {
+  const { isNightMode } = useContexts();
+
+  const selectStyle: React.CSSProperties = {
+    width: 200,
+    padding: 10,
+    border: 'none',
+    borderRadius: 3,
+    backgroundColor: isNightMode
+      ? 'rgba(0, 0, 0, 0.3)'
+      : 'rgba(255, 255, 255, 0.7)',
+    color: isNightMode ? '#ffffff' : '#000000',
+  };
+
+  const optionStyle: React.CSSProperties = {
+    padding: '15px 20px',
+    backgroundColor: isNightMode
+      ? 'rgba(0, 0, 0, 0.3)'
+      : 'rgba(255, 255, 255, 0.7)',
+    color: isNightMode ? '#ffffff' : '#000000',
+  };
+
   return (
-    <div className="language_options">
-      <select value={selectedValue} onChange={(e) => onChange(e.target.value)}>
+    <div>
+      <select
+        style={selectStyle}
+        value={selectedValue}
+        onChange={(e) => onChange(e.target.value)}
+      >
         {options.map((option: Option) => (
-          <option key={option.value} value={option.value}>
+          <option style={optionStyle} key={option.value} value={option.value}>
             {option.label}
           </option>
         ))}

@@ -1,14 +1,12 @@
 import {
   ItemType,
   RealtimeClient,
-  ToolDefinitionType,
 } from '@theodoreniu/realtime-api-beta/dist/lib/client.js';
 import ReactMarkdown from 'react-markdown';
 import ProductList from '../components/ProductList';
 import { X } from 'react-feather';
 import { AVATAR_READY, notDisplay, products } from '../lib/const';
 import { useCallback } from 'react';
-import { useContexts } from '../providers/AppProvider';
 
 export default function RealtimeMessages({
   items,

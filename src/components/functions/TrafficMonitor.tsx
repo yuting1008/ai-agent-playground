@@ -1,11 +1,12 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { X } from 'react-feather';
-import './BingSearchResult.scss';
 import { Activity } from 'react-feather';
 import { useContexts } from '../../providers/AppProvider';
 import { CONNECT_CONNECTED } from '../../lib/const';
 import { avgLatency, calculatePercentiles } from '../../lib/helper';
 import { TableSheet } from '../../types/Table';
+import WithFade from '../WithFade';
+import { modalStyles } from '../../styles/modalStyles';
 
 const TrafficMonitor: React.FC = () => {
   const [isShow, setIsShow] = useState(false);
@@ -17,6 +18,8 @@ const TrafficMonitor: React.FC = () => {
     isNightMode,
   } = useContexts();
 
+  const importModalStyles = modalStyles({ isNightMode });
+
   const firstTokenLatencyLast =
     firstTokenLatencyArray.length > 0
       ? firstTokenLatencyArray[firstTokenLatencyArray.length - 1]
@@ -26,52 +29,11 @@ const TrafficMonitor: React.FC = () => {
       ? tokenLatencyArray[tokenLatencyArray.length - 1]
       : 0;
 
-  const styles: { [key: string]: React.CSSProperties } = {
-    backdrop: {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      width: '100vw',
-      height: '100vh',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      zIndex: 9999,
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      wordBreak: 'break-all',
-      scrollbarColor: isNightMode
-        ? 'rgba(0, 0, 0, 0.5) transparent'
-        : 'transparent',
-    },
-    modal: {
-      borderRadius: '4px',
-      // width: '70%',
-      maxHeight: '80%',
-      overflowY: 'auto',
-      boxShadow: '0 0 10px rgba(0,0,0,0.3)',
-      position: 'relative',
-    },
-    header: {
-      padding: '10px 15px',
-      borderBottom: '1px solid #ccc',
-      display: 'flex',
-      justifyContent: 'space-between',
-
-      position: 'sticky', // 使用 sticky 定位
-      top: 0, // 确保 header 保持在顶部
-      backgroundColor: isNightMode ? '#222' : 'white', // 添加背景色，以确保内容滚动时不会遮挡
-      zIndex: 1, // 设置 z-index 确保它在其他内容之上
-    },
-    closeBtn: {
-      background: 'none',
-      border: 'none',
-      fontSize: '16px',
-      cursor: 'pointer',
-    },
+  const styles = {
     img: {
       width: '100%',
       height: 'auto',
-    },
+    } as React.CSSProperties,
     tables: {
       padding: '5px',
       flexWrap: 'wrap',
@@ -79,13 +41,12 @@ const TrafficMonitor: React.FC = () => {
       display: 'flex',
       flexDirection: 'row',
       justifyContent: 'space-between',
-      // backgroundColor: 'rgb(0, 0, 0, 0.1)',
       borderRadius: '4px',
-    },
+    } as React.CSSProperties,
     table: {
       borderCollapse: 'collapse',
       fontWeight: 'bold',
-    },
+    } as React.CSSProperties,
     tablesDashboard: {
       padding: '20px',
       flexWrap: 'wrap',
@@ -93,19 +54,18 @@ const TrafficMonitor: React.FC = () => {
       display: 'flex',
       flexDirection: 'row',
       justifyContent: 'space-between',
-    },
+    } as React.CSSProperties,
     tableDashboard: {
       border: '1px solid #ccc',
       padding: '10px',
       minWidth: '170px',
-      // width: '100%',
       marginTop: '10px',
-    },
+    } as React.CSSProperties,
     key: {
       textAlign: 'right',
       margin: '0',
       padding: '0',
-    },
+    } as React.CSSProperties,
     value: {
       color: 'green',
       textAlign: 'left',
@@ -113,11 +73,11 @@ const TrafficMonitor: React.FC = () => {
       margin: '0',
       padding: '0',
       marginLeft: '5px',
-    },
+    } as React.CSSProperties,
     unit: {
       textAlign: 'left',
       paddingLeft: '5px',
-    },
+    } as React.CSSProperties,
   };
 
   const TableRender = ({
@@ -203,8 +163,6 @@ const TrafficMonitor: React.FC = () => {
 
     console.log('ShowTrafficMonitor Render');
 
-    // return null;
-
     const firstTokenLatencyMin =
       firstTokenLatencyArray.length > 0
         ? Math.min(...firstTokenLatencyArray)
@@ -280,14 +238,17 @@ const TrafficMonitor: React.FC = () => {
     };
 
     return (
-      <div style={styles.backdrop}>
-        <div style={styles.modal} className={'modal'}>
-          <div style={styles.header}>
+      <div style={importModalStyles.backdrop}>
+        <div
+          style={{ ...importModalStyles.modal, width: '600px' }}
+          className={'modal'}
+        >
+          <div style={importModalStyles.header}>
             <h2>Traffic Monitor</h2>
             <button
               key="close"
               onClick={() => setIsShow(false)}
-              style={styles.closeBtn}
+              style={importModalStyles.closeBtn}
             >
               <X />
             </button>
@@ -319,13 +280,16 @@ const TrafficMonitor: React.FC = () => {
         firstTokenLatencyArray={firstTokenLatencyArray}
         tokenLatencyArray={tokenLatencyArray}
       />
-      <span onClick={() => setIsShow(true)}>
-        <ShowTopBar
-          firstTokenLatencyArray={firstTokenLatencyArray}
-          tokenLatencyArray={tokenLatencyArray}
-        />
-        <Activity />
-      </span>
+
+      <WithFade in={connectStatus === CONNECT_CONNECTED}>
+        <span onClick={() => setIsShow(true)}>
+          <ShowTopBar
+            firstTokenLatencyArray={firstTokenLatencyArray}
+            tokenLatencyArray={tokenLatencyArray}
+          />
+          <Activity />
+        </span>
+      </WithFade>
     </>
   );
 };

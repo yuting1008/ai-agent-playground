@@ -50,9 +50,9 @@ export function ConsolePageRealtime() {
     resetTokenLatency,
     recordTokenLatency,
     setIsAvatarSpeaking,
-    resetVars,
     connectMessage,
     setConnectMessage,
+    resetApp,
   } = useContexts();
 
   const endpoint = localStorage.getItem('endpoint') || '';
@@ -116,8 +116,8 @@ export function ConsolePageRealtime() {
 
     client.on('error', (event: any) => {
       console.error(event);
-      resetVars();
       setConnectMessage(event.message);
+      setConnectStatus(CONNECT_DISCONNECTED);
     });
 
     client.on('close', (event: any) => {
@@ -253,7 +253,7 @@ export function ConsolePageRealtime() {
       setConnectStatus(CONNECT_DISCONNECTED);
       setConnectMessage(tip);
       alert(`${tip}\n${e}\n\nKey is "${key}"`);
-      window.location.reload();
+      resetApp();
       return;
     }
 
@@ -310,15 +310,6 @@ export function ConsolePageRealtime() {
     }
   };
 
-  const disconnectConversation = async () => {
-    resetVars();
-    setItems([]);
-    realtimeClientRef.current?.disconnect();
-    await wavRecorderRef.current?.end();
-    await wavStreamPlayerRef.current?.interrupt();
-    window.location.reload();
-  };
-
   /**
    * Render the application
    */
@@ -368,7 +359,6 @@ export function ConsolePageRealtime() {
         <ConnectButton
           connectStatus={connectStatus}
           connectConversation={connectConversation}
-          disconnectConversation={disconnectConversation}
         />
 
         <AudioVisualization

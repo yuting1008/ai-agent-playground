@@ -40,6 +40,7 @@ import {
   AVATAR_STARTING,
   CAMERA_OFF,
   CAMERA_PHOTO_LIMIT,
+  CAMERA_READY,
   CAMERA_STARTING,
   CONNECT_DISCONNECTED,
 } from '../lib/const';
@@ -52,7 +53,6 @@ import {
 import { delayFunction } from '../lib/helper';
 import { Assistant } from 'openai/resources/beta/assistants';
 import { processAndStoreSentence } from '../lib/sentence';
-import { AvatarSynthesizer } from 'microsoft-cognitiveservices-speech-sdk';
 import axios from 'axios';
 import { GptImage } from '../types/GptImage';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
@@ -116,11 +116,6 @@ interface AppContextType {
   isAvatarSpeaking: boolean;
   setIsAvatarSpeaking: React.Dispatch<React.SetStateAction<boolean>>;
 
-  avatarSynthesizerRef: React.MutableRefObject<AvatarSynthesizer | null>;
-  peerConnectionRef: React.MutableRefObject<RTCPeerConnection | null>;
-  avatarVideoRef: React.MutableRefObject<HTMLVideoElement | null>;
-  avatarAudioRef: React.MutableRefObject<HTMLAudioElement | null>;
-
   memoryKv: { [key: string]: any };
   memoryKvRef: React.MutableRefObject<{ [key: string]: any }>;
   setMemoryKv: React.Dispatch<React.SetStateAction<{ [key: string]: any }>>;
@@ -166,19 +161,22 @@ interface AppContextType {
   resetTokenLatency: () => void;
   recordTokenLatency: (delta: any) => void;
 
-  resetVars: () => void;
-
   connectMessage: string;
   setConnectMessage: React.Dispatch<React.SetStateAction<string>>;
+
+  resetApp: () => void;
 }
 
 const IS_DEBUG: boolean = window.location.href.includes('localhost');
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-export const AppProvider: React.FC<{ children: ReactNode }> = ({
-  children,
-}) => {
+export const AppProvider: React.FC<{
+  children: ReactNode;
+  setAppKey: React.Dispatch<React.SetStateAction<number>>;
+  isNightMode: boolean;
+  setIsNightMode: React.Dispatch<React.SetStateAction<boolean>>;
+}> = ({ children, setAppKey, isNightMode, setIsNightMode }) => {
   const isOnline = useOnlineStatus();
 
   const cogSvcSubKey = localStorage.getItem('cogSvcSubKey') || '';
@@ -289,7 +287,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
   const [responseBuffer, setResponseBuffer] = useState<string>('');
   const responseBufferRef = useRef(responseBuffer);
   useEffect(() => {
-    console.log('responseBuffer', responseBuffer);
     responseBufferRef.current = responseBuffer;
 
     if (!responseBuffer) {
@@ -323,8 +320,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
     speechSentencesCacheArrayRef.current = speechSentencesCacheArray;
   }, [speechSentencesCacheArray]);
 
-  // isNightMode boolean
-  const [isNightMode, setIsNightMode] = useState<boolean>(false);
   const isNightModeRef = useRef(isNightMode);
 
   // isAvatarSpeaking boolean
@@ -336,12 +331,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
   useEffect(() => {
     memoryKvRef.current = memoryKv;
   }, [memoryKv]);
-
-  // avatarSynthesizer
-  const avatarSynthesizerRef = useRef<any>(null);
-  const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
-  const avatarVideoRef = useRef<HTMLVideoElement>(null);
-  const avatarAudioRef = useRef<HTMLAudioElement>(null);
 
   // sendTime DateTime
   const sendTimeRef = useRef(0);
@@ -367,21 +356,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
     tokenLatencyArrayRef.current = tokenLatencyArray;
   }, [tokenLatencyArray]);
 
-  // reset vars
-  const resetVars = () => {
-    setConnectStatus(CONNECT_DISCONNECTED);
-    setResponseBuffer('');
-    setInputValue('');
-    setCaptionQueue([]);
-    setNeedSpeechQueue([]);
-    setSpeechSentencesCacheArray([]);
-    setFirstTokenLatencyArray([]);
-    setTokenLatencyArray([]);
-    setMemoryKv({});
-    setBingSearchData(null);
-    setPhotos([]);
-    setAvatarStatus(AVATAR_OFF);
-    setConnectMessage('Awaiting Connection...');
+  const resetApp = () => {
+    setAppKey((prevKey) => prevKey + 1);
   };
 
   const resetTokenLatency = () => {
@@ -417,16 +393,27 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
   }: {
     [on: string]: boolean;
   }) => {
-    if (on) {
-      setCameraStatus(CAMERA_STARTING);
-      return {
-        message: 'The camera is starting, please wait a moment to turn on.',
-      };
+    try {
+      if (on) {
+        if (cameraStatusRef.current === CAMERA_READY) {
+          return {
+            message: 'The camera is already on.',
+          };
+        }
+
+        setCameraStatus(CAMERA_STARTING);
+        return {
+          message: 'The camera is starting, please wait a moment to turn on.',
+        };
+      }
+
+      setCameraStatus(CAMERA_OFF);
+
+      return { message: 'The camera has been turned off' };
+    } catch (error) {
+      console.error('camera error', error);
+      return { error: error };
     }
-
-    setCameraStatus(CAMERA_OFF);
-
-    return { message: 'The camera has been turned off' };
   };
 
   const camera_current_handler: Function = async ({
@@ -570,11 +557,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
         };
       }
 
+      if (avatarStatusRef.current === AVATAR_READY) {
+        return {
+          message: 'The avatar is already on.',
+        };
+      }
+
       setAvatarStatus(AVATAR_STARTING);
 
       let checkTime = 0;
 
-      while (checkTime < 10) {
+      while (checkTime < 20) {
         await delayFunction(1000);
         checkTime++;
         if (avatarStatusRef.current === AVATAR_READY) {
@@ -865,13 +858,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
         sendTimeRef,
         lastTokenTimeRef,
         functionsToolsRef,
-        avatarSynthesizerRef,
-        peerConnectionRef,
-        avatarVideoRef,
-        avatarAudioRef,
-        resetVars,
         connectMessage,
         setConnectMessage,
+        resetApp,
       }}
     >
       {children}

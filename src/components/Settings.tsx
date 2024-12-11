@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { FaRegEye, FaRegEyeSlash } from 'react-icons/fa';
 import { Download, Settings, Upload, X } from 'react-feather';
 import { Button } from './button/Button';
-import './Settings.scss';
 import Dropdown from './Dropdown';
 import { GRAPHRAG_ABOUT } from '../tools/azure_docs';
 import {
@@ -11,6 +10,9 @@ import {
   ASSISTENT_TYPE_REALTIME,
   CONNECT_CONNECTED,
 } from '../lib/const';
+import { useContexts } from '../providers/AppProvider';
+import styled from 'styled-components';
+import { css } from '@emotion/react';
 
 const DEFAULT = 'Default';
 const REAL_TIME_API = 'Realtime';
@@ -39,6 +41,131 @@ const SettingsComponent: React.FC<{
   const [isVisible, setIsVisible] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(DEFAULT);
+  const { resetApp, isNightMode } = useContexts();
+
+  const styles = {
+    settingsModal: {
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.7)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 990000,
+    } as React.CSSProperties,
+    settingsModalContent: {
+      backgroundColor: isNightMode ? '#262525' : '#ededed',
+      padding: '20px',
+      borderRadius: '8px',
+      color: isNightMode ? '#dddddf' : '#3e3e47',
+      width: '80%',
+      maxWidth: '900px',
+      maxHeight: '80%',
+      overflowY: 'auto',
+    } as React.CSSProperties,
+    settingsModalHeader: {
+      fontSize: '20px',
+      marginBottom: '14px',
+    } as React.CSSProperties,
+    settingsModalClose: {
+      marginBottom: '10px',
+      cursor: 'pointer',
+      border: 'none',
+      float: 'right',
+      fontSize: '14px',
+      backgroundColor: 'transparent',
+
+      '&:hover': {
+        color: isNightMode ? '#a8a7a7' : '#515050',
+      },
+    } as React.CSSProperties,
+    settingModalImageContainer: {
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: '10px',
+    } as React.CSSProperties,
+    settingModalImage: {
+      width: '100px',
+      height: '100px',
+      objectFit: 'cover',
+    } as React.CSSProperties,
+    tabActive: {
+      backgroundColor: isNightMode ? '#0a0909' : '#ccc',
+    } as React.CSSProperties,
+    settingsTabButtons: {
+      display: 'flex',
+      gap: '-1px',
+      marginTop: '20px',
+      marginBottom: '20px',
+    } as React.CSSProperties,
+    settingsTabButton: {
+      backgroundColor: 'transparent',
+      border: '1px solid #b2b1b1',
+      padding: '8px 10px',
+      cursor: 'pointer',
+      margin: '0',
+      borderRight: 'none',
+    } as React.CSSProperties,
+    settingsTabButtonLast: {
+      borderRight: '1px solid #b2b1b1',
+    } as React.CSSProperties,
+    settingLabel: {
+      fontSize: '12px',
+      textAlign: 'left',
+      marginTop: '15px',
+      marginBottom: '5px',
+    } as React.CSSProperties,
+    settingLabelTip: {
+      fontSize: '10px',
+      textAlign: 'right',
+      display: 'inline',
+      marginLeft: '10px',
+      bottom: '0',
+    } as React.CSSProperties,
+    settingLabelShow: {
+      fontSize: '13px',
+      textAlign: 'right',
+      display: 'inline',
+      float: 'right',
+      position: 'relative',
+      cursor: 'pointer',
+    } as React.CSSProperties,
+    settingInput: {
+      padding: '10px',
+      border: '0px solid #ccc',
+      borderRadius: '4px',
+      width: '100%',
+      fontSize: '12px',
+      margin: '0',
+      backgroundColor: isNightMode
+        ? 'rgba(0, 0, 0, 0.3)'
+        : 'rgba(255, 255, 255, 0.7)',
+      color: isNightMode ? '#ababab' : '#3e3e47',
+
+      ':disabled': {
+        backgroundColor: '#336643',
+      },
+    } as React.CSSProperties,
+    settings_inline: {
+      display: 'flex',
+      gap: '40px',
+    } as React.CSSProperties,
+    settings_inline_block: {
+      display: 'inline-block',
+      width: '50%',
+    } as React.CSSProperties,
+    export_settings: {
+      border: '1px solid #b2b1b1',
+      background: 'transparent',
+    } as React.CSSProperties,
+    settings_tip: {
+      marginBottom: '10px',
+      color: '#666',
+    } as React.CSSProperties,
+  };
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -69,7 +196,7 @@ const SettingsComponent: React.FC<{
 
     return (
       <div>
-        <div className="settings-label">Assistant Type</div>
+        <div style={styles.settingLabel}>Assistant Type</div>
         <Dropdown
           options={supportedAssistantTypes}
           selectedValue={assistantType}
@@ -79,7 +206,7 @@ const SettingsComponent: React.FC<{
           }}
         />
 
-        <div className="settings-label">Default Language</div>
+        <div style={styles.settingLabel}>Default Language</div>
         <Dropdown
           options={supportedLanguages}
           selectedValue={language}
@@ -93,7 +220,7 @@ const SettingsComponent: React.FC<{
           <Button
             label={'Import'}
             icon={Upload}
-            className={'export_settings'}
+            style={styles.export_settings}
             buttonStyle={'regular'}
             onClick={handleButtonClick}
           />
@@ -101,7 +228,7 @@ const SettingsComponent: React.FC<{
           <Button
             label={'Export'}
             icon={Download}
-            className={'export_settings'}
+            style={styles.export_settings}
             buttonStyle={'regular'}
             onClick={handleExport}
           />
@@ -110,7 +237,7 @@ const SettingsComponent: React.FC<{
             type="file"
             accept=".json"
             ref={fileInputRef}
-            onChange={handleFileChange}
+            onChange={handleImport}
             style={{ display: 'none' }}
           />
         </div>
@@ -126,10 +253,10 @@ const SettingsComponent: React.FC<{
 
     return (
       <div>
-        <div className="settings-label">Target URI</div>
+        <div style={styles.settingLabel}>Target URI</div>
         <input
           type={'text'}
-          className="settings-input"
+          style={styles.settingInput}
           value={endpoint}
           placeholder={
             'https://xxx.openai.azure.com/openai/realtime?api-version=2024-10-01-preview&deployment=xxx'
@@ -140,15 +267,15 @@ const SettingsComponent: React.FC<{
           }}
         />
 
-        <div className="settings-label">
+        <div style={styles.settingLabel}>
           Key
-          <span className="settings-label-show" onClick={toggleVisibility}>
+          <span style={styles.settingLabelShow} onClick={toggleVisibility}>
             {isVisible ? <FaRegEye /> : <FaRegEyeSlash />}
           </span>
         </div>
         <input
           type={isVisible ? 'text' : 'password'}
-          className="settings-input"
+          style={styles.settingInput}
           value={key}
           placeholder={''}
           onChange={(e) => {
@@ -170,10 +297,10 @@ const SettingsComponent: React.FC<{
 
     return (
       <div>
-        <div className="settings-label">Target URI</div>
+        <div style={styles.settingLabel}>Target URI</div>
         <input
           type={'text'}
-          className="settings-input"
+          style={styles.settingInput}
           value={ttsTargetUri}
           placeholder={
             'https://xxxx.openai.azure.com/openai/deployments/tts/audio/speech?api-version=2024-05-01-preview'
@@ -184,15 +311,15 @@ const SettingsComponent: React.FC<{
           }}
         />
 
-        <div className="settings-label">
+        <div style={styles.settingLabel}>
           Key
-          <span className="settings-label-show" onClick={toggleVisibility}>
+          <span style={styles.settingLabelShow} onClick={toggleVisibility}>
             {isVisible ? <FaRegEye /> : <FaRegEyeSlash />}
           </span>
         </div>
         <input
           type={isVisible ? 'text' : 'password'}
-          className="settings-input"
+          style={styles.settingInput}
           value={ttsApiKey}
           placeholder={''}
           onChange={(e) => {
@@ -214,10 +341,10 @@ const SettingsComponent: React.FC<{
 
     return (
       <div>
-        <div className="settings-label">Target URI</div>
+        <div style={styles.settingLabel}>Target URI</div>
         <input
           type={'text'}
-          className="settings-input"
+          style={styles.settingInput}
           value={dallTargetUri}
           placeholder={
             'https://xxx.openai.azure.com/openai/deployments/dall-e-3/images/generations?api-version=2024-02-01'
@@ -228,15 +355,15 @@ const SettingsComponent: React.FC<{
           }}
         />
 
-        <div className="settings-label">
+        <div style={styles.settingLabel}>
           Key
-          <span className="settings-label-show" onClick={toggleVisibility}>
+          <span style={styles.settingLabelShow} onClick={toggleVisibility}>
             {isVisible ? <FaRegEye /> : <FaRegEyeSlash />}
           </span>
         </div>
         <input
           type={isVisible ? 'text' : 'password'}
-          className="settings-input"
+          style={styles.settingInput}
           value={dallApiKey}
           placeholder={''}
           onChange={(e) => {
@@ -264,16 +391,16 @@ const SettingsComponent: React.FC<{
 
     return (
       <div>
-        <div className="settings-tip">
+        <div style={styles.settings_tip}>
           Currently only local search is supported.{' '}
           <a href="https://github.com/TheodoreNiu/graphrag_kit" target="_blank">
             How to deploy a GraphRAG API?
           </a>
         </div>
-        <div className="settings-label">API URL</div>
+        <div style={styles.settingLabel}>API URL</div>
         <input
           type={'text'}
-          className="settings-input"
+          style={styles.settingInput}
           value={graphragUrl}
           placeholder={'https://xxx.xxx.xxx.azurecontainerapps.io'}
           onChange={(e) => {
@@ -282,15 +409,15 @@ const SettingsComponent: React.FC<{
           }}
         />
 
-        <div className="settings-label">
+        <div style={styles.settingLabel}>
           API Key
-          <span className="settings-label-show" onClick={toggleVisibility}>
+          <span style={styles.settingLabelShow} onClick={toggleVisibility}>
             {isVisible ? <FaRegEye /> : <FaRegEyeSlash />}
           </span>
         </div>
         <input
           type={isVisible ? 'text' : 'password'}
-          className="settings-input"
+          style={styles.settingInput}
           value={graphragApiKey}
           placeholder={''}
           onChange={(e) => {
@@ -299,10 +426,10 @@ const SettingsComponent: React.FC<{
           }}
         />
 
-        <div className="settings-label">Project Name</div>
+        <div style={styles.settingLabel}>Project Name</div>
         <input
           type={'text'}
-          className="settings-input"
+          style={styles.settingInput}
           value={graphragProjectName}
           placeholder={''}
           onChange={(e) => {
@@ -311,10 +438,10 @@ const SettingsComponent: React.FC<{
           }}
         />
 
-        <div className="settings-label">About</div>
+        <div style={styles.settingLabel}>About</div>
         <input
           type={'text'}
-          className="settings-input"
+          style={styles.settingInput}
           value={graphragAbout}
           placeholder={GRAPHRAG_ABOUT}
           onChange={(e) => {
@@ -336,10 +463,10 @@ const SettingsComponent: React.FC<{
 
     return (
       <div>
-        <div className="settings-label">Region</div>
+        <div style={styles.settingLabel}>Region</div>
         <input
           type={'text'}
-          className="settings-input"
+          style={styles.settingInput}
           value={cogSvcRegion}
           placeholder={'westus2'}
           onChange={(e) => {
@@ -348,15 +475,15 @@ const SettingsComponent: React.FC<{
           }}
         />
 
-        <div className="settings-label">
+        <div style={styles.settingLabel}>
           Subscription Key
-          <span className="settings-label-show" onClick={toggleVisibility}>
+          <span style={styles.settingLabelShow} onClick={toggleVisibility}>
             {isVisible ? <FaRegEye /> : <FaRegEyeSlash />}
           </span>
         </div>
         <input
           type={isVisible ? 'text' : 'password'}
-          className="settings-input"
+          style={styles.settingInput}
           value={cogSvcSubKey}
           placeholder={''}
           onChange={(e) => {
@@ -375,15 +502,15 @@ const SettingsComponent: React.FC<{
 
     return (
       <div>
-        <div className="settings-label">
+        <div style={styles.settingLabel}>
           Key
-          <span className="settings-label-show" onClick={toggleVisibility}>
+          <span style={styles.settingLabelShow} onClick={toggleVisibility}>
             {isVisible ? <FaRegEye /> : <FaRegEyeSlash />}
           </span>
         </div>
         <input
           type={isVisible ? 'text' : 'password'}
-          className="settings-input"
+          style={styles.settingInput}
           value={bingApiKey}
           placeholder={''}
           onChange={(e) => {
@@ -392,10 +519,10 @@ const SettingsComponent: React.FC<{
           }}
         />
 
-        <div className="settings-label">Endpoint</div>
+        <div style={styles.settingLabel}>Endpoint</div>
         <input
           type={'text'}
-          className="settings-input"
+          style={styles.settingInput}
           disabled
           onChange={(e) => {
             handleChange('bingEndpoint', e.target.value);
@@ -403,10 +530,10 @@ const SettingsComponent: React.FC<{
           value={'https://api.bing.microsoft.com/'}
         />
 
-        <div className="settings-label">Location</div>
+        <div style={styles.settingLabel}>Location</div>
         <input
           type={'text'}
-          className="settings-input"
+          style={styles.settingInput}
           disabled
           onChange={(e) => {
             handleChange('bingLocation', e.target.value);
@@ -427,10 +554,10 @@ const SettingsComponent: React.FC<{
 
     return (
       <div>
-        <div className="settings-label">Target URI</div>
+        <div style={styles.settingLabel}>Target URI</div>
         <input
           type={'text'}
-          className="settings-input"
+          style={styles.settingInput}
           value={completionTargetUri}
           placeholder={
             'https://xxxx.openai.azure.com/openai/deployments/gpt-4o-mini/chat/completions?api-version=2024-08-01-preview'
@@ -441,15 +568,15 @@ const SettingsComponent: React.FC<{
           }}
         />
 
-        <div className="settings-label">
+        <div style={styles.settingLabel}>
           Key
-          <span className="settings-label-show" onClick={toggleVisibility}>
+          <span style={styles.settingLabelShow} onClick={toggleVisibility}>
             {isVisible ? <FaRegEye /> : <FaRegEyeSlash />}
           </span>
         </div>
         <input
           type={isVisible ? 'text' : 'password'}
-          className="settings-input"
+          style={styles.settingInput}
           value={completionApiKey}
           placeholder={''}
           onChange={(e) => {
@@ -467,9 +594,8 @@ const SettingsComponent: React.FC<{
     return (
       <div>
         <textarea
-          className="settings-input"
+          style={styles.settingInput}
           value={prompt}
-          style={{ fontSize: '12px' }}
           placeholder={''}
           rows={20}
           maxLength={ALLOW_PROMPT_CHARACTERS}
@@ -478,7 +604,7 @@ const SettingsComponent: React.FC<{
             handleChange('prompt', e.target.value);
           }}
         />
-        <div className="settings-label">
+        <div style={styles.settingLabel}>
           Remaining Characters: {ALLOW_PROMPT_CHARACTERS - prompt.length}
         </div>
       </div>
@@ -508,20 +634,20 @@ const SettingsComponent: React.FC<{
 
     return (
       <div>
-        <div className="settings-label">
+        <div style={styles.settingLabel}>
           <a
             href="https://open.feishu.cn/open-apis/bot/v2/hook/xxx"
             target="_blank"
           >
             Feishu Bot
           </a>
-          <span className="settings-label-show" onClick={toggleVisibility}>
+          <span style={styles.settingLabelShow} onClick={toggleVisibility}>
             {isVisible ? <FaRegEye /> : <FaRegEyeSlash />}
           </span>
         </div>
         <input
           type={isVisible ? 'text' : 'password'}
-          className="settings-input"
+          style={styles.settingInput}
           value={feishuHook}
           placeholder={''}
           onChange={(e) => {
@@ -530,17 +656,17 @@ const SettingsComponent: React.FC<{
           }}
         />
 
-        <div className="settings-label">
+        <div style={styles.settingLabel}>
           <a href="https://finnhub.io/" target="_blank">
             Finnhub
           </a>
-          <span className="settings-label-show" onClick={toggleVisibility}>
+          <span style={styles.settingLabelShow} onClick={toggleVisibility}>
             {isVisible ? <FaRegEye /> : <FaRegEyeSlash />}
           </span>
         </div>
         <input
           type={isVisible ? 'text' : 'password'}
-          className="settings-input"
+          style={styles.settingInput}
           value={quoteToken}
           placeholder={''}
           onChange={(e) => {
@@ -549,17 +675,17 @@ const SettingsComponent: React.FC<{
           }}
         />
 
-        <div className="settings-label">
+        <div style={styles.settingLabel}>
           <a href="https://www.showapi.com/" target="_blank">
             News
           </a>
-          <span className="settings-label-show" onClick={toggleVisibility}>
+          <span style={styles.settingLabelShow} onClick={toggleVisibility}>
             {isVisible ? <FaRegEye /> : <FaRegEyeSlash />}
           </span>
         </div>
         <input
           type={isVisible ? 'text' : 'password'}
-          className="settings-input"
+          style={styles.settingInput}
           value={newsKey}
           placeholder={''}
           onChange={(e) => {
@@ -568,16 +694,16 @@ const SettingsComponent: React.FC<{
           }}
         />
 
-        <div className="settings_inline">
-          <div className="block">
-            <div className="settings-label">
+        <div style={styles.settings_inline}>
+          <div style={styles.settings_inline_block}>
+            <div style={styles.settingLabel}>
               <a href="https://www.mxnzp.com/" target="_blank">
                 Mxnzp AppId
               </a>
             </div>
             <input
               type={'text'}
-              className="settings-input"
+              style={styles.settingInput}
               value={mxnzpAppId}
               placeholder={''}
               onChange={(e) => {
@@ -587,18 +713,18 @@ const SettingsComponent: React.FC<{
             />
           </div>
 
-          <div className="block">
-            <div className="settings-label">
+          <div style={styles.settings_inline_block}>
+            <div style={styles.settingLabel}>
               <a href="https://www.mxnzp.com/" target="_blank">
                 Mxnzp AppSecret
               </a>
-              <span className="settings-label-show" onClick={toggleVisibility}>
+              <span style={styles.settingLabelShow} onClick={toggleVisibility}>
                 {isVisible ? <FaRegEye /> : <FaRegEyeSlash />}
               </span>
             </div>
             <input
               type={isVisible ? 'text' : 'password'}
-              className="settings-input"
+              style={styles.settingInput}
               value={mxnzpAppSecret}
               placeholder={''}
               onChange={(e) => {
@@ -655,9 +781,7 @@ const SettingsComponent: React.FC<{
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const e = event.target.files?.[0];
     if (!e) {
       alert('No file selected');
@@ -724,7 +848,7 @@ const SettingsComponent: React.FC<{
 
         alert('Import success');
 
-        window.location.reload();
+        resetApp();
       } catch (error) {
         console.error(`import error: ${error}`);
       }
@@ -775,7 +899,7 @@ const SettingsComponent: React.FC<{
 
   const closeModal = () => {
     setIsModalOpen(false);
-    window.location.reload();
+    resetApp();
   };
 
   return connectStatus === CONNECT_CONNECTED ? null : (
@@ -798,76 +922,104 @@ const SettingsComponent: React.FC<{
       />
 
       {isModalOpen && (
-        <div className="settings-modal">
-          <div className="settings-modal-content">
-            <button className="settings-modal-close" onClick={closeModal}>
+        <div style={styles.settingsModal}>
+          <div style={styles.settingsModalContent}>
+            <button style={styles.settingsModalClose} onClick={closeModal}>
               <X />
             </button>
 
-            <div className="settings-modal-header">
+            <div style={styles.settingsModalHeader}>
               Settings
-              <div className="settings-label-tip">(Local Only)</div>
+              <div style={styles.settingLabelTip}>(Local Only)</div>
             </div>
 
             <div>
-              <div className="settings-tab-buttons">
+              <div style={styles.settingsTabButtons}>
                 <button
+                  style={{
+                    ...styles.settingsTabButton,
+                    ...(activeTab === DEFAULT ? styles.tabActive : {}),
+                  }}
                   onClick={() => setActiveTab(DEFAULT)}
-                  className={activeTab === DEFAULT ? 'active' : ''}
                 >
                   {DEFAULT}
                 </button>
                 <button
+                  style={{
+                    ...styles.settingsTabButton,
+                    ...(activeTab === REAL_TIME_API ? styles.tabActive : {}),
+                  }}
                   onClick={() => setActiveTab(REAL_TIME_API)}
-                  className={activeTab === REAL_TIME_API ? 'active' : ''}
                 >
                   {REAL_TIME_API}
                 </button>
                 <button
+                  style={{
+                    ...styles.settingsTabButton,
+                    ...(activeTab === PROMPT ? styles.tabActive : {}),
+                  }}
                   onClick={() => setActiveTab(PROMPT)}
-                  className={activeTab === PROMPT ? 'active' : ''}
                 >
                   {PROMPT}
                 </button>
                 <button
+                  style={{
+                    ...styles.settingsTabButton,
+                    ...(activeTab === SPEECH ? styles.tabActive : {}),
+                  }}
                   onClick={() => setActiveTab(SPEECH)}
-                  className={activeTab === SPEECH ? 'active' : ''}
                 >
                   {SPEECH}
                 </button>
-                <button
+                {/* <button
                   onClick={() => setActiveTab(TTS)}
                   className={activeTab === TTS ? 'active' : ''}
                 >
                   {TTS}
-                </button>
+                </button> */}
                 <button
+                  style={{
+                    ...styles.settingsTabButton,
+                    ...(activeTab === COMPLETION ? styles.tabActive : {}),
+                  }}
                   onClick={() => setActiveTab(COMPLETION)}
-                  className={activeTab === COMPLETION ? 'active' : ''}
                 >
                   {COMPLETION}
                 </button>
                 <button
+                  style={{
+                    ...styles.settingsTabButton,
+                    ...(activeTab === DALL_E ? styles.tabActive : {}),
+                  }}
                   onClick={() => setActiveTab(DALL_E)}
-                  className={activeTab === DALL_E ? 'active' : ''}
                 >
                   {DALL_E}
                 </button>
                 <button
+                  style={{
+                    ...styles.settingsTabButton,
+                    ...(activeTab === BING ? styles.tabActive : {}),
+                  }}
                   onClick={() => setActiveTab(BING)}
-                  className={activeTab === BING ? 'active' : ''}
                 >
                   {BING}
                 </button>
                 <button
+                  style={{
+                    ...styles.settingsTabButton,
+                    ...(activeTab === GRAPHRAG ? styles.tabActive : {}),
+                  }}
                   onClick={() => setActiveTab(GRAPHRAG)}
-                  className={activeTab === GRAPHRAG ? 'active' : ''}
                 >
                   {GRAPHRAG}
                 </button>
                 <button
+                  style={{
+                    ...styles.settingsTabButton,
+                    ...styles.settingsTabButtonLast,
+                    ...(activeTab === TOKENS ? styles.tabActive : {}),
+                  }}
                   onClick={() => setActiveTab(TOKENS)}
-                  className={activeTab === TOKENS ? 'active' : ''}
                 >
                   {TOKENS}
                 </button>
