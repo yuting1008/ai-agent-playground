@@ -164,7 +164,7 @@ interface AppContextType {
   connectMessage: string;
   setConnectMessage: React.Dispatch<React.SetStateAction<string>>;
 
-  setAppKey: React.Dispatch<React.SetStateAction<number>>;
+  resetApp: () => void;
 }
 
 const IS_DEBUG: boolean = window.location.href.includes('localhost');
@@ -174,7 +174,9 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider: React.FC<{
   children: ReactNode;
   setAppKey: React.Dispatch<React.SetStateAction<number>>;
-}> = ({ children, setAppKey }) => {
+  isNightMode: boolean;
+  setIsNightMode: React.Dispatch<React.SetStateAction<boolean>>;
+}> = ({ children, setAppKey, isNightMode, setIsNightMode }) => {
   const isOnline = useOnlineStatus();
 
   const cogSvcSubKey = localStorage.getItem('cogSvcSubKey') || '';
@@ -318,8 +320,6 @@ export const AppProvider: React.FC<{
     speechSentencesCacheArrayRef.current = speechSentencesCacheArray;
   }, [speechSentencesCacheArray]);
 
-  // isNightMode boolean
-  const [isNightMode, setIsNightMode] = useState<boolean>(false);
   const isNightModeRef = useRef(isNightMode);
 
   // isAvatarSpeaking boolean
@@ -356,6 +356,10 @@ export const AppProvider: React.FC<{
     tokenLatencyArrayRef.current = tokenLatencyArray;
   }, [tokenLatencyArray]);
 
+  const resetApp = () => {
+    setAppKey((prevKey) => prevKey + 1);
+  };
+
   const resetTokenLatency = () => {
     isFirstTokenRef.current = true;
     sendTimeRef.current = Date.now();
@@ -389,22 +393,27 @@ export const AppProvider: React.FC<{
   }: {
     [on: string]: boolean;
   }) => {
-    if (on) {
-      if (cameraStatusRef.current === CAMERA_READY) {
+    try {
+      if (on) {
+        if (cameraStatusRef.current === CAMERA_READY) {
+          return {
+            message: 'The camera is already on.',
+          };
+        }
+
+        setCameraStatus(CAMERA_STARTING);
         return {
-          message: 'The camera is already on.',
+          message: 'The camera is starting, please wait a moment to turn on.',
         };
       }
 
-      setCameraStatus(CAMERA_STARTING);
-      return {
-        message: 'The camera is starting, please wait a moment to turn on.',
-      };
+      setCameraStatus(CAMERA_OFF);
+
+      return { message: 'The camera has been turned off' };
+    } catch (error) {
+      console.error('camera error', error);
+      return { error: error };
     }
-
-    setCameraStatus(CAMERA_OFF);
-
-    return { message: 'The camera has been turned off' };
   };
 
   const camera_current_handler: Function = async ({
@@ -558,7 +567,7 @@ export const AppProvider: React.FC<{
 
       let checkTime = 0;
 
-      while (checkTime < 10) {
+      while (checkTime < 20) {
         await delayFunction(1000);
         checkTime++;
         if (avatarStatusRef.current === AVATAR_READY) {
@@ -851,7 +860,7 @@ export const AppProvider: React.FC<{
         functionsToolsRef,
         connectMessage,
         setConnectMessage,
-        setAppKey,
+        resetApp,
       }}
     >
       {children}

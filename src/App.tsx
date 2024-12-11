@@ -9,12 +9,17 @@ import { useState } from 'react';
 
 function App() {
   const [appKey, setAppKey] = useState<number>(1);
+  const [isNightMode, setIsNightMode] = useState<boolean>(false);
 
   return (
     <div data-component="App" key={appKey}>
       <GptImagesProvider>
         <TrafficDataProvider>
-          <AppProvider setAppKey={setAppKey}>
+          <AppProvider
+            setAppKey={setAppKey}
+            isNightMode={isNightMode}
+            setIsNightMode={setIsNightMode}
+          >
             <Loading />
             <LocalStorageViewer />
             <ConsolePage />

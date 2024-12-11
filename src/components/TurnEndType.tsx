@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { CONNECT_CONNECTED } from '../lib/const';
-import './FileUploadComponent.scss';
 import { Toggle } from '../components/toggle/Toggle';
 import { RealtimeClient } from '@theodoreniu/realtime-api-beta';
 import { WavRecorder, WavStreamPlayer } from '../lib/wavtools';
@@ -35,10 +34,12 @@ const TurnEndType: React.FC<{
       turn_detection: value === 'none' ? null : { type: 'server_vad' },
     });
 
-    if (value === 'server_vad' && realtimeClient.isConnected()) {
-      await wavRecorderRef.record((data) =>
-        realtimeClient.appendInputAudio(data.mono),
-      );
+    if (value === 'server_vad') {
+      await wavRecorderRef.record((data) => {
+        if (realtimeClient.isConnected()) {
+          realtimeClient.appendInputAudio(data.mono);
+        }
+      });
     }
 
     setCanPushToTalk(value === 'none');

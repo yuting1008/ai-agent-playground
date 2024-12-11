@@ -4,7 +4,11 @@ import { useContexts } from '../providers/AppProvider';
 import { useState } from 'react';
 import * as SpeechSDK from 'microsoft-cognitiveservices-speech-sdk';
 import './InputBar.scss';
-import { CONNECT_CONNECTED } from '../lib/const';
+import {
+  ASSISTENT_TYPE_ASSISTANT,
+  ASSISTENT_TYPE_DEFAULT,
+  CONNECT_CONNECTED,
+} from '../lib/const';
 
 export function InputBarAssistant({
   setMessagesAssistant,
@@ -35,6 +39,10 @@ export function InputBarAssistant({
   const [sttRecognizerConnecting, setSttRecognizerConnecting] = useState(false);
   const [isRecognizing, setIsRecognizing] = useState(false);
 
+  const assistantType =
+    localStorage.getItem('assistantType') || ASSISTENT_TYPE_DEFAULT;
+  const isAssistant = assistantType === ASSISTENT_TYPE_ASSISTANT;
+
   const sttStartRecognition = () => {
     setSttRecognizerConnecting(true);
 
@@ -59,6 +67,9 @@ export function InputBarAssistant({
     );
 
     recognizer.recognizing = (s, e) => {
+      if (!isAssistant) {
+        return;
+      }
       console.log(`Recognizing: ${e.result.text}`);
       setInputValue(e.result.text);
       setIsRecognizing(true);
@@ -71,6 +82,9 @@ export function InputBarAssistant({
     };
 
     recognizer.recognized = (s, e) => {
+      if (!isAssistant) {
+        return;
+      }
       if (e.result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
         console.log(`Final result: ${e.result.text}`);
         setInputValue(e.result.text);

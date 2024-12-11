@@ -1,9 +1,23 @@
 import React, { useEffect } from 'react';
-import './Caption.scss';
 import { useContexts } from '../providers/AppProvider';
 
 const Caption: React.FC = () => {
   const { caption, setCaption, captionQueue, captionQueueRef } = useContexts();
+
+  const style: React.CSSProperties = {
+    position: 'absolute',
+    bottom: '100px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    padding: '15px 25px',
+    backgroundColor: '#0f7f07',
+    color: 'white',
+    borderRadius: '5px',
+    fontSize: '18px',
+    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+    zIndex: '99000',
+    fontWeight: '300',
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -24,7 +38,7 @@ const Caption: React.FC = () => {
   }, [captionQueue]);
 
   return caption ? (
-    <div className="captions">
+    <div style={style}>
       <h4>{caption}</h4>
     </div>
   ) : null;

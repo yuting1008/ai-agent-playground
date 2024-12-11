@@ -52,6 +52,7 @@ export function ConsolePageRealtime() {
     setIsAvatarSpeaking,
     connectMessage,
     setConnectMessage,
+    resetApp,
   } = useContexts();
 
   const endpoint = localStorage.getItem('endpoint') || '';
@@ -252,7 +253,7 @@ export function ConsolePageRealtime() {
       setConnectStatus(CONNECT_DISCONNECTED);
       setConnectMessage(tip);
       alert(`${tip}\n${e}\n\nKey is "${key}"`);
-      window.location.reload();
+      resetApp();
       return;
     }
 

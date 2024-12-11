@@ -45,14 +45,6 @@ class ErrorBoundary extends React.Component<
 }
 
 const styles: { [key: string]: React.CSSProperties } = {
-  reload: {
-    cursor: 'pointer',
-    fontSize: '20px',
-    color: 'white',
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    padding: '10px 20px',
-    borderRadius: '5px',
-  },
   container: {
     zIndex: 999999,
     position: 'fixed',
@@ -69,6 +61,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     backgroundColor: 'rgba(0,0,0,0.5)',
     color: 'white',
     gap: '20px',
+  },
+  reload: {
+    cursor: 'pointer',
+    fontSize: '20px',
+    color: 'white',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    padding: '10px 20px',
+    borderRadius: '5px',
   },
 };
 
