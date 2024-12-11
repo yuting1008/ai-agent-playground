@@ -10,11 +10,10 @@ export default function ConnectButton({
   connectStatus: string;
   connectConversation: () => void;
 }) {
-  const { setAppKey } = useContexts();
+  const { resetApp } = useContexts();
 
   const disconnectConversation = () => {
-    // setAppKey((prevKey) => prevKey + 1);
-    window.location.reload();
+    resetApp();
   };
 
   return (

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getOpenAIClientSSt } from '../lib/openai';
-import './OpenAITTS.scss';
 import { useContexts } from '../providers/AppProvider';
 import { AVATAR_READY } from '../lib/const';
 

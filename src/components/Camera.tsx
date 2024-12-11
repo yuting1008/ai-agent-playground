@@ -8,9 +8,9 @@ import {
   CAMERA_READY,
   CAMERA_STARTING,
 } from '../lib/const';
-import './Camera.scss';
 import { Camera as CameraIcon, CameraOff, RefreshCw } from 'react-feather';
 import { X } from 'react-feather';
+import { componentLoadingStyles } from '../styles/componentLoadingStyles';
 
 const Camera: React.FC = () => {
   const webcamRef = React.useRef<Webcam>(null);
@@ -23,11 +23,14 @@ const Camera: React.FC = () => {
     cameraStatusRef,
     setCameraStatus,
     replaceInstructions,
+    isNightMode,
   } = useContexts();
 
   const [facingMode, setFacingMode] = useState('user');
 
   const [cameraCount, setCameraCount] = useState(0);
+
+  const componentLoading = componentLoadingStyles({ isNightMode });
 
   useEffect(() => {
     console.log('cameraStatus:', cameraStatus);
@@ -160,8 +163,8 @@ const Camera: React.FC = () => {
       </div>
 
       {cameraStatus === CAMERA_STARTING && (
-        <div className="camLoading">
-          <div className="spinner" key={'camLoading'}></div>
+        <div style={componentLoading.camLoading}>
+          <div style={componentLoading.spinner} key={'camLoading'}></div>
         </div>
       )}
 
@@ -193,7 +196,7 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 90000,
-  },
+  } as React.CSSProperties,
   modalContent: {
     backgroundColor: '#ededed',
     padding: '20px',
@@ -202,23 +205,23 @@ const styles = {
     maxWidth: '750px',
     maxHeight: '80%',
     overflowY: 'auto' as 'auto',
-  },
+  } as React.CSSProperties,
   closeButton: {
     marginBottom: '10px',
     cursor: 'pointer',
     float: 'right' as 'right',
     color: '#626262',
-  },
+  } as React.CSSProperties,
   imageContainer: {
     display: 'flex',
     flexWrap: 'wrap' as 'wrap',
     gap: '10px',
-  },
+  } as React.CSSProperties,
   image: {
     width: '100px',
     height: '100px',
     objectFit: 'cover' as 'cover',
-  },
+  } as React.CSSProperties,
 };
 
 export default Camera;

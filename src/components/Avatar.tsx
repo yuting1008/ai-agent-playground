@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { useContexts } from '../providers/AppProvider';
-import './Camera.scss';
 import * as SpeechSDK from 'microsoft-cognitiveservices-speech-sdk';
 import { htmlEncodeAvatar } from '../lib/helper';
 import { AVATAR_OFF, AVATAR_READY, AVATAR_STARTING } from '../lib/const';
+import { componentLoadingStyles } from '../styles/componentLoadingStyles';
 
 const Avatar: React.FC = () => {
   const {
@@ -17,12 +17,14 @@ const Avatar: React.FC = () => {
     replaceInstructions,
     setIsAvatarSpeaking,
     isAvatarSpeaking,
+    isNightMode,
   } = useContexts();
 
   const avatarSynthesizerRef = useRef<any>(null);
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const avatarVideoRef = useRef<HTMLVideoElement>(null);
   const avatarAudioRef = useRef<HTMLAudioElement>(null);
+  const componentLoading = componentLoadingStyles({ isNightMode });
 
   useEffect(() => {
     if (avatarStatus === AVATAR_STARTING) {
@@ -298,8 +300,8 @@ const Avatar: React.FC = () => {
   return (
     <div className="content-actions container_bg remoteVideo">
       {avatarStatus === AVATAR_STARTING && (
-        <div className="camLoading">
-          <div className="spinner" key={'avatarLoading'}></div>
+        <div style={componentLoading.camLoading}>
+          <div style={componentLoading.spinner} key={'avatarLoading'}></div>
         </div>
       )}
 

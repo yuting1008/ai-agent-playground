@@ -1,5 +1,3 @@
-import './NightMode.scss';
-
 import { useContexts } from '../providers/AppProvider';
 import { useEffect } from 'react';
 import { Sun, Moon } from 'react-feather';
