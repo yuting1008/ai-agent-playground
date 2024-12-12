@@ -218,7 +218,7 @@ const SettingsComponent: React.FC<{
 
         <div style={{ display: 'flex', gap: '15px', marginTop: '30px' }}>
           <Button
-            label={'Import'}
+            label={'Import Settings'}
             icon={Upload}
             style={styles.export_settings}
             buttonStyle={'regular'}
@@ -226,7 +226,7 @@ const SettingsComponent: React.FC<{
           />
 
           <Button
-            label={'Export'}
+            label={'Export Settings'}
             icon={Download}
             style={styles.export_settings}
             buttonStyle={'regular'}

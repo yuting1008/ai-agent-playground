@@ -30,8 +30,8 @@ importers:
         specifier: ^13.5.0
         version: 13.5.0(@testing-library/dom@8.20.1)
       '@theodoreniu/realtime-api-beta':
-        specifier: ^0.0.12
-        version: 0.0.12
+        specifier: ^0.0.13
+        version: 0.0.13
       '@types/jest':
         specifier: ^27.5.2
         version: 27.5.2
@@ -1578,8 +1578,8 @@ packages:
     peerDependencies:
       '@testing-library/dom': '>=7.21.4'
 
-  '@theodoreniu/realtime-api-beta@0.0.12':
-    resolution: {integrity: sha512-HkW4Ij5n8wAPnf/qL8XL4ruZreZwSBI3t13WhWOauP+szN3WFiLool+nyZ+43ZZ7sblXtiwA6kNjTHo3mMgLAg==}
+  '@theodoreniu/realtime-api-beta@0.0.13':
+    resolution: {integrity: sha512-RVq/zNCM6tGmbxcrE/+lBcmZ1tdHpbBMeqJVmeFEdFPhjb/pgEZKGMIbdqpnQscsKpqT81tiETAT7zEcz0hzeQ==}
 
   '@tootallnate/once@1.1.2':
     resolution: {integrity: sha512-RbzJvlNzmRq5c3O09UipeuXno4tA1FE6ikOjxZK0tuxVv3412l64l5t1W5pj4+rJq9vpkm/kwiR07aZXnsKPxw==}
@@ -8267,7 +8267,7 @@ snapshots:
       '@babel/runtime': 7.26.0
       '@testing-library/dom': 8.20.1
 
-  '@theodoreniu/realtime-api-beta@0.0.12':
+  '@theodoreniu/realtime-api-beta@0.0.13':
     dependencies:
       ws: 8.18.0
     transitivePeerDependencies:
