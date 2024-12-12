@@ -245,10 +245,8 @@ export function ConsolePageRealtime() {
       await realtimeClientRef.current.connect();
     } catch (e: any) {
       console.error(e);
-      const tip = `链接失败，如果您确定配置信息无误，可能是由于网络问题。
-      \n建议使用 VPN 及最新版 Edge 浏览器。
-      \nConnection failed, if you are certain that the configuration is correct, it may be due to network issues.
-      \nRecommended: VPN and the latest Edge browser.
+      const tip = `链接失败，如果您确定配置信息无误，可能是由于网络问题。建议使用 VPN 及最新版 Edge 浏览器。
+      \nConnection failed, if you are certain that the configuration is correct, it may be due to network issues. Recommended: VPN and the latest Edge browser.
       `;
       setConnectStatus(CONNECT_DISCONNECTED);
       setConnectMessage(tip);
