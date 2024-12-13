@@ -39,7 +39,7 @@ const FunctionsList: React.FC = () => {
       <div style={importModalStyles.backdrop}>
         <div style={importModalStyles.modal} className={'modal'}>
           <div style={importModalStyles.header}>
-            <h2>Functions</h2>
+            <h2>Functions ({functionsToolsRef.current.length})</h2>
             <button
               key="close"
               onClick={() => setIsShow(false)}

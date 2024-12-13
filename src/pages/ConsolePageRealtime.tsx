@@ -52,6 +52,7 @@ export function ConsolePageRealtime() {
     setIsAvatarSpeaking,
     connectMessage,
     setConnectMessage,
+    isDebugModeRef,
     resetApp,
   } = useContexts();
 
@@ -134,6 +135,11 @@ export function ConsolePageRealtime() {
     });
 
     client.on('conversation.updated', async ({ item, delta }: any) => {
+      if (isDebugModeRef.current) {
+        console.log('item', item);
+        console.log('delta', delta);
+      }
+
       if (
         item.object === 'realtime.item' &&
         item.type === 'message' &&

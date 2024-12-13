@@ -15,14 +15,27 @@ import {
   ASSISTENT_TYPE_DEFAULT,
   ASSISTENT_TYPE_REALTIME,
 } from '../lib/const';
+import { AlertTriangle } from 'react-feather';
 
 export function ConsolePage() {
-  const { setIsNightMode } = useContexts();
+  const { setIsNightMode, isDebugMode, setIsDebugMode } = useContexts();
 
   const assistantType =
     localStorage.getItem('assistantType') || ASSISTENT_TYPE_DEFAULT;
   const isAssistant = assistantType === ASSISTENT_TYPE_ASSISTANT;
   const isRealtime = assistantType === ASSISTENT_TYPE_REALTIME;
+
+  function IsDebugMode() {
+    if (!isDebugMode) {
+      return null;
+    }
+
+    return (
+      <span onClick={() => setIsDebugMode(false)}>
+        <AlertTriangle />
+      </span>
+    );
+  }
 
   useEffect(() => {
     const now = new Date();
@@ -50,6 +63,7 @@ export function ConsolePage() {
           <TrafficMonitor />
           <PaintingResult />
           <FunctionsList />
+          <IsDebugMode />
           <NightMode />
         </span>
       </div>

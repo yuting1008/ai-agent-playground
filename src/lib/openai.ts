@@ -261,3 +261,32 @@ export async function editImages(
     };
   }
 }
+
+export async function image_vision(image_base_64: string) {
+  try {
+    const messages = [
+      {
+        role: 'user',
+        content: [
+          {
+            type: 'text',
+            text: `Can you describe what you saw? please describe in ${localStorage.getItem('language') || 'chinese'}`,
+          },
+          {
+            type: 'image_url',
+            image_url: {
+              url: image_base_64,
+            },
+          },
+        ],
+      },
+    ];
+
+    const resp = await getCompletion(messages);
+
+    return { message: resp };
+  } catch (error) {
+    console.error('vision error', error);
+    return { error: error };
+  }
+}

@@ -38,6 +38,7 @@ export function ConsolePageAssistant() {
     setConnectStatus,
     connectMessage,
     setConnectMessage,
+    isDebugModeRef,
   } = useContexts();
 
   const [messagesAssistant, setMessagesAssistant] = useState<any[]>([]);
@@ -126,6 +127,10 @@ export function ConsolePageAssistant() {
   // textDelta - append text to last assistant message
   const handleAssistantTextDelta = (delta: any) => {
     recordTokenLatency(delta);
+
+    if (isDebugModeRef.current) {
+      console.log('delta', delta);
+    }
 
     if (delta.value != null) {
       setResponseBuffer((latestText) => latestText + delta.value);
