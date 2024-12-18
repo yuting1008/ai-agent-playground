@@ -11,6 +11,7 @@ import {
 import { Camera as CameraIcon, CameraOff, RefreshCw } from 'react-feather';
 import { X } from 'react-feather';
 import { componentLoadingStyles } from '../styles/componentLoadingStyles';
+import { addTextWatermarkToBase64 } from '../lib/watermark';
 
 const Camera: React.FC = () => {
   const webcamRef = React.useRef<Webcam>(null);
@@ -86,11 +87,30 @@ const Camera: React.FC = () => {
     const intervalId = setInterval(() => {
       if (webcamRef.current && cameraStatusRef.current === CAMERA_READY) {
         const imageSrc = webcamRef.current.getScreenshot();
-        if (imageSrc) {
-          setPhotos((prevPhotos) => {
-            return [imageSrc, ...prevPhotos].slice(0, CAMERA_PHOTO_LIMIT);
-          });
+        if (!imageSrc) {
+          return;
         }
+
+        // add current time as watermark to the image
+        const time = new Date().toLocaleTimeString();
+
+        addTextWatermarkToBase64(imageSrc, {
+          watermarkText: time,
+          xOffset: 50,
+          yOffset: 10,
+          fontColor: 'rgba(0,0,0)',
+        })
+          .then((newBase64) => {
+            setPhotos((prevPhotos) => {
+              return [...prevPhotos, newBase64].slice(-CAMERA_PHOTO_LIMIT);
+            });
+          })
+          .catch((err) => {
+            console.error('addTextWatermarkToBase64 error:', err);
+            setPhotos((prevPhotos) => {
+              return [...prevPhotos, imageSrc].slice(-CAMERA_PHOTO_LIMIT);
+            });
+          });
       }
     }, CAMERA_PHOTO_INTERVAL_MS);
 
@@ -201,8 +221,7 @@ const styles = {
     backgroundColor: '#ededed',
     padding: '20px',
     borderRadius: '8px',
-    width: '90%',
-    maxWidth: '750px',
+    width: '80%',
     maxHeight: '80%',
     overflowY: 'auto' as 'auto',
   } as React.CSSProperties,

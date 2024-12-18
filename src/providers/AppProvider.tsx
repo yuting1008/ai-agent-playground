@@ -23,7 +23,6 @@ import * as products_recommend from '../tools/products_recommend';
 import * as demo from '../tools/demo';
 import * as feishu from '../tools/feishu';
 import * as command_recognition1 from '../tools/command_recognition1';
-import * as command_recognition2 from '../tools/command_recognition2';
 import * as open_url from '../tools/open_url';
 import * as debug_model from '../tools/debug_model';
 import * as set_disconnection from '../tools/set_disconnection';
@@ -464,12 +463,10 @@ export const AppProvider: React.FC<{
         },
       ];
 
-      const photoIndex = photosRef.current.length >= 1 ? 1 : 0;
-
       content.push({
         type: 'image_url',
         image_url: {
-          url: photosRef.current[photoIndex],
+          url: photosRef.current[photosRef.current.length - 1],
         },
       });
 
@@ -520,19 +517,15 @@ export const AppProvider: React.FC<{
       },
     ];
 
+    const lastTenPhotos = photosRef.current.slice(-seconds);
     // for photos
-    let photoCount = 0;
-    photosRef.current.forEach((photo: string) => {
-      if (photoCount < seconds) {
-        content.push({
-          type: 'image_url',
-          image_url: {
-            url: photo,
-          },
-        });
-      }
-
-      photoCount++;
+    lastTenPhotos.forEach((photo: string) => {
+      content.push({
+        type: 'image_url',
+        image_url: {
+          url: photo,
+        },
+      });
     });
 
     try {
@@ -787,9 +780,8 @@ export const AppProvider: React.FC<{
     [location.definition, location.handler],
     [feishu.definition, feishu.handler],
     [command_recognition1.definition, command_recognition1.handler],
-    [command_recognition2.definition, command_recognition2.handler],
     [open_url.definition, open_url.handler],
-    [pronunciation_assessment.definition, pronunciation_assessment.handler],
+    // [pronunciation_assessment.definition, pronunciation_assessment.handler],
     [azure_docs.definition, azure_docs.handler],
     [demo.definition, demo.handler],
     [quote.definition, quote.handler],
