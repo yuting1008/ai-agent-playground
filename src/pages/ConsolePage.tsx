@@ -16,6 +16,7 @@ import {
   ASSISTENT_TYPE_REALTIME,
 } from '../lib/const';
 import { AlertTriangle } from 'react-feather';
+import AboutApp from '../components/AboutApp';
 
 export function ConsolePage() {
   const { setIsNightMode, isDebugMode, setIsDebugMode } = useContexts();
@@ -62,9 +63,10 @@ export function ConsolePage() {
           <BingSearchResult />
           <TrafficMonitor />
           <PaintingResult />
-          <FunctionsList />
           <IsDebugMode />
           <NightMode />
+          <FunctionsList />
+          <AboutApp />
         </span>
       </div>
 
