@@ -635,12 +635,7 @@ const SettingsComponent: React.FC<{
     return (
       <div>
         <div style={styles.settingLabel}>
-          <a
-            href="https://open.feishu.cn/open-apis/bot/v2/hook/xxx"
-            target="_blank"
-          >
-            Feishu Bot
-          </a>
+          Feishu Bot
           <span style={styles.settingLabelShow} onClick={toggleVisibility}>
             {isVisible ? <FaRegEye /> : <FaRegEyeSlash />}
           </span>
