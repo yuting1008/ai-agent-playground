@@ -769,7 +769,6 @@ export const AppProvider: React.FC<{
     [set_disconnection.definition, set_disconnection_handler],
 
     [news.definition, news.handler],
-    [douyin.definition, douyin.handler],
     [weather.definition, weather.handler],
     [order_get.definition, order_get.handler],
     [order_return.definition, order_return.handler],
@@ -781,7 +780,6 @@ export const AppProvider: React.FC<{
     [feishu.definition, feishu.handler],
     [command_recognition1.definition, command_recognition1.handler],
     [open_url.definition, open_url.handler],
-    // [pronunciation_assessment.definition, pronunciation_assessment.handler],
     [azure_docs.definition, azure_docs.handler],
     [demo.definition, demo.handler],
     [quote.definition, quote.handler],
