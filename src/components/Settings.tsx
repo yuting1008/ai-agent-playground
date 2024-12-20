@@ -11,8 +11,6 @@ import {
   CONNECT_CONNECTED,
 } from '../lib/const';
 import { useContexts } from '../providers/AppProvider';
-import styled from 'styled-components';
-import { css } from '@emotion/react';
 
 const DEFAULT = 'Default';
 const REAL_TIME_API = 'Realtime';
@@ -44,6 +42,9 @@ const SettingsComponent: React.FC<{
   const { resetApp, isNightMode } = useContexts();
 
   const styles = {
+    link: {
+      color: isNightMode ? '#dddddd' : '#3e3e47',
+    },
     settingsModal: {
       position: 'fixed',
       top: 0,
@@ -393,7 +394,11 @@ const SettingsComponent: React.FC<{
       <div>
         <div style={styles.settings_tip}>
           Currently only local search is supported.{' '}
-          <a href="https://github.com/TheodoreNiu/graphrag_kit" target="_blank">
+          <a
+            href="https://github.com/TheodoreNiu/graphrag_kit"
+            target="_blank"
+            style={styles.link}
+          >
             How to deploy a GraphRAG API?
           </a>
         </div>
@@ -652,7 +657,7 @@ const SettingsComponent: React.FC<{
         />
 
         <div style={styles.settingLabel}>
-          <a href="https://finnhub.io/" target="_blank">
+          <a href="https://finnhub.io/" target="_blank" style={styles.link}>
             Finnhub
           </a>
           <span style={styles.settingLabelShow} onClick={toggleVisibility}>
@@ -671,7 +676,7 @@ const SettingsComponent: React.FC<{
         />
 
         <div style={styles.settingLabel}>
-          <a href="https://www.showapi.com/" target="_blank">
+          <a href="https://www.showapi.com/" target="_blank" style={styles.link}>
             News
           </a>
           <span style={styles.settingLabelShow} onClick={toggleVisibility}>
@@ -692,7 +697,7 @@ const SettingsComponent: React.FC<{
         <div style={styles.settings_inline}>
           <div style={styles.settings_inline_block}>
             <div style={styles.settingLabel}>
-              <a href="https://www.mxnzp.com/" target="_blank">
+              <a href="https://www.mxnzp.com/" target="_blank" style={styles.link}>
                 Mxnzp AppId
               </a>
             </div>
@@ -710,7 +715,7 @@ const SettingsComponent: React.FC<{
 
           <div style={styles.settings_inline_block}>
             <div style={styles.settingLabel}>
-              <a href="https://www.mxnzp.com/" target="_blank">
+              <a href="https://www.mxnzp.com/" target="_blank" style={styles.link}>
                 Mxnzp AppSecret
               </a>
               <span style={styles.settingLabelShow} onClick={toggleVisibility}>
