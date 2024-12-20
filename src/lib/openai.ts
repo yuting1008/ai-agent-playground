@@ -19,6 +19,15 @@ export const getOpenAIClientSSt = (ttsApiKey: string, ttsTargetUri: string) => {
   });
 };
 
+export function parseOpenaiSetting(targetUri: string) {
+  const urlInfo = extractUrlInfo(targetUri);
+  const deployment = urlInfo?.deployment || '';
+  const modelName = urlInfo?.deployment || '';
+  const endpoint = urlInfo?.endpoint || '';
+  const apiVersion = urlInfo?.apiVersion || '';
+  return { deployment, modelName, endpoint, apiVersion };
+}
+
 export const getOpenAIClient = () => {
   const completionApiKey = localStorage.getItem('completionApiKey') || '';
   const completionTargetUri = localStorage.getItem('completionTargetUri') || '';
@@ -29,10 +38,8 @@ export const getOpenAIClient = () => {
     );
   }
 
-  const urlInfo = extractUrlInfo(completionTargetUri);
-  const deployment = urlInfo?.deployment;
-  const endpoint = urlInfo?.endpoint;
-  const apiVersion = urlInfo?.apiVersion;
+  const { deployment, endpoint, apiVersion } =
+    parseOpenaiSetting(completionTargetUri);
 
   return new AzureOpenAI({
     endpoint: endpoint,
@@ -41,17 +48,6 @@ export const getOpenAIClient = () => {
     deployment: deployment,
     dangerouslyAllowBrowser: true,
   });
-};
-
-const getAssistantFileById = async (fileId: string) => {
-  const [file, fileContent] = await Promise.all([
-    getOpenAIClient().files.retrieve(fileId),
-    getOpenAIClient().files.content(fileId),
-  ]);
-  return {
-    file,
-    fileContent,
-  };
 };
 
 export function extractUrlInfo(

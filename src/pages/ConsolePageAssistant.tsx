@@ -11,7 +11,7 @@ import ConnectButton from '../components/ConnectButton';
 import ConnectMessage from '../components/ConnectMessage';
 import AssistantMessages from '../components/AssistantMessages';
 
-import { getOpenAIClient } from '../lib/openai';
+import { getOpenAIClient, parseOpenaiSetting } from '../lib/openai';
 import { AssistantStream } from 'openai/lib/AssistantStream';
 // @ts-expect-error - no types for this yet
 import { AssistantStreamEvent } from 'openai/resources/beta/assistants/assistants';
@@ -54,12 +54,16 @@ export function ConsolePageAssistant() {
       //   return;
       // }
 
+      const { modelName } = parseOpenaiSetting(
+        localStorage.getItem('completionTargetUri') || '',
+      );
+
       const params: AssistantCreateParams = {
         instructions: llmInstructions,
         name: 'Quickstart Assistant',
         temperature: 1,
         top_p: 1,
-        model: 'gpt-4o-mini',
+        model: modelName,
         tools: [{ type: 'code_interpreter' }, { type: 'file_search' }],
       };
 
