@@ -5,15 +5,24 @@ import LocalStorageViewer from './pages/LocalStorageViewer';
 import Loading from './pages/Loading';
 import { GptImagesProvider } from './contexts/GptImagesContext';
 import { TrafficDataProvider } from './contexts/TrafficDataContext';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 function App() {
   const [appKey, setAppKey] = useState<number>(1);
   const [isNightMode, setIsNightMode] = useState<boolean>(false);
   const [opacity, setOpacity] = useState<number>(1);
+  const [background, setBackground] = useState<string>('');
+
+  useEffect(() => {
+    if (background) {
+      const path = isNightMode ? 'dark' : 'light';
+      const url = `/images/bg/${path}/${background}.png`;
+      document.body.style.backgroundImage = `url(${url})`;
+    }
+  }, [background]);
 
   return (
-    <div data-component="App" key={appKey} style={{ opacity: opacity }}>
+    <div data-component="App" key={appKey} style={{ opacity: opacity, background: background }}>
       <GptImagesProvider>
         <TrafficDataProvider>
           <AppProvider
@@ -21,6 +30,7 @@ function App() {
             isNightMode={isNightMode}
             setIsNightMode={setIsNightMode}
             setOpacity={setOpacity}
+            setBackground={setBackground}
           >
             <Loading />
             <LocalStorageViewer />
