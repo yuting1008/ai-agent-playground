@@ -4,7 +4,7 @@ import { CAMERA_PHOTO_LIMIT } from '../lib/const';
 export const definition: ToolDefinitionType = {
   name: 'camera_video_record',
   description:
-    'What have you seen in the past time? What have you seen in the past time in this camera? respond wait message to the user before calling the tool.',
+    'What have you seen in the past time? What have you seen in the past time in this camera? no respond any message to the user before or after calling the tool.',
   parameters: {
     type: 'object',
     properties: {

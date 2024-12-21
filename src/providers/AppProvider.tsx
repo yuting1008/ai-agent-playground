@@ -459,7 +459,7 @@ export const AppProvider: React.FC<{
       let content: any = [
         {
           type: 'text',
-          text: `Can you describe what you saw? ${prompt} \n please describe in ${localStorage.getItem('language') || 'chinese'}`,
+          text: `Can you describe what you saw? ${prompt} \n please describe in ${localStorage.getItem('language') || 'chinese'}. The top left corner of the image is the time, and usually you don't need to explain this time.`,
         },
       ];
 
@@ -467,6 +467,7 @@ export const AppProvider: React.FC<{
         type: 'image_url',
         image_url: {
           url: photosRef.current[photosRef.current.length - 1],
+          detail: 'high',
         },
       });
 
@@ -778,7 +779,6 @@ export const AppProvider: React.FC<{
     [products_recommend.definition, products_recommend.handler],
     [location.definition, location.handler],
     [feishu.definition, feishu.handler],
-    [command_recognition1.definition, command_recognition1.handler],
     [open_url.definition, open_url.handler],
     [azure_docs.definition, azure_docs.handler],
     [demo.definition, demo.handler],

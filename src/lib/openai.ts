@@ -108,6 +108,12 @@ export async function getCompletion(messages: any): Promise<string> {
     }
 
     const data = await response.json();
+
+    if (data?.error) {
+      console.log(data?.error);
+      return data?.error?.message || 'error';
+    }
+
     return data?.choices[0]?.message?.content || 'error';
   } catch (error) {
     console.error('Error fetching completion:', error);
