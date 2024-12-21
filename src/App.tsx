@@ -19,10 +19,10 @@ function App() {
       const url = `/images/bg/${path}/${background}.png`;
       document.body.style.backgroundImage = `url(${url})`;
     }
-  }, [background]);
+  }, [background, isNightMode]);
 
   return (
-    <div data-component="App" key={appKey} style={{ opacity: opacity, background: background }}>
+    <div data-component="App" key={appKey} style={{ opacity: opacity }}>
       <GptImagesProvider>
         <TrafficDataProvider>
           <AppProvider
