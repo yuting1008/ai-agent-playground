@@ -23,6 +23,7 @@ import * as products_recommend from '../tools/products_recommend';
 import * as demo from '../tools/demo';
 import * as feishu from '../tools/feishu';
 import * as command_recognition1 from '../tools/command_recognition1';
+import * as background from '../tools/background';
 import * as open_url from '../tools/open_url';
 import * as debug_model from '../tools/debug_model';
 import * as set_disconnection from '../tools/set_disconnection';
@@ -187,7 +188,8 @@ export const AppProvider: React.FC<{
   isNightMode: boolean;
   setIsNightMode: React.Dispatch<React.SetStateAction<boolean>>;
   setOpacity: React.Dispatch<React.SetStateAction<number>>;
-}> = ({ children, setAppKey, isNightMode, setIsNightMode, setOpacity }) => {
+  setBackground: React.Dispatch<React.SetStateAction<string>>;
+}> = ({ children, setAppKey, isNightMode, setIsNightMode, setOpacity, setBackground }) => {
   const isOnline = useOnlineStatus();
 
   const cogSvcSubKey = localStorage.getItem('cogSvcSubKey') || '';
@@ -740,6 +742,14 @@ export const AppProvider: React.FC<{
     return { message: 'ok' };
   };
 
+  const background_handler: Function = () => {
+    const backgroundImage = ['1', '2', '3', '4'];
+    const randomIndex = Math.floor(Math.random() * backgroundImage.length);
+    const randomBackground = backgroundImage[randomIndex];
+    setBackground(randomBackground);
+    return { message: `ok, the background image is ${randomBackground}.png` };
+  };
+
   const debug_handler: Function = async ({
     debug_mode,
   }: {
@@ -758,6 +768,7 @@ export const AppProvider: React.FC<{
     [camera_on.definition, camera_on_handler],
     [camera_take_photo.definition, camera_take_photo_handler],
     [opacity.definition, opacity_handler],
+    [background.definition, background_handler],
     [camera_current.definition, camera_current_handler],
     [camera_video.definition, camera_video_handler],
     [memory.definition, memory_handler],
