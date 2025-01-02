@@ -67,6 +67,7 @@ import {
   useGptImagesDispatch,
   useGptImagesRef,
 } from '../contexts/GptImagesContext';
+import { VectorStore } from 'openai/resources/beta/vector-stores/vector-stores';
 
 interface AppContextType {
   photos: string[];
@@ -115,6 +116,10 @@ interface AppContextType {
   assistant: Assistant | null;
   assistantRef: React.MutableRefObject<Assistant | null>;
   setAssistant: React.Dispatch<React.SetStateAction<Assistant | null>>;
+
+  vectorStore: VectorStore | null;
+  vectorStoreRef: React.MutableRefObject<VectorStore | null>;
+  setVectorStore: React.Dispatch<React.SetStateAction<VectorStore | null>>;
 
   isNightMode: boolean;
   isNightModeRef: React.MutableRefObject<boolean>;
@@ -281,13 +286,20 @@ export const AppProvider: React.FC<{
   // loading
   const [loading, setLoading] = useState<boolean>(false);
 
-  // assistant object
+  // assistant
   const [assistant, setAssistant] = useState<Assistant | null>(null);
   const assistantRef = useRef(assistant);
   useEffect(() => {
     assistantRef.current = assistant;
     localStorage.setItem('assistant', JSON.stringify(assistant));
   }, [assistant]);
+
+  // vectorStore
+  const [vectorStore, setVectorStore] = useState<VectorStore | null>(null);
+  const vectorStoreRef = useRef(vectorStore);
+  useEffect(() => {
+    vectorStoreRef.current = vectorStore;
+  }, [vectorStore]);
 
   // thread
   const [thread, setThread] = useState<any | null>(null);
@@ -952,6 +964,9 @@ export const AppProvider: React.FC<{
         isDebugMode,
         isDebugModeRef,
         setIsDebugMode,
+        vectorStore,
+        vectorStoreRef,
+        setVectorStore,
       }}
     >
       {children}
