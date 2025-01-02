@@ -1,3 +1,6 @@
+export const APP_AGENT = 'AI Agent Playground';
+export const APP_AGENT_VECTOR_STORE =
+  'ai-agent-playground-assistant-vector-store';
 export const ASSISTENT_TYPE_ASSISTANT = 'assistant';
 export const ASSISTENT_TYPE_REALTIME = 'realtime';
 
@@ -14,7 +17,6 @@ export const CAMERA_READY = 'camera_ready';
 export const CONNECT_DISCONNECTED = 'connect_disconnected';
 export const CONNECT_CONNECTING = 'connect_connecting';
 export const CONNECT_CONNECTED = 'connect_connected';
-
 export const AVATAR_OFF = 'avatar_off';
 export const AVATAR_STARTING = 'avatar_starting';
 export const AVATAR_READY = 'avatar_ready';

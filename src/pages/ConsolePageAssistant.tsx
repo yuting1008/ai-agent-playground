@@ -1,6 +1,11 @@
 import { useCallback, useState } from 'react';
 
-import { CONNECT_CONNECTED, CONNECT_CONNECTING } from '../lib/const';
+import {
+  APP_AGENT,
+  APP_AGENT_VECTOR_STORE,
+  CONNECT_CONNECTED,
+  CONNECT_CONNECTING,
+} from '../lib/const';
 
 import './ConsolePage.scss';
 import Camera from '../components/Camera';
@@ -18,15 +23,24 @@ import { AssistantStreamEvent } from 'openai/resources/beta/assistants/assistant
 import {
   Assistant,
   AssistantCreateParams,
+  AssistantListParams,
+  AssistantsPage,
 } from 'openai/resources/beta/assistants';
 import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
 import { useContexts } from '../providers/AppProvider';
 import { InputBarAssistant } from '../components/InputBarAssistant';
+import {
+  VectorStore,
+  VectorStoresPage,
+} from 'openai/resources/beta/vector-stores/vector-stores';
 
 export function ConsolePageAssistant() {
   const {
     assistantRef,
     setAssistant,
+    vectorStore,
+    vectorStoreRef,
+    setVectorStore,
     setLoading,
     threadRef,
     threadJobRef,
@@ -47,21 +61,94 @@ export function ConsolePageAssistant() {
 
   const { functionsToolsRef, llmInstructions } = useContexts();
 
+  const cleanupAssistants = async () => {
+    try {
+      const assistantsPageList: Assistant[] = [];
+      let lists: AssistantsPage =
+        await getOpenAIClient().beta.assistants.list();
+      assistantsPageList.push(...lists.data);
+      setConnectMessage(
+        `Collecting Assistants(${assistantsPageList.length})...`,
+      );
+
+      while (lists.hasNextPage()) {
+        lists = await lists.getNextPage();
+        assistantsPageList.push(...lists.data);
+        setConnectMessage(
+          `Collecting Assistants(${assistantsPageList.length})...`,
+        );
+      }
+
+      for (const [index, assistant] of assistantsPageList.entries()) {
+        if (assistant.name === APP_AGENT) {
+          setConnectMessage(
+            `Deleting Assistant(${index}/${assistantsPageList.length}): ${assistant.id}`,
+          );
+          await getOpenAIClient().beta.assistants.del(assistant.id);
+        }
+      }
+    } catch (error: any) {
+      console.error(`Error listing assistants: ${error.message}`);
+      alert(`Error listing assistants: ${error.message}`);
+    }
+  };
+
+  const cleanupVectorStores = async () => {
+    try {
+      const bectorStoresPages: VectorStore[] = [];
+      let lists: VectorStoresPage =
+        await getOpenAIClient().beta.vectorStores.list();
+
+      bectorStoresPages.push(...lists.data);
+      setConnectMessage(
+        `Collecting Vector Stores(${bectorStoresPages.length})...`,
+      );
+
+      while (lists.hasNextPage()) {
+        lists = await lists.getNextPage();
+        bectorStoresPages.push(...lists.data);
+        setConnectMessage(
+          `Collecting Vector Stores(${bectorStoresPages.length})...`,
+        );
+      }
+
+      for (const [index, vectorStore] of bectorStoresPages.entries()) {
+        if (vectorStore.name === APP_AGENT_VECTOR_STORE) {
+          setConnectMessage(
+            `Deleting Vector Store(${index}/${bectorStoresPages.length}): ${vectorStore.id}`,
+          );
+          await getOpenAIClient().beta.vectorStores.del(vectorStore.id);
+        }
+      }
+    } catch (error: any) {
+      console.error(`Error listing assistants: ${error.message}`);
+      alert(`Error listing assistants: ${error.message}`);
+    }
+  };
+
+  const setupVectorStore = async (assistantId: string) => {
+    const vectorStore = await getOpenAIClient().beta.vectorStores.create({
+      name: APP_AGENT_VECTOR_STORE,
+    });
+    await getOpenAIClient().beta.assistants.update(assistantId, {
+      tool_resources: {
+        file_search: {
+          vector_store_ids: [vectorStore.id],
+        },
+      },
+    });
+    setVectorStore(vectorStore);
+  };
+
   const setupAssistant = async () => {
     try {
-      // const assistantId = localStorage.getItem('assistantId') || '';
-      // if (assistantId) {
-      //   console.log(`Assistant already exists: ${assistantId}`);
-      //   return;
-      // }
-
       const { modelName } = parseOpenaiSetting(
         localStorage.getItem('completionTargetUri') || '',
       );
 
       const params: AssistantCreateParams = {
         instructions: llmInstructions,
-        name: 'Quickstart Assistant',
+        name: APP_AGENT,
         temperature: 1,
         top_p: 1,
         model: modelName,
@@ -77,7 +164,10 @@ export function ConsolePageAssistant() {
       const assistant: Assistant =
         await getOpenAIClient().beta.assistants.create(params);
       console.log(`Assistant created:`, assistant);
+
       setAssistant(assistant);
+      setConnectMessage(`Creating Vector Store...`);
+      setupVectorStore(assistant.id);
     } catch (error: any) {
       console.error(`Error creating assistant: ${error.message}`);
       alert(`Error creating assistant: ${error.message}`);
@@ -327,6 +417,10 @@ export function ConsolePageAssistant() {
 
   const connectConversation = useCallback(async () => {
     setConnectStatus(CONNECT_CONNECTING);
+    setConnectMessage('Collecting Assistants...');
+    await cleanupAssistants();
+    setConnectMessage('Collecting Vector Stores...');
+    await cleanupVectorStores();
     setConnectMessage('Creating Assistant...');
     await setupAssistant();
     setConnectMessage('Creating Thread...');

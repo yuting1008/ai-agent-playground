@@ -32,6 +32,7 @@ const LocalStorageViewer: React.FC = () => {
     inputValue,
     needSpeechQueue,
     captionQueue,
+    vectorStore,
   } = useContexts();
 
   const fetchLocalStorageData = useCallback(() => {
@@ -134,7 +135,12 @@ const LocalStorageViewer: React.FC = () => {
                     {getStringArraySizeUtf8InMB(photos)} MB
                   </td>
                 </tr>
-
+                <tr key="vectorStore">
+                  <td className={styles.tdKey}>vectorStore</td>
+                  <td className={styles.tdValue}>
+                    {JSON.stringify(vectorStore)}
+                  </td>
+                </tr>
                 <tr key="avatarStatus">
                   <td className={styles.tdKey}>avatarStatus</td>
                   <td className={styles.tdValue}>{avatarStatus}</td>
