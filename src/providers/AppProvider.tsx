@@ -22,8 +22,15 @@ import * as stock_recommend from '../tools/stock_recommend';
 import * as products_recommend from '../tools/products_recommend';
 import * as demo from '../tools/demo';
 import * as feishu from '../tools/feishu';
+import * as command_recognition1 from '../tools/command_recognition1';
+import * as background from '../tools/background';
+import * as open_url from '../tools/open_url';
+import * as debug_model from '../tools/debug_model';
+import * as set_disconnection from '../tools/set_disconnection';
 import * as camera_current from '../tools/camera_current';
 import * as camera_on from '../tools/camera_on';
+import * as camera_take_photo from '../tools/camera_take_photo';
+import * as opacity from '../tools/opacity';
 import * as camera_video from '../tools/camera_video';
 import * as painting from '../tools/painting';
 import * as image_modify from '../tools/painting_modify';
@@ -165,6 +172,10 @@ interface AppContextType {
   setConnectMessage: React.Dispatch<React.SetStateAction<string>>;
 
   resetApp: () => void;
+
+  isDebugMode: boolean;
+  isDebugModeRef: React.MutableRefObject<boolean>;
+  setIsDebugMode: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const IS_DEBUG: boolean = window.location.href.includes('localhost');
@@ -176,7 +187,16 @@ export const AppProvider: React.FC<{
   setAppKey: React.Dispatch<React.SetStateAction<number>>;
   isNightMode: boolean;
   setIsNightMode: React.Dispatch<React.SetStateAction<boolean>>;
-}> = ({ children, setAppKey, isNightMode, setIsNightMode }) => {
+  setOpacity: React.Dispatch<React.SetStateAction<number>>;
+  setBackground: React.Dispatch<React.SetStateAction<string>>;
+}> = ({
+  children,
+  setAppKey,
+  isNightMode,
+  setIsNightMode,
+  setOpacity,
+  setBackground,
+}) => {
   const isOnline = useOnlineStatus();
 
   const cogSvcSubKey = localStorage.getItem('cogSvcSubKey') || '';
@@ -238,6 +258,18 @@ export const AppProvider: React.FC<{
   useEffect(() => {
     photosRef.current = photos;
   }, [photos]);
+
+  // isDebugMode boolean
+  const [isDebugMode, setIsDebugMode] = useState<boolean>(false);
+  const isDebugModeRef = useRef(isDebugMode);
+  useEffect(() => {
+    isDebugModeRef.current = isDebugMode;
+    if (isDebugMode) {
+      replaceInstructions('调试模式是关闭的', '调试模式是开启的');
+    } else {
+      replaceInstructions('调试模式是开启的', '调试模式是关闭的');
+    }
+  }, [isDebugMode]);
 
   // debug
   const [debug, setDebug] = useState<boolean>(IS_DEBUG);
@@ -436,16 +468,15 @@ export const AppProvider: React.FC<{
       let content: any = [
         {
           type: 'text',
-          text: `Can you describe what you saw? ${prompt}`,
+          text: `Can you describe what you saw? ${prompt} \n please describe in ${localStorage.getItem('language') || 'chinese'}. The top left corner of the image is the time, and usually you don't need to explain this time.`,
         },
       ];
-
-      const photoIndex = photosRef.current.length >= 1 ? 1 : 0;
 
       content.push({
         type: 'image_url',
         image_url: {
-          url: photosRef.current[photoIndex],
+          url: photosRef.current[photosRef.current.length - 1],
+          detail: 'high',
         },
       });
 
@@ -492,23 +523,19 @@ export const AppProvider: React.FC<{
     let content: any = [
       {
         type: 'text',
-        text: `I'm going to give you a set of video frames from the video head capture, just captured. The images are displayed in reverse chronological order. Can you describe what you saw? If there are more pictures, it is continuous, please tell me the complete event that happened just now. ${prompt}`,
+        text: `I'm going to give you a set of video frames from the video head capture, just captured. The images are displayed in reverse chronological order. Can you describe what you saw? If there are more pictures, it is continuous, please tell me the complete event that happened just now. ${prompt} \n please describe in ${localStorage.getItem('language') || 'chinese'}`,
       },
     ];
 
+    const lastTenPhotos = photosRef.current.slice(-seconds);
     // for photos
-    let photoCount = 0;
-    photosRef.current.forEach((photo: string) => {
-      if (photoCount < seconds) {
-        content.push({
-          type: 'image_url',
-          image_url: {
-            url: photo,
-          },
-        });
-      }
-
-      photoCount++;
+    lastTenPhotos.forEach((photo: string) => {
+      content.push({
+        type: 'image_url',
+        image_url: {
+          url: photo,
+        },
+      });
     });
 
     try {
@@ -567,7 +594,7 @@ export const AppProvider: React.FC<{
 
       let checkTime = 0;
 
-      while (checkTime < 20) {
+      while (checkTime < 25) {
         await delayFunction(1000);
         checkTime++;
         if (avatarStatusRef.current === AVATAR_READY) {
@@ -575,6 +602,7 @@ export const AppProvider: React.FC<{
         }
       }
 
+      setAvatarStatus(AVATAR_OFF);
       return { message: 'Error, please check your error message.' };
     }
 
@@ -691,9 +719,64 @@ export const AppProvider: React.FC<{
     };
   };
 
-  // functions_tools array
-  const functionsToolsRef = useRef<[ToolDefinitionType, Function][]>([
+  const camera_take_photo_handler: Function = async () => {
+    // for first time, wait 2 seconds to make sure the camera is ready
+    if (cameraStatusRef.current !== CAMERA_READY) {
+      await delayFunction(4000);
+    }
+
+    if (cameraStatusRef.current !== CAMERA_READY) {
+      return { error: 'camera is not ready, please turn on the camera first.' };
+    }
+
+    const currentPhoto = photosRef.current[photosRef.current.length - 1];
+    const base64Data = currentPhoto.split(',')[1];
+    const gptImage: GptImage = {
+      prompt: 'take a photo',
+      b64_json: base64Data,
+    };
+    gptImagesDispatch({ type: 'add', gptImage });
+    return { message: 'ok' };
+  };
+
+  const opacity_handler: Function = async ({
+    opacity,
+  }: {
+    [key: string]: any;
+  }) => {
+    console.log('opacity', opacity);
+    // set opacity to float
+    setOpacity(Number(opacity));
+    return { message: 'ok' };
+  };
+
+  const background_handler: Function = () => {
+    const backgroundImage = ['1', '2', '3', '4'];
+    const randomIndex = Math.floor(Math.random() * backgroundImage.length);
+    const randomBackground = backgroundImage[randomIndex];
+    setBackground(randomBackground);
+    return { message: `ok, the background image is ${randomBackground}.png` };
+  };
+
+  const debug_handler: Function = async ({
+    debug_mode,
+  }: {
+    [key: string]: any;
+  }) => {
+    setIsDebugMode(debug_mode);
+    return { ok: true };
+  };
+
+  const set_disconnection_handler: Function = () => {
+    resetApp();
+    return { ok: true };
+  };
+
+  const functions_tool: [ToolDefinitionType, Function][] = [
     [camera_on.definition, camera_on_handler],
+    [camera_take_photo.definition, camera_take_photo_handler],
+    [opacity.definition, opacity_handler],
+    [background.definition, background_handler],
     [camera_current.definition, camera_current_handler],
     [camera_video.definition, camera_video_handler],
     [memory.definition, memory_handler],
@@ -702,9 +785,10 @@ export const AppProvider: React.FC<{
     [bing.definition, bing_search_handler],
     [painting.definition, painting_handler],
     [image_modify.definition, image_modify_handler],
+    [debug_model.definition, debug_handler],
+    [set_disconnection.definition, set_disconnection_handler],
 
     [news.definition, news.handler],
-    [douyin.definition, douyin.handler],
     [weather.definition, weather.handler],
     [order_get.definition, order_get.handler],
     [order_return.definition, order_return.handler],
@@ -714,12 +798,16 @@ export const AppProvider: React.FC<{
     [products_recommend.definition, products_recommend.handler],
     [location.definition, location.handler],
     [feishu.definition, feishu.handler],
-    [pronunciation_assessment.definition, pronunciation_assessment.handler],
+    [open_url.definition, open_url.handler],
     [azure_docs.definition, azure_docs.handler],
     [demo.definition, demo.handler],
     [quote.definition, quote.handler],
     [stock_recommend.definition, stock_recommend.handler],
-  ]);
+  ];
+
+  // functions_tools array
+  const functionsToolsRef =
+    useRef<[ToolDefinitionType, Function][]>(functions_tool);
 
   // instructions string
   const prompt = localStorage.getItem('prompt') || '';
@@ -861,6 +949,9 @@ export const AppProvider: React.FC<{
         connectMessage,
         setConnectMessage,
         resetApp,
+        isDebugMode,
+        isDebugModeRef,
+        setIsDebugMode,
       }}
     >
       {children}

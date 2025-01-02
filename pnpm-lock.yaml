@@ -41,6 +41,9 @@ importers:
       '@types/node':
         specifier: ^16.18.108
         version: 16.18.119
+      '@types/sharp':
+        specifier: ^0.32.0
+        version: 0.32.0
       axios:
         specifier: ^1.7.8
         version: 1.7.8
@@ -1750,6 +1753,10 @@ packages:
 
   '@types/serve-static@1.15.7':
     resolution: {integrity: sha512-W8Ym+h8nhuRwaKPaDw34QUkwsGi6Rc4yYqvKFo5rm2FUEhCFbzVWrxXUxuKK8TASjWsysJY0nsmNCGhCOIsrOw==}
+
+  '@types/sharp@0.32.0':
+    resolution: {integrity: sha512-OOi3kL+FZDnPhVzsfD37J88FNeZh6gQsGcLc95NbeURRGvmSjeXiDcyWzF2o3yh/gQAUn2uhh/e+CPCa5nwAxw==}
+    deprecated: This is a stub types definition. sharp provides its own type definitions, so you do not need this installed.
 
   '@types/sockjs@0.3.36':
     resolution: {integrity: sha512-MK9V6NzAS1+Ud7JV9lJLFqW85VbC9dq3LmwZCuBe4wBDgKC0Kj/jd8Xl+nSviU+Qc3+m7umHHyHg//2KSa0a0Q==}
@@ -8478,6 +8485,10 @@ snapshots:
       '@types/http-errors': 2.0.4
       '@types/node': 16.18.119
       '@types/send': 0.17.4
+
+  '@types/sharp@0.32.0':
+    dependencies:
+      sharp: 0.33.5
 
   '@types/sockjs@0.3.36':
     dependencies:

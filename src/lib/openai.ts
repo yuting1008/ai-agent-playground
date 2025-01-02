@@ -19,6 +19,15 @@ export const getOpenAIClientSSt = (ttsApiKey: string, ttsTargetUri: string) => {
   });
 };
 
+export function parseOpenaiSetting(targetUri: string) {
+  const urlInfo = extractUrlInfo(targetUri);
+  const deployment = urlInfo?.deployment || '';
+  const modelName = urlInfo?.deployment || '';
+  const endpoint = urlInfo?.endpoint || '';
+  const apiVersion = urlInfo?.apiVersion || '';
+  return { deployment, modelName, endpoint, apiVersion };
+}
+
 export const getOpenAIClient = () => {
   const completionApiKey = localStorage.getItem('completionApiKey') || '';
   const completionTargetUri = localStorage.getItem('completionTargetUri') || '';
@@ -29,10 +38,8 @@ export const getOpenAIClient = () => {
     );
   }
 
-  const urlInfo = extractUrlInfo(completionTargetUri);
-  const deployment = urlInfo?.deployment;
-  const endpoint = urlInfo?.endpoint;
-  const apiVersion = urlInfo?.apiVersion;
+  const { deployment, endpoint, apiVersion } =
+    parseOpenaiSetting(completionTargetUri);
 
   return new AzureOpenAI({
     endpoint: endpoint,
@@ -41,17 +48,6 @@ export const getOpenAIClient = () => {
     deployment: deployment,
     dangerouslyAllowBrowser: true,
   });
-};
-
-const getAssistantFileById = async (fileId: string) => {
-  const [file, fileContent] = await Promise.all([
-    getOpenAIClient().files.retrieve(fileId),
-    getOpenAIClient().files.content(fileId),
-  ]);
-  return {
-    file,
-    fileContent,
-  };
 };
 
 export function extractUrlInfo(
@@ -112,6 +108,12 @@ export async function getCompletion(messages: any): Promise<string> {
     }
 
     const data = await response.json();
+
+    if (data?.error) {
+      console.log(data?.error);
+      return data?.error?.message || 'error';
+    }
+
     return data?.choices[0]?.message?.content || 'error';
   } catch (error) {
     console.error('Error fetching completion:', error);
@@ -259,5 +261,34 @@ export async function editImages(
       prompt: prompt,
       data: [],
     };
+  }
+}
+
+export async function image_vision(image_base_64: string) {
+  try {
+    const messages = [
+      {
+        role: 'user',
+        content: [
+          {
+            type: 'text',
+            text: `Can you describe what you saw? please describe in ${localStorage.getItem('language') || 'chinese'}`,
+          },
+          {
+            type: 'image_url',
+            image_url: {
+              url: image_base_64,
+            },
+          },
+        ],
+      },
+    ];
+
+    const resp = await getCompletion(messages);
+
+    return { message: resp };
+  } catch (error) {
+    console.error('vision error', error);
+    return { error: error };
   }
 }
