@@ -38,6 +38,9 @@ export function ConsolePageAssistant() {
   const {
     assistantRef,
     setAssistant,
+    vectorStore,
+    vectorStoreRef,
+    setVectorStore,
     setLoading,
     threadRef,
     threadJobRef,
@@ -110,17 +113,31 @@ export function ConsolePageAssistant() {
       }
 
       for (const [index, vectorStore] of bectorStoresPages.entries()) {
-        // if (vectorStore.name === APP_AGENT_VECTOR_STORE) {
-        setConnectMessage(
-          `Deleting Vector Store(${index}/${bectorStoresPages.length}): ${vectorStore.id}`,
-        );
-        await getOpenAIClient().beta.vectorStores.del(vectorStore.id);
-        // }
+        if (vectorStore.name === APP_AGENT_VECTOR_STORE) {
+          setConnectMessage(
+            `Deleting Vector Store(${index}/${bectorStoresPages.length}): ${vectorStore.id}`,
+          );
+          await getOpenAIClient().beta.vectorStores.del(vectorStore.id);
+        }
       }
     } catch (error: any) {
       console.error(`Error listing assistants: ${error.message}`);
       alert(`Error listing assistants: ${error.message}`);
     }
+  };
+
+  const setupVectorStore = async (assistantId: string) => {
+    const vectorStore = await getOpenAIClient().beta.vectorStores.create({
+      name: APP_AGENT_VECTOR_STORE,
+    });
+    await getOpenAIClient().beta.assistants.update(assistantId, {
+      tool_resources: {
+        file_search: {
+          vector_store_ids: [vectorStore.id],
+        },
+      },
+    });
+    setVectorStore(vectorStore);
   };
 
   const setupAssistant = async () => {
@@ -147,7 +164,10 @@ export function ConsolePageAssistant() {
       const assistant: Assistant =
         await getOpenAIClient().beta.assistants.create(params);
       console.log(`Assistant created:`, assistant);
+
       setAssistant(assistant);
+      setConnectMessage(`Creating Vector Store...`);
+      setupVectorStore(assistant.id);
     } catch (error: any) {
       console.error(`Error creating assistant: ${error.message}`);
       alert(`Error creating assistant: ${error.message}`);
