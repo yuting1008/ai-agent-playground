@@ -1,4 +1,8 @@
-import { CONNECT_CONNECTED, CONNECT_DISCONNECTED } from '../lib/const';
+import {
+  CONNECT_CONNECTED,
+  CONNECT_CONNECTING,
+  CONNECT_DISCONNECTED,
+} from '../lib/const';
 
 export default function ConnectMessage({
   connectStatus,
@@ -14,6 +18,10 @@ export default function ConnectMessage({
   let message = 'Connection...';
 
   if (connectStatus === CONNECT_DISCONNECTED) {
+    message = connectMessage;
+  }
+
+  if (connectStatus === CONNECT_CONNECTING) {
     message = connectMessage;
   }
 
