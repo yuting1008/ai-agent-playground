@@ -189,7 +189,14 @@ export const AppProvider: React.FC<{
   setIsNightMode: React.Dispatch<React.SetStateAction<boolean>>;
   setOpacity: React.Dispatch<React.SetStateAction<number>>;
   setBackground: React.Dispatch<React.SetStateAction<string>>;
-}> = ({ children, setAppKey, isNightMode, setIsNightMode, setOpacity, setBackground }) => {
+}> = ({
+  children,
+  setAppKey,
+  isNightMode,
+  setIsNightMode,
+  setOpacity,
+  setBackground,
+}) => {
   const isOnline = useOnlineStatus();
 
   const cogSvcSubKey = localStorage.getItem('cogSvcSubKey') || '';
@@ -587,7 +594,7 @@ export const AppProvider: React.FC<{
 
       let checkTime = 0;
 
-      while (checkTime < 20) {
+      while (checkTime < 25) {
         await delayFunction(1000);
         checkTime++;
         if (avatarStatusRef.current === AVATAR_READY) {
@@ -595,6 +602,7 @@ export const AppProvider: React.FC<{
         }
       }
 
+      setAvatarStatus(AVATAR_OFF);
       return { message: 'Error, please check your error message.' };
     }
 
