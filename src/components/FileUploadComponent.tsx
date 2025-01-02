@@ -50,8 +50,6 @@ const FileUploadComponent: React.FC<{
       return;
     }
 
-    alert(selectedFile.type);
-
     if (
       selectedFile.type !== 'text/plain' &&
       !selectedFile.name.endsWith('.xlsx')
