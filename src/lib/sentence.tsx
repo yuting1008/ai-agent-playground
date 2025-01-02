@@ -90,8 +90,9 @@ export function processAndStoreSentence(
 
   let sentences: string[] = [];
 
+  const sentenceRegex = /.*?[.!?。！？]/g;
+
   if (isAvatarStarted) {
-    const sentenceRegex = /.*?[!?。！？\n]/g;
     const [firstPart, remainingPart] = splitTextByFirstPunctuation(input);
     sentences =
       remainingPart
@@ -103,7 +104,6 @@ export function processAndStoreSentence(
       sentences.unshift(firstPart);
     }
   } else {
-    const sentenceRegex = /.*?[。！？]/g;
     sentences =
       input
         .match(sentenceRegex)
