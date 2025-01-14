@@ -83,10 +83,14 @@ export function InputBarAssistant({
 
     recognizer.recognized = (s, e) => {
       if (!isAssistant) {
+        console.error('Not assistant when speech recognized');
         return;
       }
       if (e.result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
         console.log(`Final result: ${e.result.text}`);
+        (async () => {
+          await stopCurrentStreamJob();
+        })();
         setInputValue(e.result.text);
         setIsRecognizing(false);
         sendText(e.result.text);
