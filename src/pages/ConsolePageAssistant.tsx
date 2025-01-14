@@ -201,7 +201,7 @@ export function ConsolePageAssistant() {
       );
       console.log('cancelJob', cancelJob);
     } catch (error) {
-      console.log('cancelJob error', error);
+      console.log('cancelJob error', JSON.stringify(error));
     }
 
     setThreadJob(null);
@@ -384,15 +384,26 @@ export function ConsolePageAssistant() {
 
   const sendAssistantMessage = async (text: string) => {
     if (!threadRef.current?.id) {
-      alert('Thread not found');
+      console.error('Thread not found');
       return;
     }
 
     if (!assistantRef?.current?.id) {
-      alert('Assistant not found');
+      console.error('Assistant not found');
       return;
     }
 
+    // wait 1.5 seconds to see if the thread is already running
+    if (threadJobRef.current) {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      if (threadJobRef.current) {
+        console.error('Thread is already running');
+        return;
+      }
+    }
+
+    // may need to add a check to see if the thread is already created
+    // Can't add messages to thread_xxx while a run run_xxx is active.
     await getOpenAIClient().beta.threads.messages.create(
       threadRef.current?.id,
       {
