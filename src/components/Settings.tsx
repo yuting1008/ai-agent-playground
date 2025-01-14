@@ -676,7 +676,11 @@ const SettingsComponent: React.FC<{
         />
 
         <div style={styles.settingLabel}>
-          <a href="https://www.showapi.com/" target="_blank" style={styles.link}>
+          <a
+            href="https://www.showapi.com/"
+            target="_blank"
+            style={styles.link}
+          >
             News
           </a>
           <span style={styles.settingLabelShow} onClick={toggleVisibility}>
@@ -697,7 +701,11 @@ const SettingsComponent: React.FC<{
         <div style={styles.settings_inline}>
           <div style={styles.settings_inline_block}>
             <div style={styles.settingLabel}>
-              <a href="https://www.mxnzp.com/" target="_blank" style={styles.link}>
+              <a
+                href="https://www.mxnzp.com/"
+                target="_blank"
+                style={styles.link}
+              >
                 Mxnzp AppId
               </a>
             </div>
@@ -715,7 +723,11 @@ const SettingsComponent: React.FC<{
 
           <div style={styles.settings_inline_block}>
             <div style={styles.settingLabel}>
-              <a href="https://www.mxnzp.com/" target="_blank" style={styles.link}>
+              <a
+                href="https://www.mxnzp.com/"
+                target="_blank"
+                style={styles.link}
+              >
                 Mxnzp AppSecret
               </a>
               <span style={styles.settingLabelShow} onClick={toggleVisibility}>
@@ -791,28 +803,6 @@ const SettingsComponent: React.FC<{
     reader.onload = (e) => {
       try {
         const settings = JSON.parse(e.target?.result as string);
-        console.log(settings);
-        // check settings
-        if (
-          !settings.endpoint ||
-          !settings.key ||
-          !settings.completionTargetUri ||
-          !settings.completionApiKey ||
-          !settings.cogSvcRegion ||
-          !settings.cogSvcSubKey ||
-          !settings.dallTargetUri ||
-          !settings.dallApiKey ||
-          !settings.feishuHook ||
-          !settings.quoteToken ||
-          !settings.newsKey ||
-          !settings.mxnzpAppId ||
-          !settings.mxnzpAppSecret ||
-          !settings.language ||
-          !settings.bingApiKey
-        ) {
-          alert('Import failed, Please check your settings.');
-          return;
-        }
 
         // update settings
         handleChange('endpoint', settings.endpoint);
