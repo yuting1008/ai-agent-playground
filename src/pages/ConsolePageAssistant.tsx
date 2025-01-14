@@ -395,7 +395,7 @@ export function ConsolePageAssistant() {
 
     // wait 1.5 seconds to see if the thread is already running
     if (threadJobRef.current) {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       if (threadJobRef.current) {
         console.error('Thread is already running');
         return;
@@ -403,27 +403,31 @@ export function ConsolePageAssistant() {
     }
 
     // may need to add a check to see if the thread is already created
-    // Can't add messages to thread_xxx while a run run_xxx is active.
-    await getOpenAIClient().beta.threads.messages.create(
-      threadRef.current?.id,
-      {
-        role: 'user',
-        content: text,
-      },
-    );
 
-    const stream = getOpenAIClient().beta.threads.runs.stream(
-      threadRef.current?.id,
-      {
-        assistant_id: assistantRef?.current?.id,
-      },
-    );
+    try {
+      await getOpenAIClient().beta.threads.messages.create(
+        threadRef.current?.id,
+        {
+          role: 'user',
+          content: text,
+        },
+      );
 
-    const new_stream = AssistantStream.fromReadableStream(
-      stream.toReadableStream(),
-    );
+      const stream = getOpenAIClient().beta.threads.runs.stream(
+        threadRef.current?.id,
+        {
+          assistant_id: assistantRef?.current?.id,
+        },
+      );
 
-    handleAssistantReadableStream(new_stream);
+      const new_stream = AssistantStream.fromReadableStream(
+        stream.toReadableStream(),
+      );
+
+      handleAssistantReadableStream(new_stream);
+    } catch (error) {
+      console.error('sendAssistantMessage error', JSON.stringify(error));
+    }
   };
 
   const connectConversation = useCallback(async () => {
