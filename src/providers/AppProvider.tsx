@@ -823,13 +823,19 @@ export const AppProvider: React.FC<{
 
   // instructions string
   const prompt = localStorage.getItem('prompt') || '';
+
   let updateInstructions = prompt
     ? `${instructions}\n\nOther requirements of the user: \n${prompt}`
     : instructions;
+
   updateInstructions += `\n\nYou have the following tools and abilities:`;
+
   for (const tool of functionsToolsRef.current) {
     updateInstructions += `\n${tool[0].name}: ${tool[0].description}`;
   }
+
+  const language = localStorage.getItem('language') || 'chinese';
+  updateInstructions = updateInstructions.replaceAll('{language}', language);
 
   const [llmInstructions, setLlmInstructions] =
     useState<string>(updateInstructions);
