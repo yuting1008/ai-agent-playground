@@ -395,7 +395,7 @@ const SettingsComponent: React.FC<{
         <div style={styles.settings_tip}>
           Currently only local search is supported.{' '}
           <a
-            href="https://github.com/TheodoreNiu/graphrag_kit"
+            href="https://github.com/theodoreniu/graphrag_webui"
             target="_blank"
             style={styles.link}
           >

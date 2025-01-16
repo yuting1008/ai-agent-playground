@@ -63,7 +63,7 @@ export const products = [
 export const demos = [
   {
     name: 'GraphRAG Kit',
-    url: 'https://github.com/TheodoreNiu/graphrag_kit',
+    url: 'https://github.com/theodoreniu/graphrag_webui',
     required_password: false,
     description:
       '这是一个使用 GraphRAG 的全生命周期的 WEBUI 解决方案，不需要写代码，只需要操作界面，就能快速构建、测试甚至部署上线基于 GraphRAG 的服务。',
