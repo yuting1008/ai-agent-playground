@@ -108,6 +108,22 @@ export function ConsolePageRealtime() {
         event: { type },
       } = realtimeEvent;
 
+      if (realtimeEvent?.event?.response?.usage) {
+        console.log('usage', realtimeEvent?.event?.response?.usage);
+      }
+
+      if (realtimeEvent.event?.response?.status === 'failed') {
+        setItems([]);
+        console.error(realtimeEvent.event.response?.status_details?.error);
+        const type =
+          realtimeEvent.event.response?.status_details?.error?.type ||
+          'server_error';
+        const message =
+          realtimeEvent.event.response?.status_details?.error?.message ||
+          'error';
+        setConnectMessage(`${type}\n${message}`);
+      }
+
       latencyRecord(realtimeEvent);
 
       if (source === 'server' && type === 'input_audio_buffer.speech_started') {
@@ -245,6 +261,7 @@ export function ConsolePageRealtime() {
     }
 
     setConnectStatus(CONNECT_CONNECTING);
+    setConnectMessage('Connecting...');
 
     // Connect to realtime API
     try {
@@ -264,6 +281,7 @@ export function ConsolePageRealtime() {
     // Set state variables
     startTimeRef.current = new Date().toISOString();
     setConnectStatus(CONNECT_CONNECTED);
+    setConnectMessage('');
     setItems(realtimeClientRef.current.conversation.getItems());
 
     // Connect to microphone
@@ -322,10 +340,7 @@ export function ConsolePageRealtime() {
       <div className="content-logs container_bg">
         <div className="content-block conversation">
           <div className="content-block-body" data-conversation-content>
-            <ConnectMessage
-              connectStatus={connectStatus}
-              connectMessage={connectMessage}
-            />
+            <ConnectMessage connectMessage={connectMessage} />
 
             <RealtimeMessages
               items={items}

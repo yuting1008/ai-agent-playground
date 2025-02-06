@@ -441,6 +441,7 @@ export function ConsolePageAssistant() {
     setConnectMessage('Creating Thread...');
     await createThread();
     setConnectStatus(CONNECT_CONNECTED);
+    setConnectMessage('');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -452,10 +453,7 @@ export function ConsolePageAssistant() {
       <div className="content-logs container_bg">
         <div className="content-block conversation">
           <div className="content-block-body" data-conversation-content>
-            <ConnectMessage
-              connectStatus={connectStatus}
-              connectMessage={connectMessage}
-            />
+            <ConnectMessage connectMessage={connectMessage} />
 
             <AssistantMessages
               connectStatus={connectStatus}
