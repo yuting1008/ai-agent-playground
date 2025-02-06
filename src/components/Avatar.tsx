@@ -105,8 +105,6 @@ const Avatar: React.FC = () => {
       }
 
       const videoFormat = new SpeechSDK.AvatarVideoFormat();
-      videoFormat.width = 300;
-      videoFormat.height = 250;
       videoFormat.setCropRange(
         new SpeechSDK.Coordinate(600, 0),
         new SpeechSDK.Coordinate(1360, 520),

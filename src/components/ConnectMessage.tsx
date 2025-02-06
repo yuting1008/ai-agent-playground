@@ -5,25 +5,11 @@ import {
 } from '../lib/const';
 
 export default function ConnectMessage({
-  connectStatus,
   connectMessage,
 }: {
-  connectStatus: string;
   connectMessage: string;
 }) {
-  if (connectStatus === CONNECT_CONNECTED) {
-    return null;
-  }
-
-  let message = 'Connection...';
-
-  if (connectStatus === CONNECT_DISCONNECTED) {
-    message = connectMessage;
-  }
-
-  if (connectStatus === CONNECT_CONNECTING) {
-    message = connectMessage;
-  }
-
-  return <div className={'waiting'}>{message}</div>;
+  return connectMessage ? (
+    <div className={'waiting'}>{connectMessage}</div>
+  ) : null;
 }
