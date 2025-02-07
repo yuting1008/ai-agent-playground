@@ -395,6 +395,14 @@
         background-position: center center;
       }
 
+      &.deepseek {
+        background-image: url('../static/deepseek.svg');
+        object-fit: cover;
+        background-repeat: no-repeat;
+        background-size: cover;
+        background-position: center center;
+      }
+
       &.assistant {
         margin-left: 15px;
         background-image: url('../static/assistant6.svg');

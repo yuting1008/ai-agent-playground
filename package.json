@@ -4,6 +4,9 @@
   "type": "module",
   "private": true,
   "dependencies": {
+    "@azure-rest/ai-inference": "latest",
+    "@azure/core-auth": "latest",
+    "@azure/core-sse": "latest",
     "@emotion/react": "^11.14.0",
     "@microsoft/microsoft-graph-client": "^3.0.7",
     "@openai/realtime-api-beta": "github:openai/openai-realtime-api-beta",
@@ -13,9 +16,8 @@
     "@testing-library/user-event": "^13.5.0",
     "@theodoreniu/realtime-api-beta": "^0.0.13",
     "@types/jest": "^27.5.2",
-    "@types/leaflet": "^1.9.12",
-    "@types/node": "^16.18.108",
-    "@types/sharp": "^0.32.0",
+    "@types/leaflet": "^1.9.14",
+    "@types/node": "^16.18.119",
     "axios": "^1.7.8",
     "buffer": "^6.0.3",
     "cors": "^2.8.5",
@@ -25,8 +27,12 @@
     "isomorphic-fetch": "^3.0.0",
     "leaflet": "^1.9.4",
     "microsoft-cognitiveservices-speech-sdk": "^1.41.0",
+    "nanoid": "^5.0.9",
+    "nth-check": "^2.1.1",
     "openai": "^4.73.1",
     "path-browserify": "^1.0.1",
+    "path-to-regexp": "^8.2.0",
+    "postcss": "^8.4.49",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-error-boundary": "^4.1.2",
@@ -39,7 +45,7 @@
     "react-transition-group": "^4.4.5",
     "react-webcam": "^7.2.0",
     "redux": "^5.0.1",
-    "sass": "^1.78.0",
+    "sass": "^1.81.0",
     "save": "^2.9.0",
     "sharp": "^0.33.5",
     "styled-components": "^6.1.13",
@@ -47,10 +53,7 @@
     "use-immer": "^0.10.0",
     "web-vitals": "^2.1.4",
     "ws": "^8.18.0",
-    "xlsx": "^0.18.5",
-    "postcss": ">=8.4.31",
-    "path-to-regexp": ">=0.1.12",
-    "nth-check": ">=2.0.1"
+    "xlsx": "^0.18.5"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -79,7 +82,7 @@
     ]
   },
   "devDependencies": {
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@babel/plugin-transform-private-property-in-object": "^7.25.9",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@types/react-transition-group": "^4.4.11",
@@ -87,10 +90,11 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
     "eslint-plugin-react-compiler": "19.0.0-beta-df7b47d-20241124",
+    "nanoid": ">=3.3.8",
     "nodemon": "^3.1.7",
-    "prettier": "3.4.2",
-    "postcss": ">=8.4.31",
+    "nth-check": ">=2.0.1",
     "path-to-regexp": ">=0.1.12",
-    "nth-check": ">=2.0.1"
+    "postcss": ">=8.4.31",
+    "prettier": "3.4.2"
   }
 }

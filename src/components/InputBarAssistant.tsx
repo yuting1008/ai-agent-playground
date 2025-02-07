@@ -1,12 +1,14 @@
 import { Clock, Mic, MicOff, Send, StopCircle } from 'react-feather';
 
 import { useContexts } from '../providers/AppProvider';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import * as SpeechSDK from 'microsoft-cognitiveservices-speech-sdk';
 import './InputBar.scss';
 import {
   ASSISTENT_TYPE_ASSISTANT,
   ASSISTENT_TYPE_DEFAULT,
+  clientHiChinese,
+  clientHiEnglish,
   CONNECT_CONNECTED,
 } from '../lib/const';
 
@@ -30,6 +32,14 @@ export function InputBarAssistant({
     inputValue,
     connectStatus,
   } = useContexts();
+
+  useEffect(() => {
+    if (connectStatus === CONNECT_CONNECTED) {
+      const language = localStorage.getItem('language') || 'chinese';
+      const hi = language === 'chinese' ? clientHiChinese : clientHiEnglish;
+      sendText(hi);
+    }
+  }, [connectStatus]);
 
   const cogSvcSubKey = localStorage.getItem('cogSvcSubKey') || '';
   const cogSvcRegion = localStorage.getItem('cogSvcRegion') || 'westus2';

@@ -12,11 +12,13 @@ import { ConsolePageRealtime } from './ConsolePageRealtime';
 import { ConsolePageAssistant } from './ConsolePageAssistant';
 import {
   ASSISTENT_TYPE_ASSISTANT,
+  ASSISTENT_TYPE_DEEPSEEK,
   ASSISTENT_TYPE_DEFAULT,
   ASSISTENT_TYPE_REALTIME,
 } from '../lib/const';
 import { AlertTriangle } from 'react-feather';
 import AboutApp from '../components/AboutApp';
+import { ConsolePageDeepSeek } from './ConsolePageDeepSeek';
 
 export function ConsolePage() {
   const { setIsNightMode, isDebugMode, setIsDebugMode } = useContexts();
@@ -25,6 +27,7 @@ export function ConsolePage() {
     localStorage.getItem('assistantType') || ASSISTENT_TYPE_DEFAULT;
   const isAssistant = assistantType === ASSISTENT_TYPE_ASSISTANT;
   const isRealtime = assistantType === ASSISTENT_TYPE_REALTIME;
+  const isDeepSeek = assistantType === ASSISTENT_TYPE_DEEPSEEK;
 
   function IsDebugMode() {
     if (!isDebugMode) {
@@ -73,6 +76,7 @@ export function ConsolePage() {
       <div className="content-main">
         {isRealtime && <ConsolePageRealtime />}
         {isAssistant && <ConsolePageAssistant />}
+        {isDeepSeek && <ConsolePageDeepSeek />}
       </div>
     </div>
   );
