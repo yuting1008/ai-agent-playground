@@ -20,6 +20,7 @@ import { InputBarAssistant } from '../components/InputBarAssistant';
 import ModelClient from '@azure-rest/ai-inference';
 import { AzureKeyCredential } from '@azure/core-auth';
 import { createSseStream } from '@azure/core-sse';
+import { DeepSeekTokenUsage } from '../types/DeepSeek';
 
 export function ConsolePageDeepSeek() {
   const {
@@ -30,13 +31,15 @@ export function ConsolePageDeepSeek() {
     setConnectMessage,
     recordTokenLatency,
     isDebugModeRef,
+    setInputTokens,
+    setOutputTokens,
   } = useContexts();
 
   const [messagesAssistant, setMessagesAssistant] = useState<any[]>([]);
 
   const [assistantRunning, setAssistantRunning] = useState(false);
 
-  const { llmInstructions } = useContexts();
+  const { llmInstructionsRef } = useContexts();
 
   const stopCurrentStreamJob = async () => {
     setAssistantRunning(false);
@@ -140,7 +143,7 @@ export function ConsolePageDeepSeek() {
           timeout: 100000,
           body: {
             messages: [
-              { role: 'system', content: llmInstructions },
+              { role: 'system', content: llmInstructionsRef.current },
               {
                 role: 'user',
                 content: text,
@@ -178,18 +181,30 @@ export function ConsolePageDeepSeek() {
         if (event.data === '[DONE]') {
           break;
         }
+
         for (const choice of JSON.parse(event.data).choices) {
           if (choice?.delta) {
             handleAssistantTextDelta(choice?.delta);
           }
         }
+
+        const data = JSON.parse(event.data);
+        if (data?.usage) {
+          tokensRecord(data?.usage);
+        }
       }
+
       setAssistantRunning(false);
     } catch (error) {
       console.error('sendAssistantMessage error', error);
     } finally {
       setAssistantRunning(false);
     }
+  };
+
+  const tokensRecord = (e: DeepSeekTokenUsage) => {
+    setInputTokens((prev) => prev + e.prompt_tokens);
+    setOutputTokens((prev) => prev + e.completion_tokens);
   };
 
   const connectConversation = useCallback(async () => {
