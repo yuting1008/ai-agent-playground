@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 import {
   CONNECT_CONNECTED,
@@ -28,6 +28,7 @@ export function ConsolePageDeepSeek() {
     setConnectStatus,
     connectMessage,
     setConnectMessage,
+    recordTokenLatency,
     isDebugModeRef,
   } = useContexts();
 
@@ -35,10 +36,10 @@ export function ConsolePageDeepSeek() {
 
   const [assistantRunning, setAssistantRunning] = useState(false);
 
-  const { functionsToolsRef, llmInstructions } = useContexts();
+  const { llmInstructions } = useContexts();
 
   const stopCurrentStreamJob = async () => {
-    console.log('stopCurrentStreamJob');
+    setAssistantRunning(false);
   };
 
   // textCreated - create new assistant message
@@ -46,19 +47,19 @@ export function ConsolePageDeepSeek() {
     appendAssistantMessage('assistant', '');
   };
 
-  const handleAssistantTextDeltaDs = (delta: any) => {
-    // recordTokenLatency(delta);
+  const handleAssistantTextDelta = (delta: any) => {
+    recordTokenLatency(delta);
 
     if (isDebugModeRef.current) {
       console.log('delta', delta);
     }
 
-    if (delta.content != null) {
+    if (delta.content) {
       setResponseBuffer((latestText) => latestText + delta.content);
       appendAssistantToLastMessage(delta.content);
     }
 
-    if (delta.annotations != null) {
+    if (delta.annotations) {
       annotateAssistantLastMessage(delta.annotations);
     }
   };
@@ -111,16 +112,23 @@ export function ConsolePageDeepSeek() {
       return;
     }
 
-    let deepSeekTargetUri = localStorage.getItem('deepSeekTargetUri') || '';
-    deepSeekTargetUri = deepSeekTargetUri.replace(
-      '/chat/completions?api-version=2024-05-01-preview',
-      '',
-    );
-    const deepSeekApiKey = localStorage.getItem('deepSeekApiKey') || '';
-    const modelName =
-      localStorage.getItem('deepSeekDeploymentName') || 'deepseek-r1';
+    setAssistantRunning(true);
+    handleAssistantTextCreated();
 
+    // Please install OpenAI SDK first: `npm install openai`
+
+    let stream: ReadableStream | undefined;
+    let reader: ReadableStreamDefaultReader | undefined;
     try {
+      let deepSeekTargetUri = localStorage.getItem('deepSeekTargetUri') || '';
+      deepSeekTargetUri = deepSeekTargetUri.replace(
+        '/chat/completions?api-version=2024-05-01-preview',
+        '',
+      );
+      const deepSeekApiKey = localStorage.getItem('deepSeekApiKey') || '';
+      const modelName =
+        localStorage.getItem('deepSeekDeploymentName') || 'deepseek-r1';
+
       const client = ModelClient(
         deepSeekTargetUri,
         new AzureKeyCredential(deepSeekApiKey),
@@ -129,30 +137,29 @@ export function ConsolePageDeepSeek() {
       const response = await client
         .path('/chat/completions')
         .post({
-          timeout: 10000,
+          timeout: 100000,
           body: {
             messages: [
-              { role: 'system', content: 'You are a helpful assistant.' },
+              { role: 'system', content: llmInstructions },
               {
                 role: 'user',
                 content: text,
               },
             ],
-            max_tokens: 2048,
+            // max_tokens: 2048,
             model: modelName,
             stream: true,
           },
         })
         .asNodeStream();
 
-      const stream = response.body as unknown as ReadableStream;
+      stream = response.body as unknown as ReadableStream;
       if (!stream) {
-        console.log('stream', stream);
-        throw new Error(stream);
+        console.log('stream is null', stream);
+        throw new Error('Stream is null');
       }
 
       if (response.status !== '200') {
-        stream.cancel();
         if (response.status === '429') {
           setConnectMessage('429 Too Many Requests');
           return;
@@ -161,28 +168,27 @@ export function ConsolePageDeepSeek() {
         throw new Error(JSON.stringify(response));
       }
 
-      handleAssistantTextCreated();
-      setAssistantRunning(true);
-
       const sseStream = createSseStream(stream);
+      reader = sseStream.getReader();
 
-      console.log('sseStream', sseStream);
+      while (true) {
+        const { done, value: event } = await reader.read();
+        if (done) break;
 
-      for await (const event of sseStream) {
         if (event.data === '[DONE]') {
-          return;
+          break;
         }
         for (const choice of JSON.parse(event.data).choices) {
           if (choice?.delta) {
-            console.log('delta', choice?.delta);
-            handleAssistantTextDeltaDs(choice?.delta);
+            handleAssistantTextDelta(choice?.delta);
           }
         }
       }
       setAssistantRunning(false);
     } catch (error) {
-      setAssistantRunning(false);
       console.error('sendAssistantMessage error', error);
+    } finally {
+      setAssistantRunning(false);
     }
   };
 
