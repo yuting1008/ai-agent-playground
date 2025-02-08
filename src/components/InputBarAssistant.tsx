@@ -227,7 +227,6 @@ export function InputBarAssistant({
             style={{
               color: sttRecognizer ? '#ffffff' : '',
               backgroundColor: sttRecognizer ? '#ff4d4f' : '',
-              display: assistantRunning ? 'none' : '',
             }}
           >
             {sttRecognizer ? (
