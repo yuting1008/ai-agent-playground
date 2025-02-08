@@ -64,11 +64,11 @@ export function ConsolePage() {
           <a
             href="https://github.com/theodoreniu/ai-agent-playground"
             target="_blank"
-            style={{ marginTop: 0, top: 0 }}
+            style={{ marginTop: 0, top: 0, display: 'none' }}
           >
             <img
               src="https://img.shields.io/github/v/tag/theodoreniu/ai-agent-playground"
-              style={{ width: '70px', height: '20px' }}
+              style={{ width: '100%', height: '20px' }}
               alt="logo"
             />
           </a>
