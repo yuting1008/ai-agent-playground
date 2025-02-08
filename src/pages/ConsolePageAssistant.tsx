@@ -146,7 +146,7 @@ export function ConsolePageAssistant() {
         });
       }
     })();
-  }, [llmInstructions]);
+  }, [llmInstructions, assistantRef]);
 
   const setupVectorStore = async (assistantId: string) => {
     const vectorStore = await getOpenAIClient().beta.vectorStores.create({
