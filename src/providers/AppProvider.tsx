@@ -146,6 +146,30 @@ interface AppContextType {
   captionRef: React.MutableRefObject<string>;
   setCaption: React.Dispatch<React.SetStateAction<string>>;
 
+  inputTokens: number;
+  inputTokensRef: React.MutableRefObject<number>;
+  setInputTokens: React.Dispatch<React.SetStateAction<number>>;
+
+  inputTextTokens: number;
+  inputTextTokensRef: React.MutableRefObject<number>;
+  setInputTextTokens: React.Dispatch<React.SetStateAction<number>>;
+
+  inputAudioTokens: number;
+  inputAudioTokensRef: React.MutableRefObject<number>;
+  setInputAudioTokens: React.Dispatch<React.SetStateAction<number>>;
+
+  outputTokens: number;
+  outputTokensRef: React.MutableRefObject<number>;
+  setOutputTokens: React.Dispatch<React.SetStateAction<number>>;
+
+  outputTextTokens: number;
+  outputTextTokensRef: React.MutableRefObject<number>;
+  setOutputTextTokens: React.Dispatch<React.SetStateAction<number>>;
+
+  outputAudioTokens: number;
+  outputAudioTokensRef: React.MutableRefObject<number>;
+  setOutputAudioTokens: React.Dispatch<React.SetStateAction<number>>;
+
   captionQueue: string[];
   captionQueueRef: React.MutableRefObject<string[]>;
   setCaptionQueue: React.Dispatch<React.SetStateAction<string[]>>;
@@ -228,6 +252,30 @@ export const AppProvider: React.FC<{
   const addCaptionQueue = (caption: string) => {
     setCaptionQueue([...captionQueueRef.current, caption]);
   };
+
+  // inputTokens number
+  const [inputTokens, setInputTokens] = useState(0);
+  const inputTokensRef = useRef(inputTokens);
+
+  // inputTextTokens number
+  const [inputTextTokens, setInputTextTokens] = useState(0);
+  const inputTextTokensRef = useRef(inputTextTokens);
+
+  // inputAudioTokens number
+  const [inputAudioTokens, setInputAudioTokens] = useState(0);
+  const inputAudioTokensRef = useRef(inputAudioTokens);
+
+  // outputTokens number
+  const [outputTokens, setOutputTokens] = useState(0);
+  const outputTokensRef = useRef(outputTokens);
+
+  // outputTextTokens number
+  const [outputTextTokens, setOutputTextTokens] = useState(0);
+  const outputTextTokensRef = useRef(outputTextTokens);
+
+  // outputAudioTokens number
+  const [outputAudioTokens, setOutputAudioTokens] = useState(0);
+  const outputAudioTokensRef = useRef(outputAudioTokens);
 
   // cameraStatus string
   const [cameraStatus, setCameraStatus] = useState(CAMERA_OFF);
@@ -973,6 +1021,24 @@ export const AppProvider: React.FC<{
         vectorStore,
         vectorStoreRef,
         setVectorStore,
+        inputTokens,
+        inputTokensRef,
+        setInputTokens,
+        outputTokens,
+        outputTokensRef,
+        setOutputTokens,
+        inputTextTokens,
+        inputTextTokensRef,
+        setInputTextTokens,
+        outputTextTokens,
+        outputTextTokensRef,
+        setOutputTextTokens,
+        inputAudioTokens,
+        inputAudioTokensRef,
+        setInputAudioTokens,
+        outputAudioTokens,
+        outputAudioTokensRef,
+        setOutputAudioTokens,
       }}
     >
       {children}

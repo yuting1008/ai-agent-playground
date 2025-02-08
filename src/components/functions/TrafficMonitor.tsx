@@ -2,7 +2,11 @@ import React, { useState } from 'react';
 import { X } from 'react-feather';
 import { Activity } from 'react-feather';
 import { useContexts } from '../../providers/AppProvider';
-import { CONNECT_CONNECTED } from '../../lib/const';
+import {
+  ASSISTENT_TYPE_DEFAULT,
+  ASSISTENT_TYPE_REALTIME,
+  CONNECT_CONNECTED,
+} from '../../lib/const';
 import { avgLatency, calculatePercentiles } from '../../lib/helper';
 import { TableSheet } from '../../types/Table';
 import WithFade from '../WithFade';
@@ -16,9 +20,18 @@ const TrafficMonitor: React.FC = () => {
     tokenLatencyArray,
     connectStatus,
     isNightMode,
+    inputTokens,
+    inputTextTokens,
+    inputAudioTokens,
+    outputTokens,
+    outputTextTokens,
+    outputAudioTokens,
   } = useContexts();
 
   const importModalStyles = modalStyles({ isNightMode });
+
+  const isRealtime =
+    localStorage.getItem('assistantType') === ASSISTENT_TYPE_REALTIME;
 
   const firstTokenLatencyLast =
     firstTokenLatencyArray.length > 0
@@ -130,11 +143,22 @@ const TrafficMonitor: React.FC = () => {
       name: '',
       items: [
         {
+          key: 'Input Tokens',
+          value: inputTokens.toString(),
+        },
+        { key: 'Output Tokens', value: outputTokens.toString() },
+      ],
+    };
+
+    const table3: TableSheet = {
+      name: '',
+      items: [
+        {
           key: 'First Token',
           value: firstTokenLatencyLast.toString(),
           unit: 'ms',
         },
-        { key: 'Next  Token', value: tokenLatencyLast.toString(), unit: 'ms' },
+        { key: 'Next Token', value: tokenLatencyLast.toString(), unit: 'ms' },
       ],
     };
 
@@ -142,6 +166,7 @@ const TrafficMonitor: React.FC = () => {
       <div style={styles.tables}>
         <TableRender style={styles.table} table={table1} />
         <TableRender style={styles.table} table={table2} />
+        <TableRender style={styles.table} table={table3} />
       </div>
     );
   };
@@ -209,6 +234,40 @@ const TrafficMonitor: React.FC = () => {
       ],
     };
 
+    const tokensTable: TableSheet = {
+      name: 'Tokens',
+      items: isRealtime
+        ? [
+            {
+              key: 'Total Tokens:',
+              value: (inputTokens + outputTokens).toString(),
+            },
+            { key: 'Intput Tokens:', value: inputTokens.toString() },
+            { key: 'Input Text Tokens:', value: inputTextTokens.toString() },
+            { key: 'Input Audio Tokens:', value: inputAudioTokens.toString() },
+            { key: 'Output Tokens:', value: outputTokens.toString() },
+            { key: 'Output Text Tokens:', value: outputTextTokens.toString() },
+            {
+              key: 'Output Audio Tokens:',
+              value: outputAudioTokens.toString(),
+            },
+            { key: ':', value: '' },
+          ]
+        : [
+            {
+              key: 'Total Tokens:',
+              value: (inputTokens + outputTokens).toString(),
+            },
+            { key: 'Intput Tokens:', value: inputTokens.toString() },
+            { key: 'Output Tokens:', value: outputTokens.toString() },
+            { key: ':', value: '' },
+            { key: ':', value: '' },
+            { key: ':', value: '' },
+            { key: ':', value: '' },
+            { key: ':', value: '' },
+          ],
+    };
+
     const firstTokenLatencyTable: TableSheet = {
       name: 'First Token Latency',
       items: [
@@ -239,10 +298,7 @@ const TrafficMonitor: React.FC = () => {
 
     return (
       <div style={importModalStyles.backdrop}>
-        <div
-          style={{ ...importModalStyles.modal, width: '600px' }}
-          className={'modal'}
-        >
+        <div style={{ ...importModalStyles.modal }} className={'modal'}>
           <div style={importModalStyles.header}>
             <h2>Traffic Monitor</h2>
             <button
@@ -256,6 +312,7 @@ const TrafficMonitor: React.FC = () => {
 
           <div style={styles.tablesDashboard}>
             <TableRender style={styles.tableDashboard} table={timesTable} />
+            <TableRender style={styles.tableDashboard} table={tokensTable} />
             <TableRender
               style={styles.tableDashboard}
               table={firstTokenLatencyTable}

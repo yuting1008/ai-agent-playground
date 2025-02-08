@@ -36,6 +36,8 @@ import {
   VectorStoresPage,
 } from 'openai/resources/beta/vector-stores/vector-stores';
 
+import { Run } from 'openai/resources/beta/threads/runs/runs';
+
 export function ConsolePageAssistant() {
   const {
     assistantRef,
@@ -55,13 +57,20 @@ export function ConsolePageAssistant() {
     connectMessage,
     setConnectMessage,
     isDebugModeRef,
+    setInputTokens,
+    setInputTextTokens,
+    setInputAudioTokens,
+    setOutputTokens,
+    setOutputTextTokens,
+    setOutputAudioTokens,
   } = useContexts();
 
   const [messagesAssistant, setMessagesAssistant] = useState<any[]>([]);
 
   const [assistantRunning, setAssistantRunning] = useState(false);
 
-  const { functionsToolsRef, llmInstructions } = useContexts();
+  const { functionsToolsRef, llmInstructions, llmInstructionsRef } =
+    useContexts();
 
   const cleanupAssistants = async () => {
     try {
@@ -128,6 +137,17 @@ export function ConsolePageAssistant() {
     }
   };
 
+  useEffect(() => {
+    (async () => {
+      console.log('llmInstructions updated');
+      if (assistantRef?.current?.id) {
+        getOpenAIClient().beta.assistants.update(assistantRef?.current?.id, {
+          instructions: llmInstructions,
+        });
+      }
+    })();
+  }, [llmInstructions]);
+
   const setupVectorStore = async (assistantId: string) => {
     const vectorStore = await getOpenAIClient().beta.vectorStores.create({
       name: APP_AGENT_VECTOR_STORE,
@@ -149,7 +169,7 @@ export function ConsolePageAssistant() {
       );
 
       const params: AssistantCreateParams = {
-        instructions: llmInstructions,
+        instructions: llmInstructionsRef.current,
         name: APP_AGENT,
         temperature: 1,
         top_p: 1,
@@ -368,20 +388,31 @@ export function ConsolePageAssistant() {
       if (event.event === 'thread.run.created') {
         console.log('thread.run.created', event.data);
         setThreadJob(event.data);
+        if (event?.data?.usage) {
+          tokensRecord(event?.data?.usage);
+        }
       }
 
       if (event.event === 'thread.run.completed') {
         setThreadJob(null);
+        handleAssistantRunCompleted();
+        if (event?.data?.usage) {
+          tokensRecord(event?.data?.usage);
+        }
       }
 
       if (event.event === 'thread.run.requires_action') {
         handleAssistantRequiresAction(event);
-      }
-
-      if (event.event === 'thread.run.completed') {
-        handleAssistantRunCompleted();
+        if (event?.data?.usage) {
+          tokensRecord(event?.data?.usage);
+        }
       }
     });
+  };
+
+  const tokensRecord = (e: Run.Usage) => {
+    setInputTokens((prev) => prev + e.prompt_tokens);
+    setOutputTokens((prev) => prev + e.completion_tokens);
   };
 
   const sendAssistantMessage = async (text: string) => {
