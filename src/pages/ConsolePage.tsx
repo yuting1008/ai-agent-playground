@@ -61,7 +61,17 @@ export function ConsolePage() {
         <div className="content-title">
           <img src="/logomark.svg" alt="logo" />
           <h1>AI Agent Playground</h1>
-          <p style={{ marginTop: 0, top: 0 }}>2025.2.8</p>
+          <a
+            href="https://github.com/theodoreniu/ai-agent-playground"
+            target="_blank"
+            style={{ marginTop: 0, top: 0 }}
+          >
+            <img
+              src="https://img.shields.io/github/v/tag/theodoreniu/ai-agent-playground"
+              style={{ width: '70px', height: '20px' }}
+              alt="logo"
+            />
+          </a>
         </div>
         <span className="functions">
           <BingSearchResult />
