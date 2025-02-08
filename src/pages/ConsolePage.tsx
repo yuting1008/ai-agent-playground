@@ -61,6 +61,7 @@ export function ConsolePage() {
         <div className="content-title">
           <img src="/logomark.svg" alt="logo" />
           <h1>AI Agent Playground</h1>
+          <p style={{ marginTop: 0, top: 0 }}>2025.2.8</p>
         </div>
         <span className="functions">
           <BingSearchResult />
