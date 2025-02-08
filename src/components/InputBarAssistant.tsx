@@ -34,14 +34,6 @@ export function InputBarAssistant({
     connectStatus,
   } = useContexts();
 
-  useEffect(() => {
-    if (connectStatus === CONNECT_CONNECTED) {
-      const language = localStorage.getItem('language') || 'chinese';
-      const hi = language === 'chinese' ? clientHiChinese : clientHiEnglish;
-      sendText(hi);
-    }
-  }, [connectStatus]);
-
   const cogSvcSubKey = localStorage.getItem('cogSvcSubKey') || '';
   const cogSvcRegion = localStorage.getItem('cogSvcRegion') || 'westus2';
 
@@ -168,6 +160,14 @@ export function InputBarAssistant({
     sendAssistantMessage(inputValue);
     setInputValue('');
   };
+
+  useEffect(() => {
+    if (connectStatus === CONNECT_CONNECTED) {
+      const language = localStorage.getItem('language') || 'chinese';
+      const hi = language === 'chinese' ? clientHiChinese : clientHiEnglish;
+      sendText(hi);
+    }
+  }, [connectStatus]);
 
   return (
     <>
