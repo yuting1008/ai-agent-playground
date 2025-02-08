@@ -1,8 +1,10 @@
 export const APP_AGENT = 'AI Agent Playground';
 export const APP_AGENT_VECTOR_STORE =
   'ai-agent-playground-assistant-vector-store';
+
 export const ASSISTENT_TYPE_ASSISTANT = 'assistant';
 export const ASSISTENT_TYPE_REALTIME = 'realtime';
+export const ASSISTENT_TYPE_DEEPSEEK = 'deepseek';
 
 export const ASSISTENT_TYPE_DEFAULT = ASSISTENT_TYPE_REALTIME;
 

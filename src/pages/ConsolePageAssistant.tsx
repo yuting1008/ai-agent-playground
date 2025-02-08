@@ -1,8 +1,10 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import {
   APP_AGENT,
   APP_AGENT_VECTOR_STORE,
+  clientHiChinese,
+  clientHiEnglish,
   CONNECT_CONNECTED,
   CONNECT_CONNECTING,
 } from '../lib/const';

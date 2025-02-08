@@ -1,12 +1,15 @@
 import { Clock, Mic, MicOff, Send, StopCircle } from 'react-feather';
 
 import { useContexts } from '../providers/AppProvider';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import * as SpeechSDK from 'microsoft-cognitiveservices-speech-sdk';
 import './InputBar.scss';
 import {
   ASSISTENT_TYPE_ASSISTANT,
+  ASSISTENT_TYPE_DEEPSEEK,
   ASSISTENT_TYPE_DEFAULT,
+  clientHiChinese,
+  clientHiEnglish,
   CONNECT_CONNECTED,
 } from '../lib/const';
 
@@ -82,15 +85,13 @@ export function InputBarAssistant({
     };
 
     recognizer.recognized = (s, e) => {
-      if (!isAssistant) {
-        console.error('Not assistant when speech recognized');
-        return;
-      }
       if (e.result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
         console.log(`Final result: ${e.result.text}`);
-        (async () => {
-          await stopCurrentStreamJob();
-        })();
+        if (isAssistant) {
+          (async () => {
+            await stopCurrentStreamJob();
+          })();
+        }
         setInputValue(e.result.text);
         setIsRecognizing(false);
         sendText(e.result.text);
@@ -151,14 +152,23 @@ export function InputBarAssistant({
 
     await stopCurrentStreamJob();
     setIsAvatarSpeaking(false);
-    sendAssistantMessage(inputValue);
+    setAssistantRunning(true);
     setMessagesAssistant((prevMessages: any) => [
       ...prevMessages,
       { role: 'user', text: inputValue },
     ]);
-    setAssistantRunning(true);
+    sendAssistantMessage(inputValue);
     setInputValue('');
   };
+
+  useEffect(() => {
+    if (connectStatus === CONNECT_CONNECTED) {
+      const language = localStorage.getItem('language') || 'chinese';
+      const hi = language === 'chinese' ? clientHiChinese : clientHiEnglish;
+      sendText(hi);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [connectStatus]);
 
   return (
     <>
@@ -166,7 +176,11 @@ export function InputBarAssistant({
         <div className="text-input">
           <input
             type="text"
-            placeholder="Type your message here..."
+            placeholder={
+              assistantRunning
+                ? 'Waitting Response...'
+                : 'Type your message here...'
+            }
             value={inputValue}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
@@ -177,6 +191,7 @@ export function InputBarAssistant({
               }
             }}
             onChange={(e) => setInputValue(e.target.value)}
+            disabled={assistantRunning}
           />
 
           <button

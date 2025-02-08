@@ -395,6 +395,15 @@
         background-position: center center;
       }
 
+      &.deepseek {
+        background-image: url('../static/deepseek.svg');
+        background-repeat: no-repeat; 
+        background-size: cover;
+        background-position: center center;
+        background-color: rgba(255, 255, 255, 0.5); 
+        background-clip: content-box; 
+      }
+
       &.assistant {
         margin-left: 15px;
         background-image: url('../static/assistant6.svg');
@@ -467,6 +476,7 @@
         border-bottom: 8px solid transparent;
       }
     }
+
   }
 
   .event {

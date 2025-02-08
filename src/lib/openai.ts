@@ -75,6 +75,7 @@ export function extractUrlInfo(
     return { deployment, apiVersion, endpoint };
   } catch (error: any) {
     console.error('Invalid URL or extraction error:', error.message);
+    console.error(url);
     return null;
   }
 }
