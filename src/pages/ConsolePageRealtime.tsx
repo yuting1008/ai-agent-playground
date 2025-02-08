@@ -27,16 +27,7 @@ import ConnectMessage from '../components/ConnectMessage';
 import RealtimeMessages from '../components/RealtimeMessages';
 import { InputBarRealtime } from '../components/InputBarRealtime';
 import { RealtimeClient } from '@theodoreniu/realtime-api-beta';
-
-/**
- * Type for all event logs
- */
-interface RealtimeEvent {
-  time: string;
-  source: 'client' | 'server';
-  count?: number;
-  event: { [key: string]: any };
-}
+import { RealtimeEvent, RealtimeTokenUsage } from '../types/RealtimeEvent';
 
 export function ConsolePageRealtime() {
   const {
@@ -54,6 +45,12 @@ export function ConsolePageRealtime() {
     setConnectMessage,
     isDebugModeRef,
     resetApp,
+    setInputTokens,
+    setInputTextTokens,
+    setInputAudioTokens,
+    setOutputTokens,
+    setOutputTextTokens,
+    setOutputAudioTokens,
   } = useContexts();
 
   const endpoint = localStorage.getItem('endpoint') || '';
@@ -70,11 +67,14 @@ export function ConsolePageRealtime() {
   );
 
   useEffect(() => {
+    console.log('llmInstructions updated');
+    realtimeClientRef.current.updateSession({ instructions: llmInstructions });
+
     if (realtimeClientRef?.current.isConnected()) {
       const res = realtimeClientRef.current.updateSession({
         instructions: llmInstructions,
       });
-      console.log('realtime instructions updated', res);
+      console.log('realtimeClientRef.current instructions updated', res);
     }
   }, [llmInstructions]);
 
@@ -108,10 +108,6 @@ export function ConsolePageRealtime() {
         event: { type },
       } = realtimeEvent;
 
-      if (realtimeEvent?.event?.response?.usage) {
-        console.log('usage', realtimeEvent?.event?.response?.usage);
-      }
-
       if (realtimeEvent.event?.response?.status === 'failed') {
         setItems([]);
         console.error(realtimeEvent.event.response?.status_details?.error);
@@ -124,6 +120,9 @@ export function ConsolePageRealtime() {
         setConnectMessage(`${type}\n${message}`);
       }
 
+      if (realtimeEvent?.event?.response?.usage) {
+        tokensRecord(realtimeEvent?.event?.response?.usage);
+      }
       latencyRecord(realtimeEvent);
 
       if (source === 'server' && type === 'input_audio_buffer.speech_started') {
@@ -330,6 +329,15 @@ export function ConsolePageRealtime() {
     if (source === 'server' && type === 'response.audio.delta') {
       recordTokenLatency('');
     }
+  };
+
+  const tokensRecord = (e: RealtimeTokenUsage) => {
+    setInputTokens((prev) => prev + e.input_tokens);
+    setInputTextTokens((prev) => prev + e.input_token_details.text_tokens);
+    setInputAudioTokens((prev) => prev + e.input_token_details.audio_tokens);
+    setOutputTokens((prev) => prev + e.output_tokens);
+    setOutputTextTokens((prev) => prev + e.output_token_details.text_tokens);
+    setOutputAudioTokens((prev) => prev + e.output_token_details.audio_tokens);
   };
 
   /**
