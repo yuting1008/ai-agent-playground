@@ -41,15 +41,6 @@ export function ConsolePage() {
     );
   }
 
-  useEffect(() => {
-    const now = new Date();
-    const hour = now.getHours();
-    if (hour >= 18 || hour < 6) {
-      setIsNightMode(true);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   /**
    * Render the application
    */
