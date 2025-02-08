@@ -167,6 +167,7 @@ export function InputBarAssistant({
       const hi = language === 'chinese' ? clientHiChinese : clientHiEnglish;
       sendText(hi);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connectStatus]);
 
   return (
