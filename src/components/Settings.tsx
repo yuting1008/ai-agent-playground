@@ -834,8 +834,10 @@ const SettingsComponent: React.FC<{
 
       cogSvcRegion: localStorage.getItem('cogSvcRegion') || '',
       cogSvcSubKey: localStorage.getItem('cogSvcSubKey') || '',
+
       dallTargetUri: localStorage.getItem('dallTargetUri') || '',
       dallApiKey: localStorage.getItem('dallApiKey') || '',
+
       graphragUrl: localStorage.getItem('graphragUrl') || '',
       graphragApiKey: localStorage.getItem('graphragApiKey') || '',
       graphragProjectName: localStorage.getItem('graphragProjectName') || '',
@@ -848,6 +850,7 @@ const SettingsComponent: React.FC<{
       feishuHook: localStorage.getItem('feishuHook') || '',
       quoteToken: localStorage.getItem('quoteToken') || '',
       newsKey: localStorage.getItem('newsKey') || '',
+
       mxnzpAppId: localStorage.getItem('mxnzpAppId') || '',
       mxnzpAppSecret: localStorage.getItem('mxnzpAppSecret') || '',
 
@@ -903,8 +906,10 @@ const SettingsComponent: React.FC<{
         handleChange('feishuHook', settings.feishuHook);
         handleChange('quoteToken', settings.quoteToken);
         handleChange('newsKey', settings.newsKey);
+
         handleChange('mxnzpAppId', settings.mxnzpAppId);
         handleChange('mxnzpAppSecret', settings.mxnzpAppSecret);
+
         handleChange('language', settings.language);
         handleChange('assistantType', settings.assistantType);
 
