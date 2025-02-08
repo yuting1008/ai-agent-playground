@@ -7,6 +7,7 @@ import { GRAPHRAG_ABOUT } from '../tools/azure_docs';
 import {
   ALLOW_PROMPT_CHARACTERS,
   ASSISTENT_TYPE_ASSISTANT,
+  ASSISTENT_TYPE_DEEPSEEK,
   ASSISTENT_TYPE_REALTIME,
   CONNECT_CONNECTED,
 } from '../lib/const';
@@ -19,6 +20,7 @@ const GRAPHRAG = 'GraphRAG';
 const SPEECH = 'Speech';
 const TTS = 'TTS';
 const COMPLETION = 'Completion';
+const DEEPSEEK = 'DeepSeek';
 const TOKENS = 'Third-party API';
 const PROMPT = 'Prompt';
 const BING = 'Bing';
@@ -31,6 +33,7 @@ const supportedLanguages = [
 const supportedAssistantTypes = [
   { value: ASSISTENT_TYPE_REALTIME, label: 'Realtime' },
   { value: ASSISTENT_TYPE_ASSISTANT, label: 'STT -> Assistant -> TTS' },
+  { value: ASSISTENT_TYPE_DEEPSEEK, label: 'STT -> DeepSeek -> TTS' },
 ];
 
 const SettingsComponent: React.FC<{
@@ -593,6 +596,73 @@ const SettingsComponent: React.FC<{
     );
   };
 
+  const DeepSeek = () => {
+    const [deepSeekTargetUri, setDeepSeekTargetUri] = useState(
+      localStorage.getItem('deepSeekTargetUri') || '',
+    );
+    const [deepSeekApiKey, setDeepSeekApiKey] = useState(
+      localStorage.getItem('deepSeekApiKey') || '',
+    );
+    const [deepSeekDeploymentName, setDeepSeekDeploymentName] = useState(
+      localStorage.getItem('deepSeekDeploymentName') || 'DeepSeek-R1',
+    );
+
+    return (
+      <div>
+        <a
+          href="https://ai.azure.com/explore/models/DeepSeek-R1/version/1/registry/azureml-deepseek?tid=a284bf15-c9ca-4f17-a034-9a459c7cb8d1"
+          target="_blank"
+          style={styles.link}
+        >
+          How to deploy DeepSeek in Azure AI Foundry?
+        </a>
+
+        <div style={styles.settingLabel}>Deployment name</div>
+        <input
+          type={'text'}
+          style={styles.settingInput}
+          value={deepSeekDeploymentName}
+          placeholder={deepSeekDeploymentName}
+          onChange={(e) => {
+            setDeepSeekDeploymentName(e.target.value);
+            handleChange('deepSeekDeploymentName', e.target.value);
+          }}
+        />
+
+        <div style={styles.settingLabel}>Target URI</div>
+        <input
+          type={'text'}
+          style={styles.settingInput}
+          value={deepSeekTargetUri}
+          placeholder={
+            'https://ai-xxx.services.ai.azure.com/models/chat/completions?api-version=2024-05-01-preview'
+          }
+          onChange={(e) => {
+            setDeepSeekTargetUri(e.target.value);
+            handleChange('deepSeekTargetUri', e.target.value);
+          }}
+        />
+
+        <div style={styles.settingLabel}>
+          Key
+          <span style={styles.settingLabelShow} onClick={toggleVisibility}>
+            {isVisible ? <FaRegEye /> : <FaRegEyeSlash />}
+          </span>
+        </div>
+        <input
+          type={isVisible ? 'text' : 'password'}
+          style={styles.settingInput}
+          value={deepSeekApiKey}
+          placeholder={''}
+          onChange={(e) => {
+            setDeepSeekApiKey(e.target.value);
+            handleChange('deepSeekApiKey', e.target.value);
+          }}
+        />
+      </div>
+    );
+  };
+
   const Prompt = () => {
     const [prompt, setPrompt] = useState(localStorage.getItem('prompt') || '');
 
@@ -755,8 +825,13 @@ const SettingsComponent: React.FC<{
     const settings = {
       endpoint: localStorage.getItem('endpoint') || '',
       key: localStorage.getItem('key') || '',
+
       completionTargetUri: localStorage.getItem('completionTargetUri') || '',
       completionApiKey: localStorage.getItem('completionApiKey') || '',
+
+      deepSeekTargetUri: localStorage.getItem('deepSeekTargetUri') || '',
+      deepSeekApiKey: localStorage.getItem('deepSeekApiKey') || '',
+
       cogSvcRegion: localStorage.getItem('cogSvcRegion') || '',
       cogSvcSubKey: localStorage.getItem('cogSvcSubKey') || '',
       dallTargetUri: localStorage.getItem('dallTargetUri') || '',
@@ -810,6 +885,9 @@ const SettingsComponent: React.FC<{
 
         handleChange('completionTargetUri', settings.completionTargetUri);
         handleChange('completionApiKey', settings.completionApiKey);
+
+        handleChange('deepSeekTargetUri', settings.deepSeekTargetUri);
+        handleChange('deepSeekApiKey', settings.deepSeekApiKey);
 
         handleChange('cogSvcRegion', settings.cogSvcRegion);
         handleChange('cogSvcSubKey', settings.cogSvcSubKey);
@@ -868,6 +946,8 @@ const SettingsComponent: React.FC<{
         return <DALLE />;
       case COMPLETION:
         return <Completion />;
+      case DEEPSEEK:
+        return <DeepSeek />;
       case TOKENS:
         return <Tokens />;
       case PROMPT:
@@ -975,6 +1055,15 @@ const SettingsComponent: React.FC<{
                   onClick={() => setActiveTab(COMPLETION)}
                 >
                   {COMPLETION}
+                </button>
+                <button
+                  style={{
+                    ...styles.settingsTabButton,
+                    ...(activeTab === DEEPSEEK ? styles.tabActive : {}),
+                  }}
+                  onClick={() => setActiveTab(DEEPSEEK)}
+                >
+                  {DEEPSEEK}
                 </button>
                 <button
                   style={{
