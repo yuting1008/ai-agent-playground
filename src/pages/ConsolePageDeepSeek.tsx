@@ -21,6 +21,8 @@ import ModelClient from '@azure-rest/ai-inference';
 import { AzureKeyCredential } from '@azure/core-auth';
 import { createSseStream } from '@azure/core-sse';
 import { DeepSeekTokenUsage } from '../types/DeepSeek';
+import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
+import { FunctionTool } from '../types/FunctionTool';
 
 export function ConsolePageDeepSeek() {
   const {
@@ -33,6 +35,7 @@ export function ConsolePageDeepSeek() {
     isDebugModeRef,
     setInputTokens,
     setOutputTokens,
+    functionsToolsRef,
   } = useContexts();
 
   const [messagesAssistant, setMessagesAssistant] = useState<any[]>([]);
@@ -137,22 +140,33 @@ export function ConsolePageDeepSeek() {
         new AzureKeyCredential(deepSeekApiKey),
       );
 
+      const tools: FunctionTool[] = [];
+      functionsToolsRef.current.forEach(
+        ([definition]: [ToolDefinitionType, Function]) => {
+          tools.push({ type: 'function', function: definition });
+        },
+      );
+
+      const params = {
+        messages: [
+          { role: 'system', content: llmInstructionsRef.current },
+          {
+            role: 'user',
+            content: text,
+          },
+        ],
+        model: modelName,
+        stream: true,
+        // max_tokens: 2048,
+        // TODO:: not stable
+        // tools: tools,
+      };
+
       const response = await client
         .path('/chat/completions')
         .post({
           timeout: 100000,
-          body: {
-            messages: [
-              { role: 'system', content: llmInstructionsRef.current },
-              {
-                role: 'user',
-                content: text,
-              },
-            ],
-            // max_tokens: 2048,
-            model: modelName,
-            stream: true,
-          },
+          body: params,
         })
         .asNodeStream();
 
