@@ -298,7 +298,10 @@ const TrafficMonitor: React.FC = () => {
 
     return (
       <div style={importModalStyles.backdrop}>
-        <div style={{ ...importModalStyles.modal }} className={'modal'}>
+        <div
+          style={{ ...importModalStyles.modal, maxWidth: '950px' }}
+          className={'modal'}
+        >
           <div style={importModalStyles.header}>
             <h2>Traffic Monitor</h2>
             <button

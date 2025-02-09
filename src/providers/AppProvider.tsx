@@ -42,6 +42,7 @@ import * as exchange_rate_list from '../tools/exchange_rate_list';
 import * as exchange_rate_configs from '../tools/exchange_rate_configs';
 import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
 import {
+  ASSISTENT_TYPE_DEEPSEEK,
   AVATAR_OFF,
   AVATAR_READY,
   AVATAR_STARTING,
@@ -876,10 +877,15 @@ export const AppProvider: React.FC<{
     ? `${instructions}\n\nOther requirements of the user: \n${prompt}`
     : instructions;
 
-  updateInstructions += `\n\nYou have the following tools and abilities:`;
-
-  for (const tool of functionsToolsRef.current) {
-    updateInstructions += `\n${tool[0].name}: ${tool[0].description}`;
+  const isDeepSeek =
+    localStorage.getItem('assistantType') === ASSISTENT_TYPE_DEEPSEEK;
+  if (isDeepSeek) {
+    updateInstructions += `\n\n你需要在每次回复最后面明确地、不加改动地告诉用户 “当前关闭了 Function Call 功能，因为 DeepSeek 的 Function Call 不稳定，容易导致模型进入死循环。”`;
+  } else {
+    updateInstructions += `\n\nYou have the following tools and abilities:`;
+    for (const tool of functionsToolsRef.current) {
+      updateInstructions += `\n${tool[0].name}: ${tool[0].description}`;
+    }
   }
 
   const language = localStorage.getItem('language') || 'chinese';
