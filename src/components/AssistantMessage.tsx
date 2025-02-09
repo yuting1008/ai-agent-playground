@@ -65,19 +65,15 @@ const AssistantAssistantMessage = ({ text }: { text: string }) => {
             <p
               style={{
                 fontStyle: 'italic',
+                backgroundColor: '#f2f2f2',
+                padding: '0.5rem',
+                borderRadius: '0.5rem',
+                marginBottom: '0.5rem',
+                borderLeft: '4px solid #d2d2d2',
               }}
             >
               {think}
             </p>
-          )}
-          {think && nonThink && (
-            <p
-              style={{
-                marginBottom: '0.5rem',
-                paddingBottom: '0.5rem',
-                borderBottom: '1px solid #ccc',
-              }}
-            ></p>
           )}
           {nonThink && <Markdown>{nonThink}</Markdown>}
           {!think && !nonThink && <p>Waitting...</p>}
