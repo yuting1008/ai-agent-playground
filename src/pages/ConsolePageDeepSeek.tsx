@@ -266,6 +266,8 @@ export function ConsolePageDeepSeek() {
       <div className="content-right">
         <Avatar />
 
+        <Camera />
+
         <SettingsComponent connectStatus={connectStatus} />
 
         <ConnectButton

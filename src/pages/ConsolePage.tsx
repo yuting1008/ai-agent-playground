@@ -70,7 +70,7 @@ export function ConsolePage() {
           <PaintingResult />
           <IsDebugMode />
           <NightMode />
-          {!isDeepSeek && <FunctionsList />}
+          <FunctionsList />
           <AboutApp />
         </span>
       </div>
