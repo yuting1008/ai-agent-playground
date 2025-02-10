@@ -10,6 +10,8 @@ import {
   ASSISTENT_TYPE_DEEPSEEK,
   ASSISTENT_TYPE_REALTIME,
   CONNECT_CONNECTED,
+  DEEPSEEK_FUNCTION_CALL_DISABLE,
+  DEEPSEEK_FUNCTION_CALL_ENABLE,
 } from '../lib/const';
 import { useContexts } from '../providers/AppProvider';
 
@@ -34,6 +36,11 @@ const supportedAssistantTypes = [
   { value: ASSISTENT_TYPE_REALTIME, label: 'Realtime' },
   { value: ASSISTENT_TYPE_ASSISTANT, label: 'STT -> Assistant -> TTS' },
   { value: ASSISTENT_TYPE_DEEPSEEK, label: 'STT -> DeepSeek -> TTS' },
+];
+
+const deepSeekFunctionCallingTypes = [
+  { value: DEEPSEEK_FUNCTION_CALL_DISABLE, label: 'Disable' },
+  { value: DEEPSEEK_FUNCTION_CALL_ENABLE, label: 'Enable' },
 ];
 
 const SettingsComponent: React.FC<{
@@ -166,8 +173,12 @@ const SettingsComponent: React.FC<{
       background: 'transparent',
     } as React.CSSProperties,
     settings_tip: {
-      marginBottom: '10px',
-      color: '#666',
+      backgroundColor: '#d7d7d7',
+      padding: '0.5rem',
+      borderRadius: '0.3rem',
+      marginBottom: '0.5rem',
+      marginTop: '0.5rem',
+      width: '100%',
     } as React.CSSProperties,
   };
 
@@ -606,16 +617,22 @@ const SettingsComponent: React.FC<{
     const [deepSeekDeploymentName, setDeepSeekDeploymentName] = useState(
       localStorage.getItem('deepSeekDeploymentName') || 'DeepSeek-R1',
     );
+    const [functionCalling, setFunctionCalling] = useState(
+      localStorage.getItem('deepSeekFunctionCalling') ||
+        DEEPSEEK_FUNCTION_CALL_DISABLE,
+    );
 
     return (
       <div>
-        <a
-          href="https://ai.azure.com/explore/models/DeepSeek-R1/version/1/registry/azureml-deepseek?tid=a284bf15-c9ca-4f17-a034-9a459c7cb8d1"
-          target="_blank"
-          style={styles.link}
-        >
-          How to deploy DeepSeek in Azure AI Foundry?
-        </a>
+        <p style={styles.settings_tip}>
+          <a
+            href="https://ai.azure.com/explore/models/DeepSeek-R1/version/1/registry/azureml-deepseek?tid=a284bf15-c9ca-4f17-a034-9a459c7cb8d1"
+            target="_blank"
+            style={styles.link}
+          >
+            How to deploy DeepSeek in Azure AI Foundry?
+          </a>
+        </p>
 
         <div style={styles.settingLabel}>Deployment name</div>
         <input
@@ -657,6 +674,29 @@ const SettingsComponent: React.FC<{
           onChange={(e) => {
             setDeepSeekApiKey(e.target.value);
             handleChange('deepSeekApiKey', e.target.value);
+          }}
+        />
+
+        <div style={styles.settingLabel}>Function Calling</div>
+        <p style={styles.settings_tip}>
+          The current version of the deepseek-chat model's Function Calling
+          capabilitity is unstable, which may result in looped calls or empty
+          responses. We are actively working on a fix, and it is expected to be
+          resolved in the next version.
+          <a
+            href="https://api-docs.deepseek.com/guides/function_calling"
+            target="_blank"
+            style={styles.link}
+          >
+            Function Calling
+          </a>
+        </p>
+        <Dropdown
+          options={deepSeekFunctionCallingTypes}
+          selectedValue={functionCalling}
+          onChange={(e) => {
+            setFunctionCalling(e);
+            handleChange('deepSeekFunctionCalling', e);
           }}
         />
       </div>

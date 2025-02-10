@@ -6,6 +6,9 @@ export const ASSISTENT_TYPE_ASSISTANT = 'assistant';
 export const ASSISTENT_TYPE_REALTIME = 'realtime';
 export const ASSISTENT_TYPE_DEEPSEEK = 'deepseek';
 
+export const DEEPSEEK_FUNCTION_CALL_ENABLE = 'Enable';
+export const DEEPSEEK_FUNCTION_CALL_DISABLE = 'Disable';
+
 export const ASSISTENT_TYPE_DEFAULT = ASSISTENT_TYPE_REALTIME;
 
 export const ALLOW_PROMPT_CHARACTERS = 1500;
