@@ -3,8 +3,6 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   APP_AGENT,
   APP_AGENT_VECTOR_STORE,
-  clientHiChinese,
-  clientHiEnglish,
   CONNECT_CONNECTED,
   CONNECT_CONNECTING,
 } from '../lib/const';
@@ -25,7 +23,6 @@ import { AssistantStreamEvent } from 'openai/resources/beta/assistants/assistant
 import {
   Assistant,
   AssistantCreateParams,
-  AssistantListParams,
   AssistantsPage,
 } from 'openai/resources/beta/assistants';
 import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
@@ -42,8 +39,6 @@ export function ConsolePageAssistant() {
   const {
     assistantRef,
     setAssistant,
-    vectorStore,
-    vectorStoreRef,
     setVectorStore,
     setLoading,
     threadRef,
@@ -58,11 +53,7 @@ export function ConsolePageAssistant() {
     setConnectMessage,
     isDebugModeRef,
     setInputTokens,
-    setInputTextTokens,
-    setInputAudioTokens,
     setOutputTokens,
-    setOutputTextTokens,
-    setOutputAudioTokens,
   } = useContexts();
 
   const [messagesAssistant, setMessagesAssistant] = useState<any[]>([]);

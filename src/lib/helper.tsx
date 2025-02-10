@@ -1,3 +1,4 @@
+import { ItemType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
 import {
   ASSISTENT_TYPE_DEEPSEEK,
   DEEPSEEK_FUNCTION_CALL_ENABLE,
@@ -30,6 +31,16 @@ export function avgLatency(array: number[]) {
       (array.reduce((sum, latency) => sum + latency, 0) / array.length) * 100,
     ) / 100
   );
+}
+
+export function lastMessageIsUserMessage(items: ItemType[]) {
+  if (items.length > 0) {
+    const lastItem: ItemType = items[items.length - 1];
+    if (lastItem?.role === 'user' && lastItem?.type === 'message') {
+      return true;
+    }
+  }
+  return false;
 }
 
 export function enableFunctionCalling() {

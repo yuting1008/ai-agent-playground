@@ -7,6 +7,8 @@ import ProductList from '../components/ProductList';
 import { X } from 'react-feather';
 import { AVATAR_READY, notDisplay, products } from '../lib/const';
 import { useCallback } from 'react';
+import { lastMessageIsUserMessage } from '../lib/helper';
+import MessageLoading from './MessageLoading';
 
 export default function RealtimeMessages({
   items,
@@ -77,12 +79,7 @@ export default function RealtimeMessages({
 
               {/* tool call */}
               {!!conversationItem.formatted.tool && (
-                <div className="loading-spinner" key={conversationItem.id}>
-                  <div
-                    className="spinner"
-                    key={conversationItem.id + 'spinner'}
-                  ></div>
-                </div>
+                <MessageLoading messageId="conversationItem.id" />
               )}
 
               {/* tool response */}
@@ -170,6 +167,18 @@ export default function RealtimeMessages({
           </div>
         );
       })}
+
+      {lastMessageIsUserMessage(items) && (
+        <div
+          className={`conversation-item assistant`}
+          key={'conversationItem.id'}
+        >
+          <div className={`speaker assistant`}></div>
+          <div className={`speaker-content assistant`}>
+            <MessageLoading messageId="loading" />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
