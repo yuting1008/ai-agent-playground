@@ -75,7 +75,7 @@ export function ConsolePage() {
           <PaintingResult />
           <IsDebugMode />
           <NightMode />
-          {enableFunctionCalling() && <FunctionsList />}
+          <FunctionsList />
           <AboutApp />
         </span>
       </div>
