@@ -373,7 +373,7 @@ export function ConsolePageAssistant() {
 
   const handleAssistantReadableStream = (stream: AssistantStream) => {
     // messages
-    stream.on('textCreated', handleAssistantTextCreated);
+    // stream.on('textCreated', handleAssistantTextCreated);
     stream.on('textDelta', handleAssistantTextDelta);
 
     // image
@@ -438,6 +438,7 @@ export function ConsolePageAssistant() {
     // may need to add a check to see if the thread is already created
 
     try {
+      handleAssistantTextCreated();
       await getOpenAIClient().beta.threads.messages.create(
         threadRef.current?.id,
         {
