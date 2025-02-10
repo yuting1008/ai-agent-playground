@@ -397,11 +397,11 @@
 
       &.deepseek {
         background-image: url('../static/deepseek.svg');
-        background-repeat: no-repeat; 
+        background-repeat: no-repeat;
         background-size: 30px;
         background-position: center center;
-        background-color: rgba(255, 255, 255); 
-        background-clip: content-box; 
+        background-color: rgba(255, 255, 255);
+        background-clip: content-box;
       }
 
       &.assistant {
@@ -476,7 +476,6 @@
         border-bottom: 8px solid transparent;
       }
     }
-
   }
 
   .event {
@@ -599,7 +598,6 @@
   width: 100%;
 }
 
-
 .spinner {
   width: 30px;
   height: 30px;
@@ -610,13 +608,12 @@
   padding: 10px;
   margin: 10px;
   opacity: 1;
-  transition: opacity 0.5s ease-out; 
+  transition: opacity 0.5s ease-out;
 }
 
 .spinner.fade-out {
   opacity: 0;
 }
-
 
 @keyframes spin {
   0% {
