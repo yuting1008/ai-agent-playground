@@ -16,13 +16,11 @@ import * as order_return from '../tools/order_return';
 import * as bing from '../tools/bing';
 import * as dark from '../tools/dark';
 import * as news from '../tools/news';
-import * as douyin from '../tools/douyin';
 import * as location from '../tools/location';
 import * as stock_recommend from '../tools/stock_recommend';
 import * as products_recommend from '../tools/products_recommend';
 import * as demo from '../tools/demo';
 import * as feishu from '../tools/feishu';
-import * as command_recognition1 from '../tools/command_recognition1';
 import * as background from '../tools/background';
 import * as open_url from '../tools/open_url';
 import * as debug_model from '../tools/debug_model';
@@ -34,7 +32,6 @@ import * as opacity from '../tools/opacity';
 import * as camera_video from '../tools/camera_video';
 import * as painting from '../tools/painting';
 import * as image_modify from '../tools/painting_modify';
-import * as pronunciation_assessment from '../tools/pronunciation_assessment';
 import * as azure_docs from '../tools/azure_docs';
 import * as quote from '../tools/quote';
 import * as exchange_rate_aim from '../tools/exchange_rate_aim';
@@ -42,7 +39,6 @@ import * as exchange_rate_list from '../tools/exchange_rate_list';
 import * as exchange_rate_configs from '../tools/exchange_rate_configs';
 import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
 import {
-  ASSISTENT_TYPE_DEEPSEEK,
   AVATAR_OFF,
   AVATAR_READY,
   AVATAR_STARTING,
@@ -51,8 +47,6 @@ import {
   CAMERA_READY,
   CAMERA_STARTING,
   CONNECT_DISCONNECTED,
-  DEEPSEEK_FUNCTION_CALL_DISABLE,
-  DEEPSEEK_FUNCTION_CALL_ENABLE,
 } from '../lib/const';
 import {
   editImages,
@@ -60,7 +54,7 @@ import {
   getImages,
   getOpenAIClient,
 } from '../lib/openai';
-import { delayFunction } from '../lib/helper';
+import { delayFunction, enableFunctionCalling } from '../lib/helper';
 import { Assistant } from 'openai/resources/beta/assistants';
 import { processAndStoreSentence } from '../lib/sentence';
 import axios from 'axios';
@@ -879,12 +873,7 @@ export const AppProvider: React.FC<{
     ? `${instructions}\n\nOther requirements of the user: \n${prompt}`
     : instructions;
 
-  const deepSeekFunctionCallingEnable =
-    localStorage.getItem('deepSeekFunctionCalling') ===
-    DEEPSEEK_FUNCTION_CALL_ENABLE;
-  const isDeepSeek =
-    localStorage.getItem('assistantType') === ASSISTENT_TYPE_DEEPSEEK;
-  if (isDeepSeek && deepSeekFunctionCallingEnable) {
+  if (enableFunctionCalling()) {
     updateInstructions += `\n\nYou have the following tools and abilities:`;
     for (const tool of functionsToolsRef.current) {
       updateInstructions += `\n${tool[0].name}: ${tool[0].description}`;
