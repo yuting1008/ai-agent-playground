@@ -80,7 +80,7 @@ const FunctionsList: React.FC = () => {
       >
         <IconWithBadge
           icon={<Package size={24} />}
-          badge={enableFunctionCalling() ? '' : <X />}
+          badge={enableFunctionCalling() ? null : <X />}
         />
       </span>
 
