@@ -1,3 +1,9 @@
+import {
+  ASSISTENT_TYPE_DEEPSEEK,
+  ASSISTENT_TYPE_DEFAULT,
+  DEEPSEEK_FUNCTION_CALL_ENABLE,
+} from './const';
+
 export const delayFunction = function delay(ms: number) {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
@@ -25,6 +31,22 @@ export function avgLatency(array: number[]) {
       (array.reduce((sum, latency) => sum + latency, 0) / array.length) * 100,
     ) / 100
   );
+}
+
+export function enableFunctionCalling() {
+  const assistantType =
+    localStorage.getItem('assistantType') || ASSISTENT_TYPE_DEFAULT;
+  const isDeepSeek = assistantType === ASSISTENT_TYPE_DEEPSEEK;
+
+  if (!isDeepSeek) {
+    return true;
+  }
+
+  const deepSeekFunctionCallingEnable =
+    localStorage.getItem('deepSeekFunctionCalling') ===
+    DEEPSEEK_FUNCTION_CALL_ENABLE;
+
+  return isDeepSeek && deepSeekFunctionCallingEnable;
 }
 
 export function calculatePercentiles(

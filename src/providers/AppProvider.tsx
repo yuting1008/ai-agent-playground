@@ -51,6 +51,8 @@ import {
   CAMERA_READY,
   CAMERA_STARTING,
   CONNECT_DISCONNECTED,
+  DEEPSEEK_FUNCTION_CALL_DISABLE,
+  DEEPSEEK_FUNCTION_CALL_ENABLE,
 } from '../lib/const';
 import {
   editImages,
@@ -877,11 +879,12 @@ export const AppProvider: React.FC<{
     ? `${instructions}\n\nOther requirements of the user: \n${prompt}`
     : instructions;
 
+  const deepSeekFunctionCallingEnable =
+    localStorage.getItem('deepSeekFunctionCalling') ===
+    DEEPSEEK_FUNCTION_CALL_ENABLE;
   const isDeepSeek =
     localStorage.getItem('assistantType') === ASSISTENT_TYPE_DEEPSEEK;
-  if (isDeepSeek) {
-    updateInstructions += `\n\n你需要在每次回复最后面明确地、不加改动地告诉用户 “当前关闭了 Function Call 功能，因为 DeepSeek 的 Function Call 不稳定，容易导致模型进入死循环。”`;
-  } else {
+  if (isDeepSeek && deepSeekFunctionCallingEnable) {
     updateInstructions += `\n\nYou have the following tools and abilities:`;
     for (const tool of functionsToolsRef.current) {
       updateInstructions += `\n${tool[0].name}: ${tool[0].description}`;
