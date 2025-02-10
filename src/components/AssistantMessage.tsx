@@ -1,18 +1,11 @@
 import Markdown from 'react-markdown';
 import { ASSISTENT_TYPE_DEEPSEEK } from '../lib/const';
-import LoadingIcons from 'react-loading-icons';
+import MessageLoading from './MessageLoading';
 
 type AssistantMessageProps = {
   role: 'user' | 'assistant' | 'code';
   text: string;
 };
-
-const loading = (
-  <LoadingIcons.Oval
-    stroke="#000000"
-    style={{ width: '1.5rem', height: '1.5rem' }}
-  />
-);
 
 const AssistantUserMessage = ({ text }: { text: string }) => {
   return (
@@ -84,7 +77,7 @@ const AssistantAssistantMessage = ({ text }: { text: string }) => {
             </p>
           )}
           {nonThink && <Markdown>{nonThink}</Markdown>}
-          {!think && !nonThink && loading}
+          {!think && !nonThink && <MessageLoading messageId="msg_loading" />}
         </div>
       </div>
     );
@@ -95,7 +88,7 @@ const AssistantAssistantMessage = ({ text }: { text: string }) => {
       <div className={`speaker assistant`}></div>
       <div className={`speaker-content assistant`}>
         {text && <Markdown>{text}</Markdown>}
-        {!text && loading}
+        {!text && <MessageLoading messageId="msg_loading" />}
       </div>
     </div>
   );
