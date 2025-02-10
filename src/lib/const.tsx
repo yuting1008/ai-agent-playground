@@ -6,6 +6,9 @@ export const ASSISTENT_TYPE_ASSISTANT = 'assistant';
 export const ASSISTENT_TYPE_REALTIME = 'realtime';
 export const ASSISTENT_TYPE_DEEPSEEK = 'deepseek';
 
+export const DEEPSEEK_FUNCTION_CALL_ENABLE = 'Enable';
+export const DEEPSEEK_FUNCTION_CALL_DISABLE = 'Disable';
+
 export const ASSISTENT_TYPE_DEFAULT = ASSISTENT_TYPE_REALTIME;
 
 export const ALLOW_PROMPT_CHARACTERS = 1500;
@@ -26,13 +29,12 @@ export const AVATAR_READY = 'avatar_ready';
 
 export const clientHiEnglish = `Hi!`;
 export const clientHiChinese = `你好！`;
+
 export const fileUploadInstructions = `我已经上传了数据文件，请告诉我你收到了什么内容的文件，只需要简单解释你收到了什么。不要超过30个字。内容在 ----用户已经上传的数据文件开始---- 下面`;
 export const fileUploadTooBig = `请告诉用户，你只是一个 Demo，不处理内容过多的文件，请重新上传一个内容少的文件。`;
 export const cameraOpen = `请你说你发现摄像头已经进入工作状态，你可以通过摄像头分析实时画面。`;
 export const cameraClose = `请你说你发现摄像头已经关闭，关于摄像头画面的记忆已经清除。`;
 export const notDisplay = [
-  clientHiEnglish,
-  clientHiChinese,
   fileUploadInstructions,
   fileUploadTooBig,
   cameraOpen,

@@ -4,6 +4,7 @@ import {
   CONNECT_CONNECTED,
   CONNECT_CONNECTING,
   CONNECT_DISCONNECTED,
+  DEEPSEEK_FUNCTION_CALL_ENABLE,
 } from '../lib/const';
 
 import './ConsolePage.scss';
@@ -23,6 +24,7 @@ import { createSseStream } from '@azure/core-sse';
 import { DeepSeekTokenUsage } from '../types/DeepSeek';
 import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
 import { FunctionTool } from '../types/FunctionTool';
+import { enableFunctionCalling } from '../lib/helper';
 
 export function ConsolePageDeepSeek() {
   const {
@@ -158,8 +160,7 @@ export function ConsolePageDeepSeek() {
         model: modelName,
         stream: true,
         // max_tokens: 2048,
-        // TODO:: not stable
-        // tools: tools,
+        tools: enableFunctionCalling() ? tools : undefined,
       };
 
       const response = await client

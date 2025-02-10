@@ -3,6 +3,9 @@ import { X } from 'react-feather';
 import { Package } from 'react-feather';
 import { useContexts } from '../../providers/AppProvider';
 import { modalStyles } from '../../styles/modalStyles';
+import { enableFunctionCalling } from '../../lib/helper';
+import IconWithBadge from '../IconWithBadge';
+import { Bell } from 'lucide-react';
 
 const FunctionsList: React.FC = () => {
   const [isShow, setIsShow] = useState(false);
@@ -75,8 +78,12 @@ const FunctionsList: React.FC = () => {
           gap: '10px',
         }}
       >
-        <Package />
+        <IconWithBadge
+          icon={<Package size={24} />}
+          badge={enableFunctionCalling() ? null : <X />}
+        />
       </span>
+
       <ShowList />
     </>
   );

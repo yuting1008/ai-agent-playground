@@ -15,10 +15,12 @@ import {
   ASSISTENT_TYPE_DEEPSEEK,
   ASSISTENT_TYPE_DEFAULT,
   ASSISTENT_TYPE_REALTIME,
+  DEEPSEEK_FUNCTION_CALL_ENABLE,
 } from '../lib/const';
 import { AlertTriangle } from 'react-feather';
 import AboutApp from '../components/AboutApp';
 import { ConsolePageDeepSeek } from './ConsolePageDeepSeek';
+import { enableFunctionCalling } from '../lib/helper';
 
 export function ConsolePage() {
   const { setIsNightMode, isDebugMode, setIsDebugMode } = useContexts();
@@ -28,6 +30,9 @@ export function ConsolePage() {
   const isAssistant = assistantType === ASSISTENT_TYPE_ASSISTANT;
   const isRealtime = assistantType === ASSISTENT_TYPE_REALTIME;
   const isDeepSeek = assistantType === ASSISTENT_TYPE_DEEPSEEK;
+  const deepSeekFunctionCallingEnable =
+    localStorage.getItem('deepSeekFunctionCalling') ===
+    DEEPSEEK_FUNCTION_CALL_ENABLE;
 
   function IsDebugMode() {
     if (!isDebugMode) {

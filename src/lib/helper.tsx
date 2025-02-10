@@ -1,3 +1,9 @@
+import { ItemType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
+import {
+  ASSISTENT_TYPE_DEEPSEEK,
+  DEEPSEEK_FUNCTION_CALL_ENABLE,
+} from './const';
+
 export const delayFunction = function delay(ms: number) {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
@@ -25,6 +31,31 @@ export function avgLatency(array: number[]) {
       (array.reduce((sum, latency) => sum + latency, 0) / array.length) * 100,
     ) / 100
   );
+}
+
+export function lastMessageIsUserMessage(items: ItemType[]) {
+  if (items.length > 0) {
+    const lastItem: ItemType = items[items.length - 1];
+    if (lastItem?.role === 'user' && lastItem?.type === 'message') {
+      return true;
+    }
+  }
+  return false;
+}
+
+export function enableFunctionCalling() {
+  const isDeepSeek =
+    localStorage.getItem('assistantType') === ASSISTENT_TYPE_DEEPSEEK;
+
+  if (!isDeepSeek) {
+    return true;
+  }
+
+  const deepSeekFunctionCallingEnable =
+    localStorage.getItem('deepSeekFunctionCalling') ===
+    DEEPSEEK_FUNCTION_CALL_ENABLE;
+
+  return deepSeekFunctionCallingEnable;
 }
 
 export function calculatePercentiles(

@@ -397,11 +397,11 @@
 
       &.deepseek {
         background-image: url('../static/deepseek.svg');
-        background-repeat: no-repeat; 
+        background-repeat: no-repeat;
         background-size: 30px;
         background-position: center center;
-        background-color: rgba(255, 255, 255); 
-        background-clip: content-box; 
+        background-color: rgba(255, 255, 255);
+        background-clip: content-box;
       }
 
       &.assistant {
@@ -476,7 +476,6 @@
         border-bottom: 8px solid transparent;
       }
     }
-
   }
 
   .event {
@@ -600,14 +599,20 @@
 }
 
 .spinner {
-  width: 40px;
-  height: 40px;
+  width: 30px;
+  height: 30px;
   border: 5px solid rgba(0, 0, 0, 0.1);
   border-top: 5px solid #3498db;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   padding: 10px;
-  margin: 30px;
+  margin: 10px;
+  opacity: 1;
+  transition: opacity 0.5s ease-out;
+}
+
+.spinner.fade-out {
+  opacity: 0;
 }
 
 @keyframes spin {
