@@ -1,6 +1,6 @@
 import { ItemType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
 import {
-  ASSISTENT_TYPE_DEEPSEEK,
+  ASSISTANT_TYPE_DEEPSEEK,
   DEEPSEEK_FUNCTION_CALL_ENABLE,
 } from './const';
 
@@ -45,7 +45,7 @@ export function lastMessageIsUserMessage(items: ItemType[]) {
 
 export function enableFunctionCalling() {
   const isDeepSeek =
-    localStorage.getItem('assistantType') === ASSISTENT_TYPE_DEEPSEEK;
+    localStorage.getItem('assistantType') === ASSISTANT_TYPE_DEEPSEEK;
 
   if (!isDeepSeek) {
     return true;

@@ -1,10 +1,9 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import {
   CONNECT_CONNECTED,
   CONNECT_CONNECTING,
   CONNECT_DISCONNECTED,
-  DEEPSEEK_FUNCTION_CALL_ENABLE,
 } from '../lib/const';
 
 import './ConsolePage.scss';
