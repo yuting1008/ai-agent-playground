@@ -1,13 +1,12 @@
 import { Clock, Mic, MicOff, Send, StopCircle } from 'react-feather';
 
 import { useContexts } from '../providers/AppProvider';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as SpeechSDK from 'microsoft-cognitiveservices-speech-sdk';
 import './InputBar.scss';
 import {
-  ASSISTENT_TYPE_ASSISTANT,
-  ASSISTENT_TYPE_DEEPSEEK,
-  ASSISTENT_TYPE_DEFAULT,
+  ASSISTANT_TYPE_ASSISTANT,
+  ASSISTANT_TYPE_DEFAULT,
   clientHiChinese,
   clientHiEnglish,
   CONNECT_CONNECTED,
@@ -36,17 +35,28 @@ export function InputBarAssistant({
 
   const cogSvcSubKey = localStorage.getItem('cogSvcSubKey') || '';
   const cogSvcRegion = localStorage.getItem('cogSvcRegion') || 'westus2';
+  const cogSvcEndpoint = localStorage.getItem('cogSvcEndpoint') || '';
 
   const [sttRecognizer, setSttRecognizer] =
     useState<SpeechSDK.SpeechRecognizer | null>(null);
   const [sttRecognizerConnecting, setSttRecognizerConnecting] = useState(false);
   const [isRecognizing, setIsRecognizing] = useState(false);
 
+  const [error, setError] = useState(false);
+  const errorRef = useRef(false);
+  useEffect(() => {
+    errorRef.current = error;
+  }, [error]);
+
   const assistantType =
-    localStorage.getItem('assistantType') || ASSISTENT_TYPE_DEFAULT;
-  const isAssistant = assistantType === ASSISTENT_TYPE_ASSISTANT;
+    localStorage.getItem('assistantType') || ASSISTANT_TYPE_DEFAULT;
+  const isAssistant = assistantType === ASSISTANT_TYPE_ASSISTANT;
 
   const sttStartRecognition = () => {
+    setError(false);
+
+    console.log('Starting recognition.');
+
     setSttRecognizerConnecting(true);
 
     const autoDetectSourceLanguageConfig =
@@ -55,10 +65,15 @@ export function InputBarAssistant({
         'en-US',
       ]);
 
-    const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(
+    const speechConfig = SpeechSDK.SpeechConfig.fromEndpoint(
+      new URL(
+        cogSvcEndpoint
+          ? cogSvcEndpoint
+          : `https://${cogSvcRegion}.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1`,
+      ),
       cogSvcSubKey,
-      cogSvcRegion,
     );
+
     speechConfig.outputFormat = SpeechSDK.OutputFormat.Simple;
 
     const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
@@ -101,14 +116,13 @@ export function InputBarAssistant({
       }
     };
 
-    // Speech Ended / Silence
-    // newRecognizer.speechEndDetected = () => {
-    //   console.log('Silence detected. Stopping recognition.');
-    //   sttStopRecognition();
-    // };
+    recognizer.speechEndDetected = () => {
+      console.log('Silence detected. Stopping recognition.');
+    };
 
     recognizer.canceled = (s, e) => {
       console.error(`Canceled: ${e.reason}`);
+      setError(true);
       recognizer.stopContinuousRecognitionAsync();
     };
 
@@ -119,6 +133,15 @@ export function InputBarAssistant({
 
     recognizer.startContinuousRecognitionAsync(
       () => {
+        if (errorRef.current) {
+          setSttRecognizer(null);
+          setSttRecognizerConnecting(false);
+          alert(
+            'Failed to connect to speech service. Please check your configuration and try again.',
+          );
+          return;
+        }
+        console.log(recognizer);
         console.log('Recognition started.');
         setSttRecognizer(recognizer);
         setSttRecognizerConnecting(false);
@@ -131,6 +154,8 @@ export function InputBarAssistant({
   };
 
   const sttStopRecognition = () => {
+    console.log('Stopping recognition.');
+
     if (sttRecognizer) {
       sttRecognizer.stopContinuousRecognitionAsync(() => {
         console.log('Recognition stopped.');
@@ -178,7 +203,7 @@ export function InputBarAssistant({
             type="text"
             placeholder={
               assistantRunning
-                ? 'Waitting Response...'
+                ? 'Waiting Response...'
                 : 'Type your message here...'
             }
             value={inputValue}

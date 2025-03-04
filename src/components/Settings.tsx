@@ -6,9 +6,9 @@ import Dropdown from './Dropdown';
 import { GRAPHRAG_ABOUT } from '../tools/azure_docs';
 import {
   ALLOW_PROMPT_CHARACTERS,
-  ASSISTENT_TYPE_ASSISTANT,
-  ASSISTENT_TYPE_DEEPSEEK,
-  ASSISTENT_TYPE_REALTIME,
+  ASSISTANT_TYPE_ASSISTANT,
+  ASSISTANT_TYPE_DEEPSEEK,
+  ASSISTANT_TYPE_REALTIME,
   CONNECT_CONNECTED,
   DEEPSEEK_FUNCTION_CALL_DISABLE,
   DEEPSEEK_FUNCTION_CALL_ENABLE,
@@ -33,9 +33,9 @@ const supportedLanguages = [
 ];
 
 const supportedAssistantTypes = [
-  { value: ASSISTENT_TYPE_REALTIME, label: 'Realtime' },
-  { value: ASSISTENT_TYPE_ASSISTANT, label: 'STT -> Assistant -> TTS' },
-  { value: ASSISTENT_TYPE_DEEPSEEK, label: 'STT -> DeepSeek -> TTS' },
+  { value: ASSISTANT_TYPE_REALTIME, label: 'Realtime' },
+  { value: ASSISTANT_TYPE_ASSISTANT, label: 'STT -> Assistant -> TTS' },
+  { value: ASSISTANT_TYPE_DEEPSEEK, label: 'STT -> DeepSeek -> TTS' },
 ];
 
 const deepSeekFunctionCallingTypes = [
@@ -173,12 +173,15 @@ const SettingsComponent: React.FC<{
       background: 'transparent',
     } as React.CSSProperties,
     settings_tip: {
-      backgroundColor: '#d7d7d7',
+      backgroundColor: isNightMode
+        ? 'rgba(0, 0, 0, 0.2)'
+        : 'rgba(0, 0, 0, 0.1)',
       padding: '0.5rem',
       borderRadius: '0.3rem',
       marginBottom: '0.5rem',
       marginTop: '0.5rem',
       width: '100%',
+      fontStyle: 'italic',
     } as React.CSSProperties,
   };
 
@@ -206,7 +209,7 @@ const SettingsComponent: React.FC<{
       localStorage.getItem('language') || 'chinese',
     );
     const [assistantType, setAssistantType] = useState(
-      localStorage.getItem('assistantType') || ASSISTENT_TYPE_REALTIME,
+      localStorage.getItem('assistantType') || ASSISTANT_TYPE_REALTIME,
     );
 
     return (
@@ -479,7 +482,9 @@ const SettingsComponent: React.FC<{
     const [cogSvcSubKey, setCogSvcSubKey] = useState(
       localStorage.getItem('cogSvcSubKey') || '',
     );
-
+    const [cogSvcEndpoint, setCogSvcEndpoint] = useState(
+      localStorage.getItem('cogSvcEndpoint') || '',
+    );
     return (
       <div>
         <div style={styles.settingLabel}>Region</div>
@@ -508,6 +513,31 @@ const SettingsComponent: React.FC<{
           onChange={(e) => {
             setCogSvcSubKey(e.target.value);
             handleChange('cogSvcSubKey', e.target.value);
+          }}
+        />
+
+        <div style={styles.settingLabel}>Use Speech Proxy (STT)</div>
+        {/* tip */}
+        <div style={styles.settings_tip}>
+          Learn more about
+          <a
+            href="https://github.com/theodoreniu/speech_proxy"
+            target="_blank"
+            style={{ ...styles.link, marginLeft: '8px' }}
+          >
+            Speech Proxy
+          </a>
+        </div>
+        <input
+          type={'text'}
+          style={styles.settingInput}
+          value={cogSvcEndpoint}
+          placeholder={
+            'https://xxx.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1'
+          }
+          onChange={(e) => {
+            setCogSvcEndpoint(e.target.value);
+            handleChange('cogSvcEndpoint', e.target.value);
           }}
         />
       </div>
@@ -874,7 +904,7 @@ const SettingsComponent: React.FC<{
 
       cogSvcRegion: localStorage.getItem('cogSvcRegion') || '',
       cogSvcSubKey: localStorage.getItem('cogSvcSubKey') || '',
-
+      cogSvcEndpoint: localStorage.getItem('cogSvcEndpoint') || '',
       dallTargetUri: localStorage.getItem('dallTargetUri') || '',
       dallApiKey: localStorage.getItem('dallApiKey') || '',
 
@@ -934,6 +964,7 @@ const SettingsComponent: React.FC<{
 
         handleChange('cogSvcRegion', settings.cogSvcRegion);
         handleChange('cogSvcSubKey', settings.cogSvcSubKey);
+        handleChange('cogSvcEndpoint', settings.cogSvcEndpoint);
 
         handleChange('dallTargetUri', settings.dallTargetUri);
         handleChange('dallApiKey', settings.dallApiKey);
