@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { FaRegEye, FaRegEyeSlash } from 'react-icons/fa';
 import { Download, Settings, Upload, X } from 'react-feather';
-import type { IconType } from 'react-icons';
 import { Button } from './button/Button';
 import Dropdown from './Dropdown';
 import { GRAPHRAG_ABOUT } from '../tools/azure_docs';
@@ -289,9 +288,7 @@ const SettingsComponent: React.FC<{
         <div style={styles.settingLabel}>
           Key
           <span style={styles.settingLabelShow} onClick={toggleVisibility}>
-            {isVisible
-              ? React.createElement(FaRegEye)
-              : React.createElement(FaRegEyeSlash)}
+            {isVisible ? <FaRegEye /> : <FaRegEyeSlash />}
           </span>
         </div>
         <input
@@ -335,9 +332,7 @@ const SettingsComponent: React.FC<{
         <div style={styles.settingLabel}>
           Key
           <span style={styles.settingLabelShow} onClick={toggleVisibility}>
-            {isVisible
-              ? React.createElement(FaRegEye)
-              : React.createElement(FaRegEyeSlash)}
+            {isVisible ? <FaRegEye /> : <FaRegEyeSlash />}
           </span>
         </div>
         <input
@@ -381,9 +376,7 @@ const SettingsComponent: React.FC<{
         <div style={styles.settingLabel}>
           Key
           <span style={styles.settingLabelShow} onClick={toggleVisibility}>
-            {isVisible
-              ? React.createElement(FaRegEye)
-              : React.createElement(FaRegEyeSlash)}
+            {isVisible ? <FaRegEye /> : <FaRegEyeSlash />}
           </span>
         </div>
         <input
@@ -441,9 +434,7 @@ const SettingsComponent: React.FC<{
         <div style={styles.settingLabel}>
           API Key
           <span style={styles.settingLabelShow} onClick={toggleVisibility}>
-            {isVisible
-              ? React.createElement(FaRegEye)
-              : React.createElement(FaRegEyeSlash)}
+            {isVisible ? <FaRegEye /> : <FaRegEyeSlash />}
           </span>
         </div>
         <input
@@ -511,9 +502,7 @@ const SettingsComponent: React.FC<{
         <div style={styles.settingLabel}>
           Subscription Key
           <span style={styles.settingLabelShow} onClick={toggleVisibility}>
-            {isVisible
-              ? React.createElement(FaRegEye)
-              : React.createElement(FaRegEyeSlash)}
+            {isVisible ? <FaRegEye /> : <FaRegEyeSlash />}
           </span>
         </div>
         <input
@@ -565,9 +554,7 @@ const SettingsComponent: React.FC<{
         <div style={styles.settingLabel}>
           Key
           <span style={styles.settingLabelShow} onClick={toggleVisibility}>
-            {isVisible
-              ? React.createElement(FaRegEye)
-              : React.createElement(FaRegEyeSlash)}
+            {isVisible ? <FaRegEye /> : <FaRegEyeSlash />}
           </span>
         </div>
         <input
@@ -633,9 +620,7 @@ const SettingsComponent: React.FC<{
         <div style={styles.settingLabel}>
           Key
           <span style={styles.settingLabelShow} onClick={toggleVisibility}>
-            {isVisible
-              ? React.createElement(FaRegEye)
-              : React.createElement(FaRegEyeSlash)}
+            {isVisible ? <FaRegEye /> : <FaRegEyeSlash />}
           </span>
         </div>
         <input
@@ -708,9 +693,7 @@ const SettingsComponent: React.FC<{
         <div style={styles.settingLabel}>
           Key
           <span style={styles.settingLabelShow} onClick={toggleVisibility}>
-            {isVisible
-              ? React.createElement(FaRegEye)
-              : React.createElement(FaRegEyeSlash)}
+            {isVisible ? <FaRegEye /> : <FaRegEyeSlash />}
           </span>
         </div>
         <input
@@ -727,7 +710,7 @@ const SettingsComponent: React.FC<{
         <div style={styles.settingLabel}>Function Calling</div>
         <p style={styles.settings_tip}>
           The current version of the deepseek-chat model's Function Calling
-          capability is unstable, which may result in looped calls or empty
+          capabilitity is unstable, which may result in looped calls or empty
           responses. We are actively working on a fix, and it is expected to be
           resolved in the next version.
           <a
@@ -799,9 +782,7 @@ const SettingsComponent: React.FC<{
         <div style={styles.settingLabel}>
           Feishu Bot
           <span style={styles.settingLabelShow} onClick={toggleVisibility}>
-            {isVisible
-              ? React.createElement(FaRegEye)
-              : React.createElement(FaRegEyeSlash)}
+            {isVisible ? <FaRegEye /> : <FaRegEyeSlash />}
           </span>
         </div>
         <input
@@ -820,9 +801,7 @@ const SettingsComponent: React.FC<{
             Finnhub
           </a>
           <span style={styles.settingLabelShow} onClick={toggleVisibility}>
-            {isVisible
-              ? React.createElement(FaRegEye)
-              : React.createElement(FaRegEyeSlash)}
+            {isVisible ? <FaRegEye /> : <FaRegEyeSlash />}
           </span>
         </div>
         <input
@@ -845,9 +824,7 @@ const SettingsComponent: React.FC<{
             News
           </a>
           <span style={styles.settingLabelShow} onClick={toggleVisibility}>
-            {isVisible
-              ? React.createElement(FaRegEye)
-              : React.createElement(FaRegEyeSlash)}
+            {isVisible ? <FaRegEye /> : <FaRegEyeSlash />}
           </span>
         </div>
         <input
@@ -894,9 +871,7 @@ const SettingsComponent: React.FC<{
                 Mxnzp AppSecret
               </a>
               <span style={styles.settingLabelShow} onClick={toggleVisibility}>
-                {isVisible
-                  ? React.createElement(FaRegEye)
-                  : React.createElement(FaRegEyeSlash)}
+                {isVisible ? <FaRegEye /> : <FaRegEyeSlash />}
               </span>
             </div>
             <input
@@ -916,7 +891,7 @@ const SettingsComponent: React.FC<{
   };
 
   const handleExport = () => {
-    // get all settings to json object and base64 encode
+    // get all settings to json obejct and base64 encode
     const settings = {
       endpoint: localStorage.getItem('endpoint') || '',
       key: localStorage.getItem('key') || '',
