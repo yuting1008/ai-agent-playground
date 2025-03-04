@@ -38,6 +38,7 @@ import * as quote from '../tools/quote';
 import * as exchange_rate_aim from '../tools/exchange_rate_aim';
 import * as exchange_rate_list from '../tools/exchange_rate_list';
 import * as exchange_rate_configs from '../tools/exchange_rate_configs';
+
 import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
 import {
   AVATAR_OFF,
