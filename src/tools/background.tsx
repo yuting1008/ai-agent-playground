@@ -5,7 +5,6 @@ export const definition: ToolDefinitionType = {
   description: 'switch the background image of the page.',
   parameters: {
     type: 'object',
-    properties: {
-    },
+    properties: {},
   },
 };

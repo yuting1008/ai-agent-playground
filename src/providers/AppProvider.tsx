@@ -29,6 +29,7 @@ import * as camera_current from '../tools/camera_current';
 import * as camera_on from '../tools/camera_on';
 import * as camera_take_photo from '../tools/camera_take_photo';
 import * as opacity from '../tools/opacity';
+import * as devices_action from '../tools/devices_action';
 import * as camera_video from '../tools/camera_video';
 import * as painting from '../tools/painting';
 import * as image_modify from '../tools/painting_modify';
@@ -844,7 +845,6 @@ export const AppProvider: React.FC<{
     [image_modify.definition, image_modify_handler],
     [debug_model.definition, debug_handler],
     [set_disconnection.definition, set_disconnection_handler],
-
     [news.definition, news.handler],
     [weather.definition, weather.handler],
     [order_get.definition, order_get.handler],
@@ -860,6 +860,7 @@ export const AppProvider: React.FC<{
     [demo.definition, demo.handler],
     [quote.definition, quote.handler],
     [stock_recommend.definition, stock_recommend.handler],
+    [devices_action.definition, devices_action.handler],
   ];
 
   // functions_tools array

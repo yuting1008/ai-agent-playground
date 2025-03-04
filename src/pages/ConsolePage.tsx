@@ -1,5 +1,3 @@
-import { useEffect } from 'react';
-
 import './ConsolePage.scss';
 import { useContexts } from '../providers/AppProvider';
 import { NightMode } from '../components/NightMode';
@@ -11,28 +9,24 @@ import FunctionsList from '../components/functions/FunctionsList';
 import { ConsolePageRealtime } from './ConsolePageRealtime';
 import { ConsolePageAssistant } from './ConsolePageAssistant';
 import {
-  ASSISTENT_TYPE_ASSISTANT,
-  ASSISTENT_TYPE_DEEPSEEK,
-  ASSISTENT_TYPE_DEFAULT,
-  ASSISTENT_TYPE_REALTIME,
-  DEEPSEEK_FUNCTION_CALL_ENABLE,
+  ASSISTANT_TYPE_ASSISTANT,
+  ASSISTANT_TYPE_DEEPSEEK,
+  ASSISTANT_TYPE_DEFAULT,
+  ASSISTANT_TYPE_REALTIME,
 } from '../lib/const';
 import { AlertTriangle } from 'react-feather';
 import AboutApp from '../components/AboutApp';
 import { ConsolePageDeepSeek } from './ConsolePageDeepSeek';
-import { enableFunctionCalling } from '../lib/helper';
+import GithubLink from '../components/GithubLink';
 
 export function ConsolePage() {
-  const { setIsNightMode, isDebugMode, setIsDebugMode } = useContexts();
+  const { isDebugMode, setIsDebugMode } = useContexts();
 
   const assistantType =
-    localStorage.getItem('assistantType') || ASSISTENT_TYPE_DEFAULT;
-  const isAssistant = assistantType === ASSISTENT_TYPE_ASSISTANT;
-  const isRealtime = assistantType === ASSISTENT_TYPE_REALTIME;
-  const isDeepSeek = assistantType === ASSISTENT_TYPE_DEEPSEEK;
-  const deepSeekFunctionCallingEnable =
-    localStorage.getItem('deepSeekFunctionCalling') ===
-    DEEPSEEK_FUNCTION_CALL_ENABLE;
+    localStorage.getItem('assistantType') || ASSISTANT_TYPE_DEFAULT;
+  const isAssistant = assistantType === ASSISTANT_TYPE_ASSISTANT;
+  const isRealtime = assistantType === ASSISTANT_TYPE_REALTIME;
+  const isDeepSeek = assistantType === ASSISTANT_TYPE_DEEPSEEK;
 
   function IsDebugMode() {
     if (!isDebugMode) {
@@ -76,6 +70,7 @@ export function ConsolePage() {
           <IsDebugMode />
           <NightMode />
           <FunctionsList />
+          <GithubLink />
           <AboutApp />
         </span>
       </div>

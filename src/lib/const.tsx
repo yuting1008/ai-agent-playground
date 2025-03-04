@@ -2,14 +2,14 @@ export const APP_AGENT = 'AI Agent Playground';
 export const APP_AGENT_VECTOR_STORE =
   'ai-agent-playground-assistant-vector-store';
 
-export const ASSISTENT_TYPE_ASSISTANT = 'assistant';
-export const ASSISTENT_TYPE_REALTIME = 'realtime';
-export const ASSISTENT_TYPE_DEEPSEEK = 'deepseek';
+export const ASSISTANT_TYPE_ASSISTANT = 'assistant';
+export const ASSISTANT_TYPE_REALTIME = 'realtime';
+export const ASSISTANT_TYPE_DEEPSEEK = 'deepseek';
 
 export const DEEPSEEK_FUNCTION_CALL_ENABLE = 'Enable';
 export const DEEPSEEK_FUNCTION_CALL_DISABLE = 'Disable';
 
-export const ASSISTENT_TYPE_DEFAULT = ASSISTENT_TYPE_REALTIME;
+export const ASSISTANT_TYPE_DEFAULT = ASSISTANT_TYPE_REALTIME;
 
 export const ALLOW_PROMPT_CHARACTERS = 1500;
 export const CAMERA_PHOTO_LIMIT = 50; // gpt limit 50 images
