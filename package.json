@@ -50,7 +50,6 @@
     "save": "^2.9.0",
     "sharp": "^0.33.5",
     "styled-components": "^6.1.13",
-    "typescript": "^4.9.5",
     "use-immer": "^0.10.0",
     "web-vitals": "^2.1.4",
     "ws": "^8.18.0",
@@ -62,7 +61,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "zip": "zip -r realtime-api-console.zip . -x 'node_modules' 'node_modules/*' 'node_modules/**' '.git' '.git/*' '.git/**' '.DS_Store' '*/.DS_Store' 'package-lock.json' '*.zip' '*.tar.gz' '*.tar' '.env'",
-    "relay": "nodemon ./relay-server/index.js"
+    "stt": "nodemon relay-server/stt/relay.js"
   },
   "eslintConfig": {
     "extends": [
@@ -84,9 +83,11 @@
   },
   "devDependencies": {
     "@babel/plugin-transform-private-property-in-object": "^7.25.9",
+    "@types/express": "^5.0.0",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@types/react-transition-group": "^4.4.11",
+    "@types/ws": "^8.5.14",
     "babel-plugin-react-compiler": "19.0.0-beta-df7b47d-20241124",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
@@ -96,6 +97,8 @@
     "nth-check": ">=2.0.1",
     "path-to-regexp": ">=0.1.12",
     "postcss": ">=8.4.31",
-    "prettier": "3.4.2"
+    "prettier": "3.4.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^4.9.5"
   }
 }

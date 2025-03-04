@@ -1,5 +1,5 @@
 import Markdown from 'react-markdown';
-import { ASSISTENT_TYPE_DEEPSEEK } from '../lib/const';
+import { ASSISTANT_TYPE_DEEPSEEK } from '../lib/const';
 import MessageLoading from './MessageLoading';
 
 type AssistantMessageProps = {
@@ -54,7 +54,7 @@ function parseDeepSeekText(text: string) {
 const AssistantAssistantMessage = ({ text }: { text: string }) => {
   text = text.trim();
   const isDeepSeek =
-    localStorage.getItem('assistantType') === ASSISTENT_TYPE_DEEPSEEK;
+    localStorage.getItem('assistantType') === ASSISTANT_TYPE_DEEPSEEK;
 
   if (isDeepSeek) {
     const { think, nonThink } = parseDeepSeekText(text);

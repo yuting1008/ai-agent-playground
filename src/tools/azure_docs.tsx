@@ -37,13 +37,15 @@ export const handler: Function = async ({ query }: { [key: string]: any }) => {
 
   const url = `${graphragUrl}/api/local_search`;
 
-  var body = JSON.stringify({
+  const body = JSON.stringify({
     query: query,
     project_name: graphragProjectName,
     community_level: 2,
     query_source: true,
     user_cache: false,
   });
+
+  console.log('body', body);
 
   const result = await fetch(url, {
     method: 'POST',

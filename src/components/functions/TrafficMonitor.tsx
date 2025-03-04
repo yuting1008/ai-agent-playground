@@ -3,8 +3,8 @@ import { X } from 'react-feather';
 import { Activity } from 'react-feather';
 import { useContexts } from '../../providers/AppProvider';
 import {
-  ASSISTENT_TYPE_DEFAULT,
-  ASSISTENT_TYPE_REALTIME,
+  ASSISTANT_TYPE_DEFAULT,
+  ASSISTANT_TYPE_REALTIME,
   CONNECT_CONNECTED,
 } from '../../lib/const';
 import { avgLatency, calculatePercentiles } from '../../lib/helper';
@@ -31,7 +31,7 @@ const TrafficMonitor: React.FC = () => {
   const importModalStyles = modalStyles({ isNightMode });
 
   const isRealtime =
-    localStorage.getItem('assistantType') === ASSISTENT_TYPE_REALTIME;
+    localStorage.getItem('assistantType') === ASSISTANT_TYPE_REALTIME;
 
   const firstTokenLatencyLast =
     firstTokenLatencyArray.length > 0
