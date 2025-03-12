@@ -14,7 +14,7 @@ function App() {
   const [isNightMode, setIsNightMode] = useState<boolean>(false);
   const [opacity, setOpacity] = useState<number>(1);
   const [background, setBackground] = useState<string>('');
-  const [loadFunctionsTool] =
+  const [loadFunctionsTools] =
     useState<[ToolDefinitionType, Function][]>(loadFunctions());
 
   useEffect(() => {
@@ -43,7 +43,7 @@ function App() {
             setAppKey={setAppKey}
             isNightMode={isNightMode}
             setIsNightMode={setIsNightMode}
-            loadFunctionsTool={loadFunctionsTool}
+            loadFunctionsTools={loadFunctionsTools}
             setOpacity={setOpacity}
             setBackground={setBackground}
           >

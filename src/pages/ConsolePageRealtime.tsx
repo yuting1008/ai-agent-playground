@@ -52,7 +52,7 @@ export function ConsolePageRealtime() {
     setOutputTextTokens,
     setOutputAudioTokens,
     appKey,
-    loadFunctionsTool,
+    loadFunctionsTools,
   } = useContexts();
 
   const endpoint = localStorage.getItem('endpoint') || '';
@@ -165,7 +165,7 @@ export function ConsolePageRealtime() {
 
       if (item.type === 'function_call_output') {
         const call = callStates[item.call_id];
-        for (const fc of loadFunctionsTool) {
+        for (const fc of loadFunctionsTools) {
           if (fc[0].name === call.name) {
             const result = {
               name: call.name,

@@ -212,7 +212,8 @@ interface AppContextType {
 
   appKey: number;
 
-  loadFunctionsTool: [ToolDefinitionType, Function][];
+  loadFunctionsTools: [ToolDefinitionType, Function][];
+  builtinFunctionTools: [ToolDefinitionType, Function][];
 }
 
 const IS_DEBUG: boolean = window.location.href.includes('localhost');
@@ -227,7 +228,7 @@ export const AppProvider: React.FC<{
   setIsNightMode: React.Dispatch<React.SetStateAction<boolean>>;
   setOpacity: React.Dispatch<React.SetStateAction<number>>;
   setBackground: React.Dispatch<React.SetStateAction<string>>;
-  loadFunctionsTool: [ToolDefinitionType, Function][];
+  loadFunctionsTools: [ToolDefinitionType, Function][];
 }> = ({
   children,
   appKey,
@@ -236,7 +237,7 @@ export const AppProvider: React.FC<{
   setIsNightMode,
   setOpacity,
   setBackground,
-  loadFunctionsTool,
+  loadFunctionsTools,
 }) => {
   const isOnline = useOnlineStatus();
 
@@ -844,7 +845,7 @@ export const AppProvider: React.FC<{
     return { ok: true };
   };
 
-  const builtin_tools: [ToolDefinitionType, Function][] = [
+  const builtinFunctionTools: [ToolDefinitionType, Function][] = [
     [camera_on.definition, camera_on_handler],
     [camera_take_photo.definition, camera_take_photo_handler],
     [opacity.definition, opacity_handler],
@@ -876,13 +877,14 @@ export const AppProvider: React.FC<{
     [stock_recommend.definition, stock_recommend.handler],
     [devices_action.definition, devices_action.handler],
   ];
+  builtinFunctionTools.sort((a, b) => a[0].name.localeCompare(b[0].name));
 
   let merge_tools: [ToolDefinitionType, Function][] = buildInFunctionsEnabled()
-    ? [...loadFunctionsTool, ...builtin_tools]
-    : [...loadFunctionsTool];
+    ? [...loadFunctionsTools, ...builtinFunctionTools]
+    : [...loadFunctionsTools];
 
   // resort merge_tools by ToolDefinitionType name
-  merge_tools = merge_tools.sort((a, b) => a[0].name.localeCompare(b[0].name));
+  merge_tools.sort((a, b) => a[0].name.localeCompare(b[0].name));
 
   const functions_tool: [ToolDefinitionType, Function][] = merge_tools;
 
@@ -894,12 +896,10 @@ export const AppProvider: React.FC<{
     ? SYSTEM_INSTRUCTIONS
     : USER_INSTRUCTIONS;
 
-  if (enableFunctionCalling()) {
-    if (functionsToolsRef.current.length > 0) {
-      updateInstructions += `\n\nYou have the following tools and abilities:`;
-      for (const tool of functionsToolsRef.current) {
-        updateInstructions += `\n${tool[0].name}: ${tool[0].description}`;
-      }
+  if (enableFunctionCalling() && functionsToolsRef.current.length > 0) {
+    updateInstructions += `\n\nYou have the following tools and abilities:`;
+    for (const tool of functionsToolsRef.current) {
+      updateInstructions += `\n${tool[0].name}: ${tool[0].description}`;
     }
   }
 
@@ -1061,7 +1061,8 @@ export const AppProvider: React.FC<{
         outputAudioTokensRef,
         setOutputAudioTokens,
         appKey,
-        loadFunctionsTool,
+        loadFunctionsTools,
+        builtinFunctionTools,
       }}
     >
       {children}
