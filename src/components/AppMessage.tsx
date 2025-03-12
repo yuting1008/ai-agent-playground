@@ -10,7 +10,6 @@ const AppMessage: React.FC = () => {
   );
 
   useEffect(() => {
-    console.log('messages', messages);
     localStorage.setItem('messages', JSON.stringify(messages));
   }, [messages]);
 
