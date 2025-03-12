@@ -9,6 +9,10 @@ import {
   ASSISTANT_TYPE_ASSISTANT,
   ASSISTANT_TYPE_DEEPSEEK,
   ASSISTANT_TYPE_REALTIME,
+  BUILD_IN_FUNCTIONS_DISABLE,
+  BUILD_IN_FUNCTIONS_ENABLE,
+  BUILD_IN_PROMPT_DISABLE,
+  BUILD_IN_PROMPT_ENABLE,
   CONNECT_CONNECTED,
   DEEPSEEK_FUNCTION_CALL_DISABLE,
   DEEPSEEK_FUNCTION_CALL_ENABLE,
@@ -41,6 +45,16 @@ const supportedAssistantTypes = [
 const deepSeekFunctionCallingTypes = [
   { value: DEEPSEEK_FUNCTION_CALL_DISABLE, label: 'Disable' },
   { value: DEEPSEEK_FUNCTION_CALL_ENABLE, label: 'Enable' },
+];
+
+const buildInFunctionsOptions = [
+  { value: BUILD_IN_FUNCTIONS_ENABLE, label: 'Enable' },
+  { value: BUILD_IN_FUNCTIONS_DISABLE, label: 'Disable' },
+];
+
+const buildInPromptOptions = [
+  { value: BUILD_IN_PROMPT_ENABLE, label: 'Enable' },
+  { value: BUILD_IN_PROMPT_DISABLE, label: 'Disable' },
 ];
 
 const SettingsComponent: React.FC<{
@@ -208,8 +222,17 @@ const SettingsComponent: React.FC<{
     const [language, setLanguage] = useState(
       localStorage.getItem('language') || 'chinese',
     );
+
     const [assistantType, setAssistantType] = useState(
       localStorage.getItem('assistantType') || ASSISTANT_TYPE_REALTIME,
+    );
+
+    const [buildInPrompt, setBuildInPrompt] = useState(
+      localStorage.getItem('buildInPrompt') || BUILD_IN_PROMPT_ENABLE,
+    );
+
+    const [buildInFunctions, setBuildInFunctions] = useState(
+      localStorage.getItem('buildInFunctions') || BUILD_IN_FUNCTIONS_ENABLE,
     );
 
     return (
@@ -231,6 +254,26 @@ const SettingsComponent: React.FC<{
           onChange={(e) => {
             setLanguage(e);
             handleChange('language', e);
+          }}
+        />
+
+        <div style={styles.settingLabel}>Build-in Prompt</div>
+        <Dropdown
+          options={buildInPromptOptions}
+          selectedValue={buildInPrompt}
+          onChange={(e) => {
+            setBuildInPrompt(e);
+            handleChange('buildInPrompt', e);
+          }}
+        />
+
+        <div style={styles.settingLabel}>Build-in Functions</div>
+        <Dropdown
+          options={buildInFunctionsOptions}
+          selectedValue={buildInFunctions}
+          onChange={(e) => {
+            setBuildInFunctions(e);
+            handleChange('buildInFunctions', e);
           }}
         />
 
@@ -710,7 +753,7 @@ const SettingsComponent: React.FC<{
         <div style={styles.settingLabel}>Function Calling</div>
         <p style={styles.settings_tip}>
           The current version of the deepseek-chat model's Function Calling
-          capabilitity is unstable, which may result in looped calls or empty
+          capability is unstable, which may result in looped calls or empty
           responses. We are actively working on a fix, and it is expected to be
           resolved in the next version.
           <a
@@ -930,6 +973,9 @@ const SettingsComponent: React.FC<{
       bingApiKey: localStorage.getItem('bingApiKey') || '',
 
       functions: localStorage.getItem('functions') || '',
+
+      buildInPrompt: localStorage.getItem('buildInPrompt') || '',
+      buildInFunctions: localStorage.getItem('buildInFunctions') || '',
     };
     const content = JSON.stringify(settings, null, 2);
     const blob = new Blob([content], { type: 'application/json' });
@@ -993,6 +1039,9 @@ const SettingsComponent: React.FC<{
         handleChange('ttsTargetUri', settings.ttsTargetUri);
 
         handleChange('functions', settings.functions);
+
+        handleChange('buildInPrompt', settings.buildInPrompt);
+        handleChange('buildInFunctions', settings.buildInFunctions);
 
         alert('Import success');
 

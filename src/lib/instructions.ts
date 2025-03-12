@@ -2,7 +2,8 @@ import { CAMERA_PHOTO_LIMIT } from './const';
 
 export const DATA_BEGIN = '----用户已经上传的数据文件开始----';
 export const DATA_END = '----用户已经上传的数据文件结束----';
-export const instructions = `System settings:
+
+export const SYSTEM_INSTRUCTIONS = `System settings:
 Tool use: enabled.
 
 Personality:
@@ -41,6 +42,23 @@ Instructions:
 - 你的虚拟人形象处于关闭状态，如果打开，我就可以看到你。
 - 现在我的摄像头是关闭的
 - 你可以打开或者关闭调试模式，目前调试模式是关闭的
+
+${localStorage.getItem('prompt') || ''}
+
+${DATA_BEGIN}
+用户还没有上传数据文件
+${DATA_END}
+`;
+
+export const USER_INSTRUCTIONS = `System settings:
+Tool use: enabled.
+
+Personality:
+- Be upbeat and genuine
+- Try speaking quickly as if excited
+
+Instructions:
+${localStorage.getItem('prompt') || ''}
 
 ${DATA_BEGIN}
 用户还没有上传数据文件

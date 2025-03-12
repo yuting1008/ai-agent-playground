@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X } from 'react-feather';
 import { HelpCircle } from 'react-feather';
 import { useContexts } from '../providers/AppProvider';
@@ -19,7 +19,21 @@ const AboutApp: React.FC = () => {
     } as React.CSSProperties,
   };
 
-  const ShowList = () => {
+  const ShowAboutApp = () => {
+    useEffect(() => {
+      const handleKeyDown = (event: KeyboardEvent) => {
+        if (event.key === 'Escape') {
+          setIsShow(false);
+        }
+      };
+
+      document.addEventListener('keydown', handleKeyDown);
+
+      return () => {
+        document.removeEventListener('keydown', handleKeyDown);
+      };
+    }, []);
+
     if (!isShow) return null;
 
     return (
@@ -63,7 +77,7 @@ const AboutApp: React.FC = () => {
       >
         <HelpCircle />
       </span>
-      <ShowList />
+      <ShowAboutApp />
     </>
   );
 };
