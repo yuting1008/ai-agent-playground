@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { useContexts } from '../providers/AppProvider';
 import { X } from 'react-feather';
 
 const AppMessage: React.FC = () => {
-  const { isNightMode } = useContexts();
-
   const [messages, setMessages] = useState<any[]>(
     JSON.parse(localStorage.getItem('messages') || '[]'),
   );
+  const [displayMessages, setDisplayMessages] = useState<any[]>(
+    [...messages].reverse(),
+  );
 
   useEffect(() => {
+    setDisplayMessages([...messages].reverse());
     localStorage.setItem('messages', JSON.stringify(messages));
   }, [messages]);
 
@@ -58,7 +59,7 @@ const AppMessage: React.FC = () => {
     <>
       <div style={styles.backdrop}>
         <div style={styles.modal}>
-          {messages.map((message, index) => (
+          {displayMessages.map((message, index) => (
             <div key={index} style={styles.content}>
               <X
                 size={16}
@@ -68,7 +69,7 @@ const AppMessage: React.FC = () => {
                   marginBottom: '10px',
                 }}
                 onClick={() => {
-                  setMessages(messages.filter((_, i) => i !== index));
+                  setMessages(displayMessages.filter((_, i) => i !== index));
                 }}
               />
 
