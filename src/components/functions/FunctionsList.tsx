@@ -10,7 +10,8 @@ const FunctionsList: React.FC = () => {
   const [isShow, setIsShow] = useState(false);
   const { isNightMode } = useContexts();
   const importModalStyles = modalStyles({ isNightMode });
-  const { functionsToolsRef } = useContexts();
+  const { functionsToolsRef, builtinFunctionTools, loadFunctionsTools } =
+    useContexts();
   const [showFunctionDefinition, setShowFunctionDefinition] = useState<
     any | false
   >(false);
@@ -107,54 +108,10 @@ const FunctionsList: React.FC = () => {
     );
   };
 
-  const LoadFunctions = () => {
-    return (
-      <button
-        style={styles.addFunctionButton}
-        onClick={() => {
-          // upload a json file
-          const fileInput = document.createElement('input');
-          fileInput.type = 'file';
-          fileInput.accept = '.json';
-          fileInput.onchange = (e: any) => {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.onload = (e: any) => {
-              const json = JSON.parse(e.target.result as string);
-              console.log(json);
-              localStorage.setItem('functions', JSON.stringify(json));
-              alert('Functions loaded successfully');
-              window.location.reload();
-            };
-            reader.readAsText(file);
-          };
-          fileInput.click();
-        }}
-      >
-        Load Functions
-      </button>
-    );
-  };
-
-  const ClearFunctions = () => {
-    if (!localStorage.getItem('functions')) return null;
-
-    return (
-      <button
-        style={styles.addFunctionButton}
-        onClick={() => {
-          localStorage.removeItem('functions');
-          alert('Functions cleared successfully');
-          window.location.reload();
-        }}
-      >
-        Clear Functions
-      </button>
-    );
-  };
-
   const ShowFunctionsList = () => {
-    if (!isShow) return null;
+    if (!isShow) {
+      return null;
+    }
 
     return (
       <div style={importModalStyles.backdrop}>
@@ -171,7 +128,7 @@ const FunctionsList: React.FC = () => {
           </div>
 
           <div style={styles.content}>
-            {functionsToolsRef.current.map((item) => (
+            {loadFunctionsTools.map((item) => (
               <div style={styles.functionItem} key={item[0].name}>
                 <div style={styles.functionItemName}>{item[0].name}</div>
                 <div style={styles.functionItemDescription}>
@@ -190,10 +147,26 @@ const FunctionsList: React.FC = () => {
               </div>
             ))}
 
-            <br />
-            <br />
-            <LoadFunctions />
-            <ClearFunctions />
+            {builtinFunctionTools.map((item) => (
+              <div style={styles.functionItem} key={item[0].name}>
+                <div style={styles.functionItemName}>
+                  {item[0].name} (Built-in)
+                </div>
+                <div style={styles.functionItemDescription}>
+                  {item[0].description}
+                  <Code
+                    size={14}
+                    style={{
+                      cursor: 'pointer',
+                      marginLeft: '5px',
+                    }}
+                    onClick={() => {
+                      setShowFunctionDefinition(item[0]);
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

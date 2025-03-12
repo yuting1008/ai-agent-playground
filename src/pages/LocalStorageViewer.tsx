@@ -33,6 +33,7 @@ const LocalStorageViewer: React.FC = () => {
     needSpeechQueue,
     captionQueue,
     vectorStore,
+    functionsToolsRef,
   } = useContexts();
 
   const fetchLocalStorageData = useCallback(() => {
@@ -186,7 +187,6 @@ const LocalStorageViewer: React.FC = () => {
                     {JSON.stringify(threadJob)}
                   </td>
                 </tr>
-
                 <tr key="speechSentencesCacheArray">
                   <td className={styles.tdKey}>speechSentencesCacheArray</td>
                   <td className={styles.tdValue}>
@@ -209,6 +209,12 @@ const LocalStorageViewer: React.FC = () => {
                 <tr key="llmInstructions">
                   <td className={styles.tdKey}>llmInstructions</td>
                   <td className={styles.tdValue}>{llmInstructions}</td>
+                </tr>
+                <tr key="functionsToolsRef">
+                  <td className={styles.tdKey}>functionsToolsRef</td>
+                  <td className={styles.tdValue}>
+                    {JSON.stringify(functionsToolsRef.current, null, 2)}
+                  </td>
                 </tr>
               </tbody>
             </table>
