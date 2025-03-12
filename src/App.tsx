@@ -7,16 +7,15 @@ import { GptImagesProvider } from './contexts/GptImagesContext';
 import { TrafficDataProvider } from './contexts/TrafficDataContext';
 import { useEffect, useState } from 'react';
 import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
-import * as load_functions from './tools/load_functions';
+import { loadFunctions } from './lib/helper';
 
 function App() {
   const [appKey, setAppKey] = useState<number>(1);
   const [isNightMode, setIsNightMode] = useState<boolean>(false);
   const [opacity, setOpacity] = useState<number>(1);
   const [background, setBackground] = useState<string>('');
-  const [loadFunctionsTool, setLoadFunctionsTool] = useState<
-    [ToolDefinitionType, Function][]
-  >([]);
+  const [loadFunctionsTool] =
+    useState<[ToolDefinitionType, Function][]>(loadFunctions());
 
   useEffect(() => {
     if (background) {
@@ -34,31 +33,6 @@ function App() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const functions = localStorage.getItem('functions');
-  if (functions) {
-    try {
-      const functionsArray = JSON.parse(functions);
-      for (const functionItem of functionsArray) {
-        // if functionItem.function already exists, skip
-        if (
-          loadFunctionsTool.find(
-            (tool) => tool[0].name === functionItem.function.name,
-          )
-        ) {
-          continue;
-        }
-        console.log(functionItem.function.name);
-        setLoadFunctionsTool([
-          ...loadFunctionsTool,
-          [functionItem.function, load_functions.handler],
-        ]);
-      }
-    } catch (error: any) {
-      console.log('load functions failed');
-      console.error(error);
-    }
-  }
 
   return (
     <div data-component="App" key={appKey} style={{ opacity: opacity }}>

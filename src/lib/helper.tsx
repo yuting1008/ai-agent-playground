@@ -1,10 +1,14 @@
-import { ItemType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
+import {
+  ItemType,
+  ToolDefinitionType,
+} from '@theodoreniu/realtime-api-beta/dist/lib/client';
 import {
   ASSISTANT_TYPE_DEEPSEEK,
   BUILD_IN_FUNCTIONS_ENABLE,
   BUILD_IN_PROMPT_ENABLE,
   DEEPSEEK_FUNCTION_CALL_ENABLE,
 } from './const';
+import * as load_functions from '../tools/load_functions';
 
 export const delayFunction = function delay(ms: number) {
   return new Promise((resolve) => {
@@ -154,4 +158,32 @@ export async function getFunctionsFromUrl() {
   }
 
   return localStorage.getItem('functions') || '';
+}
+
+export function loadFunctions() {
+  const functions = localStorage.getItem('functions');
+  if (!functions) {
+    return [];
+  }
+
+  try {
+    const tempFunctions: [ToolDefinitionType, Function][] = [];
+    const functionsArray = JSON.parse(functions);
+    for (const functionItem of functionsArray) {
+      const alreadyExists = tempFunctions.find(
+        (tool) => tool[0].name === functionItem.function.name,
+      );
+      if (alreadyExists) {
+        continue;
+      }
+      console.log(functionItem.function.name);
+      tempFunctions.push([functionItem.function, load_functions.handler]);
+    }
+    return tempFunctions;
+  } catch (error: any) {
+    console.log('load functions failed');
+    console.error(error);
+  }
+
+  return [];
 }
