@@ -60,6 +60,7 @@ function App() {
       <GptImagesProvider>
         <TrafficDataProvider>
           <AppProvider
+            appKey={appKey}
             setAppKey={setAppKey}
             isNightMode={isNightMode}
             setIsNightMode={setIsNightMode}
