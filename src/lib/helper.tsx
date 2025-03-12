@@ -113,3 +113,45 @@ export function buildInFunctionsEnabled() {
     BUILD_IN_FUNCTIONS_ENABLE
   );
 }
+
+export async function getPromptFromUrl() {
+  const oldPrompt = localStorage.getItem('prompt') || '';
+  const promptUrl = localStorage.getItem('promptUrl') || '';
+  try {
+    if (promptUrl) {
+      const result = await fetch(promptUrl).then((res) => res.text());
+      localStorage.setItem('prompt', result);
+      if (result !== oldPrompt) {
+        alert('Prompt updated, will refresh the page.');
+        window.location.reload();
+      }
+      return result;
+    }
+  } catch (error) {
+    console.error(`Failed to get prompt from url: ${promptUrl}`);
+    console.error(error);
+  }
+
+  return localStorage.getItem('prompt') || '';
+}
+
+export async function getFunctionsFromUrl() {
+  const oldFunctions = localStorage.getItem('functions') || '';
+  const functionsUrl = localStorage.getItem('functionsUrl') || '';
+  try {
+    if (functionsUrl) {
+      const result = await fetch(functionsUrl).then((res) => res.text());
+      localStorage.setItem('functions', result);
+      if (result !== oldFunctions) {
+        alert('Functions updated, will refresh the page.');
+        window.location.reload();
+      }
+      return result;
+    }
+  } catch (error) {
+    console.error(`Failed to get functions from url: ${functionsUrl}`);
+    console.error(error);
+  }
+
+  return localStorage.getItem('functions') || '';
+}
