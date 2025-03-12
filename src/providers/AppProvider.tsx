@@ -875,10 +875,14 @@ export const AppProvider: React.FC<{
     [devices_action.definition, devices_action.handler],
   ];
 
-  const functions_tool: [ToolDefinitionType, Function][] =
-    buildInFunctionsEnabled()
-      ? [...loadFunctionsTool, ...builtin_tools]
-      : [...loadFunctionsTool];
+  let merge_tools: [ToolDefinitionType, Function][] = buildInFunctionsEnabled()
+    ? [...loadFunctionsTool, ...builtin_tools]
+    : [...loadFunctionsTool];
+
+  // resort merge_tools by ToolDefinitionType name
+  merge_tools = merge_tools.sort((a, b) => a[0].name.localeCompare(b[0].name));
+
+  const functions_tool: [ToolDefinitionType, Function][] = merge_tools;
 
   // functions_tools array
   const functionsToolsRef =
