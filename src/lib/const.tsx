@@ -9,6 +9,12 @@ export const ASSISTANT_TYPE_DEEPSEEK = 'deepseek';
 export const DEEPSEEK_FUNCTION_CALL_ENABLE = 'Enable';
 export const DEEPSEEK_FUNCTION_CALL_DISABLE = 'Disable';
 
+export const BUILD_IN_FUNCTIONS_ENABLE = 'Enable';
+export const BUILD_IN_FUNCTIONS_DISABLE = 'Disable';
+
+export const BUILD_IN_PROMPT_ENABLE = 'Enable';
+export const BUILD_IN_PROMPT_DISABLE = 'Disable';
+
 export const ASSISTANT_TYPE_DEFAULT = ASSISTANT_TYPE_REALTIME;
 
 export const ALLOW_PROMPT_CHARACTERS = 15000;

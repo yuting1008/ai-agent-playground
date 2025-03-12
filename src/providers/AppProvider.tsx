@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { instructions } from '../lib/instructions';
+import { SYSTEM_INSTRUCTIONS, USER_INSTRUCTIONS } from '../lib/instructions';
 
 import * as memory from '../tools/memory';
 import * as weather from '../tools/weather';
@@ -56,7 +56,12 @@ import {
   getImages,
   getOpenAIClient,
 } from '../lib/openai';
-import { delayFunction, enableFunctionCalling } from '../lib/helper';
+import {
+  buildInFunctionsEnabled,
+  buildInPromptEnabled,
+  delayFunction,
+  enableFunctionCalling,
+} from '../lib/helper';
 import { Assistant } from 'openai/resources/beta/assistants';
 import { processAndStoreSentence } from '../lib/sentence';
 import axios from 'axios';
@@ -837,7 +842,7 @@ export const AppProvider: React.FC<{
     return { ok: true };
   };
 
-  const static_tool: [ToolDefinitionType, Function][] = [
+  const builtin_tools: [ToolDefinitionType, Function][] = [
     [camera_on.definition, camera_on_handler],
     [camera_take_photo.definition, camera_take_photo_handler],
     [opacity.definition, opacity_handler],
@@ -870,26 +875,25 @@ export const AppProvider: React.FC<{
     [devices_action.definition, devices_action.handler],
   ];
 
-  const functions_tool: [ToolDefinitionType, Function][] = [
-    ...loadFunctionsTool,
-    ...static_tool,
-  ];
+  const functions_tool: [ToolDefinitionType, Function][] =
+    buildInFunctionsEnabled()
+      ? [...loadFunctionsTool, ...builtin_tools]
+      : [...loadFunctionsTool];
 
   // functions_tools array
   const functionsToolsRef =
     useRef<[ToolDefinitionType, Function][]>(functions_tool);
 
-  // instructions string
-  const prompt = localStorage.getItem('prompt') || '';
-
-  let updateInstructions = prompt
-    ? `${instructions}\n\nUser Instructions: \n${prompt}`
-    : instructions;
+  let updateInstructions = buildInPromptEnabled()
+    ? SYSTEM_INSTRUCTIONS
+    : USER_INSTRUCTIONS;
 
   if (enableFunctionCalling()) {
-    updateInstructions += `\n\nYou have the following tools and abilities:`;
-    for (const tool of functionsToolsRef.current) {
-      updateInstructions += `\n${tool[0].name}: ${tool[0].description}`;
+    if (functionsToolsRef.current.length > 0) {
+      updateInstructions += `\n\nYou have the following tools and abilities:`;
+      for (const tool of functionsToolsRef.current) {
+        updateInstructions += `\n${tool[0].name}: ${tool[0].description}`;
+      }
     }
   }
 

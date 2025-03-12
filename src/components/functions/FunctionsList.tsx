@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Code, X } from 'react-feather';
 import { Package } from 'react-feather';
 import { useContexts } from '../../providers/AppProvider';
@@ -12,8 +12,8 @@ const FunctionsList: React.FC = () => {
   const importModalStyles = modalStyles({ isNightMode });
   const { functionsToolsRef } = useContexts();
   const [showFunctionDefinition, setShowFunctionDefinition] = useState<
-    any | null
-  >(null);
+    any | false
+  >(false);
 
   const styles = {
     content: {
@@ -68,9 +68,26 @@ const FunctionsList: React.FC = () => {
     } as React.CSSProperties,
   };
 
-  const FunctionDefinitionJsonModal = () => {
-    if (!showFunctionDefinition) return null;
-    return (
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        if (showFunctionDefinition !== false) {
+          setShowFunctionDefinition(false);
+        } else {
+          setIsShow(false);
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showFunctionDefinition, isShow]);
+
+  const FunctionDefinitionJsonModal: React.FC = () => {
+    return showFunctionDefinition === false ? null : (
       <div style={importModalStyles.backdrop}>
         <div style={importModalStyles.modal}>
           <X
@@ -78,10 +95,11 @@ const FunctionsList: React.FC = () => {
             onClick={() => setShowFunctionDefinition(false)}
           />
 
-          {/* textarea */}
           <textarea
             readOnly
-            style={styles.codeModal}
+            autoFocus
+            draggable={false}
+            style={{ ...styles.codeModal, zIndex: 1000 }}
             value={JSON.stringify(showFunctionDefinition, null, 2)}
           />
         </div>
@@ -135,7 +153,7 @@ const FunctionsList: React.FC = () => {
     );
   };
 
-  const ShowList = () => {
+  const ShowFunctionsList = () => {
     if (!isShow) return null;
 
     return (
@@ -199,7 +217,7 @@ const FunctionsList: React.FC = () => {
         />
       </span>
 
-      <ShowList />
+      <ShowFunctionsList />
       <FunctionDefinitionJsonModal />
     </>
   );
