@@ -216,8 +216,13 @@ const SettingsComponent: React.FC<{
   }, []);
 
   const handleChange = (name: string, value: string) => {
-    console.log(name, value);
-    localStorage.setItem(name, value);
+    if (value === '') {
+      localStorage.removeItem(name);
+      console.log(`${name} removed`);
+    } else {
+      localStorage.setItem(name, value);
+      console.log(name, value);
+    }
   };
 
   const DefaultSettings = () => {
@@ -795,15 +800,26 @@ const SettingsComponent: React.FC<{
           onChange={(e) => {
             setPromptUrl(e.target.value);
             handleChange('promptUrl', e.target.value);
+            if (e.target.value === '') {
+              setPrompt('');
+              handleChange('prompt', '');
+            }
           }}
         />
 
-        <div style={styles.settingLabel}>Prompt</div>
+        <div
+          style={{
+            ...styles.settingLabel,
+            display: promptUrl !== '' ? 'none' : 'block',
+          }}
+        >
+          Prompt
+        </div>
         <textarea
           style={styles.settingInput}
           value={prompt}
           placeholder={''}
-          disabled={promptUrl !== ''}
+          hidden={promptUrl !== ''}
           rows={20}
           maxLength={ALLOW_PROMPT_CHARACTERS}
           onChange={(e) => {
@@ -847,15 +863,26 @@ const SettingsComponent: React.FC<{
           onChange={(e) => {
             setFunctionsUrl(e.target.value);
             handleChange('functionsUrl', e.target.value);
+            if (e.target.value === '') {
+              setFunctions('');
+              handleChange('functions', '');
+            }
           }}
         />
 
-        <div style={styles.settingLabel}>Functions</div>
+        <div
+          style={{
+            ...styles.settingLabel,
+            display: functionsUrl !== '' ? 'none' : 'block',
+          }}
+        >
+          Functions
+        </div>
         <textarea
           style={styles.settingInput}
           value={format_functions(functions)}
           placeholder={''}
-          disabled={functionsUrl !== ''}
+          hidden={functionsUrl !== ''}
           rows={20}
           maxLength={ALLOW_FUNCTIONS_CHARACTERS}
           onChange={(e) => {
