@@ -20,6 +20,7 @@ import { ConsolePageDeepSeek } from './ConsolePageDeepSeek';
 import GithubLink from '../components/GithubLink';
 import { getFunctionsFromUrl, getPromptFromUrl } from '../lib/helper';
 import { useEffect } from 'react';
+import AppMessage from '../components/AppMessage';
 
 export function ConsolePage() {
   const { isDebugMode, setIsDebugMode } = useContexts();
@@ -80,6 +81,7 @@ export function ConsolePage() {
           <IsDebugMode />
           <NightMode />
           <FunctionsList />
+          <AppMessage />
           <GithubLink />
           <AboutApp />
         </span>
