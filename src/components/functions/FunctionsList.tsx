@@ -10,7 +10,8 @@ const FunctionsList: React.FC = () => {
   const [isShow, setIsShow] = useState(false);
   const { isNightMode } = useContexts();
   const importModalStyles = modalStyles({ isNightMode });
-  const { functionsToolsRef } = useContexts();
+  const { functionsToolsRef, builtinFunctionTools, loadFunctionsTools } =
+    useContexts();
   const [showFunctionDefinition, setShowFunctionDefinition] = useState<
     any | false
   >(false);
@@ -127,9 +128,30 @@ const FunctionsList: React.FC = () => {
           </div>
 
           <div style={styles.content}>
-            {functionsToolsRef.current.map((item) => (
+            {loadFunctionsTools.map((item) => (
               <div style={styles.functionItem} key={item[0].name}>
                 <div style={styles.functionItemName}>{item[0].name}</div>
+                <div style={styles.functionItemDescription}>
+                  {item[0].description}
+                  <Code
+                    size={14}
+                    style={{
+                      cursor: 'pointer',
+                      marginLeft: '5px',
+                    }}
+                    onClick={() => {
+                      setShowFunctionDefinition(item[0]);
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+
+            {builtinFunctionTools.map((item) => (
+              <div style={styles.functionItem} key={item[0].name}>
+                <div style={styles.functionItemName}>
+                  {item[0].name} (Built-in)
+                </div>
                 <div style={styles.functionItemDescription}>
                   {item[0].description}
                   <Code

@@ -179,6 +179,7 @@ export function loadFunctions() {
       console.log(functionItem.function.name);
       tempFunctions.push([functionItem.function, load_functions.handler]);
     }
+    tempFunctions.sort((a, b) => a[0].name.localeCompare(b[0].name));
     return tempFunctions;
   } catch (error: any) {
     console.log('load functions failed');
