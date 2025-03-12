@@ -891,7 +891,7 @@ const SettingsComponent: React.FC<{
   };
 
   const handleExport = () => {
-    // get all settings to json obejct and base64 encode
+    // get all settings to json object and base64 encode
     const settings = {
       endpoint: localStorage.getItem('endpoint') || '',
       key: localStorage.getItem('key') || '',
@@ -928,6 +928,8 @@ const SettingsComponent: React.FC<{
       ttsApiKey: localStorage.getItem('ttsApiKey') || '',
 
       bingApiKey: localStorage.getItem('bingApiKey') || '',
+
+      functions: localStorage.getItem('functions') || '',
     };
     const content = JSON.stringify(settings, null, 2);
     const blob = new Blob([content], { type: 'application/json' });
@@ -989,6 +991,8 @@ const SettingsComponent: React.FC<{
 
         handleChange('ttsApiKey', settings.ttsApiKey);
         handleChange('ttsTargetUri', settings.ttsTargetUri);
+
+        handleChange('functions', settings.functions);
 
         alert('Import success');
 

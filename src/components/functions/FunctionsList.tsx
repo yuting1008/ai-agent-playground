@@ -89,6 +89,52 @@ const FunctionsList: React.FC = () => {
     );
   };
 
+  const LoadFunctions = () => {
+    return (
+      <button
+        style={styles.addFunctionButton}
+        onClick={() => {
+          // upload a json file
+          const fileInput = document.createElement('input');
+          fileInput.type = 'file';
+          fileInput.accept = '.json';
+          fileInput.onchange = (e: any) => {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = (e: any) => {
+              const json = JSON.parse(e.target.result as string);
+              console.log(json);
+              localStorage.setItem('functions', JSON.stringify(json));
+              alert('Functions loaded successfully');
+              window.location.reload();
+            };
+            reader.readAsText(file);
+          };
+          fileInput.click();
+        }}
+      >
+        Load Functions
+      </button>
+    );
+  };
+
+  const ClearFunctions = () => {
+    if (!localStorage.getItem('functions')) return null;
+
+    return (
+      <button
+        style={styles.addFunctionButton}
+        onClick={() => {
+          localStorage.removeItem('functions');
+          alert('Functions cleared successfully');
+          window.location.reload();
+        }}
+      >
+        Clear Functions
+      </button>
+    );
+  };
+
   const ShowList = () => {
     if (!isShow) return null;
 
@@ -128,42 +174,8 @@ const FunctionsList: React.FC = () => {
 
             <br />
             <br />
-            {/* button to add new function */}
-            <button
-              style={styles.addFunctionButton}
-              onClick={() => {
-                // upload a json file
-                const fileInput = document.createElement('input');
-                fileInput.type = 'file';
-                fileInput.accept = '.json';
-                fileInput.onchange = (e: any) => {
-                  const file = e.target.files[0];
-                  const reader = new FileReader();
-                  reader.onload = (e: any) => {
-                    const json = JSON.parse(e.target.result as string);
-                    console.log(json);
-                    localStorage.setItem('functions', JSON.stringify(json));
-                    alert('Functions loaded successfully');
-                    window.location.reload();
-                  };
-                  reader.readAsText(file);
-                };
-                fileInput.click();
-              }}
-            >
-              Load Functions
-            </button>
-            {/* clear all functions */}
-            <button
-              style={styles.addFunctionButton}
-              onClick={() => {
-                localStorage.removeItem('functions');
-                alert('Functions cleared successfully');
-                window.location.reload();
-              }}
-            >
-              Clear Functions
-            </button>
+            <LoadFunctions />
+            <ClearFunctions />
           </div>
         </div>
       </div>

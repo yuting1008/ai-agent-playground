@@ -51,6 +51,7 @@ export function ConsolePageRealtime() {
     setOutputTokens,
     setOutputTextTokens,
     setOutputAudioTokens,
+    appKey,
   } = useContexts();
 
   const endpoint = localStorage.getItem('endpoint') || '';
@@ -77,6 +78,12 @@ export function ConsolePageRealtime() {
       console.log('realtimeClientRef.current instructions updated', res);
     }
   }, [llmInstructions]);
+
+  useEffect(() => {
+    console.log('appKey updated, reset realtimeClientRef', appKey);
+    wavStreamPlayerRef.current?.interrupt();
+    realtimeClientRef.current?.reset();
+  }, [appKey]);
 
   /**
    * Core RealtimeClient and audio capture setup
