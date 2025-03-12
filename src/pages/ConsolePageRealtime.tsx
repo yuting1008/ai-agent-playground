@@ -52,11 +52,13 @@ export function ConsolePageRealtime() {
     setOutputTextTokens,
     setOutputAudioTokens,
     appKey,
+    loadFunctionsTool,
   } = useContexts();
 
   const endpoint = localStorage.getItem('endpoint') || '';
   const key = localStorage.getItem('key') || '';
   const language = localStorage.getItem('language') || 'chinese';
+  const [callStates, setCallStates] = useState<Record<string, any>>({});
 
   const realtimeClientRef = useRef<RealtimeClient>(
     new RealtimeClient({
@@ -153,6 +155,27 @@ export function ConsolePageRealtime() {
       if (trackSampleOffset?.trackId) {
         const { trackId, offset } = trackSampleOffset;
         await client.cancelResponse(trackId, offset);
+      }
+    });
+
+    client.on('conversation.item.completed', async ({ item }: any) => {
+      if (item.type === 'function_call') {
+        callStates[item.call_id] = item;
+      }
+
+      if (item.type === 'function_call_output') {
+        const call = callStates[item.call_id];
+        for (const fc of loadFunctionsTool) {
+          if (fc[0].name === call.name) {
+            const result = {
+              name: call.name,
+              arguments: JSON.parse(call.arguments),
+              output: JSON.parse(item.output),
+            };
+            console.log(result);
+            alert(JSON.stringify(result, null, 2));
+          }
+        }
       }
     });
 

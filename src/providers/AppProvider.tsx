@@ -211,6 +211,8 @@ interface AppContextType {
   setIsDebugMode: React.Dispatch<React.SetStateAction<boolean>>;
 
   appKey: number;
+
+  loadFunctionsTool: [ToolDefinitionType, Function][];
 }
 
 const IS_DEBUG: boolean = window.location.href.includes('localhost');
@@ -1059,6 +1061,7 @@ export const AppProvider: React.FC<{
         outputAudioTokensRef,
         setOutputAudioTokens,
         appKey,
+        loadFunctionsTool,
       }}
     >
       {children}
