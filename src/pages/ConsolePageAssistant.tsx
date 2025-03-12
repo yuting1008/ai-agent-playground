@@ -97,27 +97,27 @@ export function ConsolePageAssistant() {
 
   const cleanupVectorStores = async () => {
     try {
-      const bectorStoresPages: VectorStore[] = [];
+      const vectorStoresPages: VectorStore[] = [];
       let lists: VectorStoresPage =
         await getOpenAIClient().beta.vectorStores.list();
 
-      bectorStoresPages.push(...lists.data);
+      vectorStoresPages.push(...lists.data);
       setConnectMessage(
-        `Collecting Vector Stores(${bectorStoresPages.length})...`,
+        `Collecting Vector Stores(${vectorStoresPages.length})...`,
       );
 
       while (lists.hasNextPage()) {
         lists = await lists.getNextPage();
-        bectorStoresPages.push(...lists.data);
+        vectorStoresPages.push(...lists.data);
         setConnectMessage(
-          `Collecting Vector Stores(${bectorStoresPages.length})...`,
+          `Collecting Vector Stores(${vectorStoresPages.length})...`,
         );
       }
 
-      for (const [index, vectorStore] of bectorStoresPages.entries()) {
+      for (const [index, vectorStore] of vectorStoresPages.entries()) {
         if (vectorStore.name === APP_AGENT_VECTOR_STORE) {
           setConnectMessage(
-            `Deleting Vector Store(${index}/${bectorStoresPages.length}): ${vectorStore.id}`,
+            `Deleting Vector Store(${index}/${vectorStoresPages.length}): ${vectorStore.id}`,
           );
           await getOpenAIClient().beta.vectorStores.del(vectorStore.id);
         }
