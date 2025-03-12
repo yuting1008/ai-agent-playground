@@ -780,13 +780,30 @@ const SettingsComponent: React.FC<{
 
   const Prompt = () => {
     const [prompt, setPrompt] = useState(localStorage.getItem('prompt') || '');
+    const [promptUrl, setPromptUrl] = useState(
+      localStorage.getItem('promptUrl') || '',
+    );
 
     return (
       <div>
+        <div style={styles.settingLabel}>Prompt URL (Main)</div>
+        <input
+          type="text"
+          style={styles.settingInput}
+          value={promptUrl}
+          placeholder={''}
+          onChange={(e) => {
+            setPromptUrl(e.target.value);
+            handleChange('promptUrl', e.target.value);
+          }}
+        />
+
+        <div style={styles.settingLabel}>Prompt</div>
         <textarea
           style={styles.settingInput}
           value={prompt}
           placeholder={''}
+          disabled={promptUrl !== ''}
           rows={20}
           maxLength={ALLOW_PROMPT_CHARACTERS}
           onChange={(e) => {
@@ -794,6 +811,7 @@ const SettingsComponent: React.FC<{
             handleChange('prompt', e.target.value);
           }}
         />
+
         <div style={styles.settingLabel}>
           Remaining Characters: {ALLOW_PROMPT_CHARACTERS - prompt.length}
         </div>
@@ -806,6 +824,10 @@ const SettingsComponent: React.FC<{
       localStorage.getItem('functions') || '',
     );
 
+    const [functionsUrl, setFunctionsUrl] = useState(
+      localStorage.getItem('functionsUrl') || '',
+    );
+
     const format_functions = (functions: string) => {
       try {
         return JSON.stringify(JSON.parse(functions), null, 2);
@@ -816,17 +838,32 @@ const SettingsComponent: React.FC<{
 
     return (
       <div>
+        <div style={styles.settingLabel}>Functions URL (Main)</div>
+        <input
+          type="text"
+          style={styles.settingInput}
+          value={functionsUrl}
+          placeholder={''}
+          onChange={(e) => {
+            setFunctionsUrl(e.target.value);
+            handleChange('functionsUrl', e.target.value);
+          }}
+        />
+
+        <div style={styles.settingLabel}>Functions</div>
         <textarea
           style={styles.settingInput}
           value={format_functions(functions)}
           placeholder={''}
-          rows={30}
+          disabled={functionsUrl !== ''}
+          rows={20}
           maxLength={ALLOW_FUNCTIONS_CHARACTERS}
           onChange={(e) => {
             setFunctions(e.target.value);
             handleChange('functions', e.target.value);
           }}
         />
+
         <div style={styles.settingLabel}>
           Remaining Characters: {ALLOW_FUNCTIONS_CHARACTERS - functions.length}
         </div>
@@ -994,6 +1031,7 @@ const SettingsComponent: React.FC<{
       assistantType: localStorage.getItem('assistantType') || '',
       language: localStorage.getItem('language') || '',
       prompt: localStorage.getItem('prompt') || '',
+      promptUrl: localStorage.getItem('promptUrl') || '',
 
       feishuHook: localStorage.getItem('feishuHook') || '',
       quoteToken: localStorage.getItem('quoteToken') || '',
@@ -1008,6 +1046,7 @@ const SettingsComponent: React.FC<{
       bingApiKey: localStorage.getItem('bingApiKey') || '',
 
       functions: localStorage.getItem('functions') || '',
+      functionsUrl: localStorage.getItem('functionsUrl') || '',
 
       buildInPrompt: localStorage.getItem('buildInPrompt') || '',
       buildInFunctions: localStorage.getItem('buildInFunctions') || '',
@@ -1068,13 +1107,14 @@ const SettingsComponent: React.FC<{
         handleChange('assistantType', settings.assistantType);
 
         handleChange('prompt', settings.prompt);
+        handleChange('promptUrl', settings.promptUrl);
         handleChange('bingApiKey', settings.bingApiKey);
 
         handleChange('ttsApiKey', settings.ttsApiKey);
         handleChange('ttsTargetUri', settings.ttsTargetUri);
 
         handleChange('functions', settings.functions);
-
+        handleChange('functionsUrl', settings.functionsUrl);
         handleChange('buildInPrompt', settings.buildInPrompt);
         handleChange('buildInFunctions', settings.buildInFunctions);
 

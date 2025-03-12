@@ -18,6 +18,8 @@ import { AlertTriangle } from 'react-feather';
 import AboutApp from '../components/AboutApp';
 import { ConsolePageDeepSeek } from './ConsolePageDeepSeek';
 import GithubLink from '../components/GithubLink';
+import { getFunctionsFromUrl, getPromptFromUrl } from '../lib/helper';
+import { useEffect } from 'react';
 
 export function ConsolePage() {
   const { isDebugMode, setIsDebugMode } = useContexts();
@@ -27,6 +29,14 @@ export function ConsolePage() {
   const isAssistant = assistantType === ASSISTANT_TYPE_ASSISTANT;
   const isRealtime = assistantType === ASSISTANT_TYPE_REALTIME;
   const isDeepSeek = assistantType === ASSISTANT_TYPE_DEEPSEEK;
+
+  useEffect(() => {
+    const timer = setInterval(async () => {
+      await getPromptFromUrl();
+      await getFunctionsFromUrl();
+    }, 10000);
+    return () => clearInterval(timer);
+  }, []);
 
   function IsDebugMode() {
     if (!isDebugMode) {
