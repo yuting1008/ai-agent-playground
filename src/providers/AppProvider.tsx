@@ -204,6 +204,8 @@ interface AppContextType {
   isDebugMode: boolean;
   isDebugModeRef: React.MutableRefObject<boolean>;
   setIsDebugMode: React.Dispatch<React.SetStateAction<boolean>>;
+
+  appKey: number;
 }
 
 const IS_DEBUG: boolean = window.location.href.includes('localhost');
@@ -212,18 +214,22 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{
   children: ReactNode;
+  appKey: number;
   setAppKey: React.Dispatch<React.SetStateAction<number>>;
   isNightMode: boolean;
   setIsNightMode: React.Dispatch<React.SetStateAction<boolean>>;
   setOpacity: React.Dispatch<React.SetStateAction<number>>;
   setBackground: React.Dispatch<React.SetStateAction<string>>;
+  loadFunctionsTool: [ToolDefinitionType, Function][];
 }> = ({
   children,
+  appKey,
   setAppKey,
   isNightMode,
   setIsNightMode,
   setOpacity,
   setBackground,
+  loadFunctionsTool,
 }) => {
   const isOnline = useOnlineStatus();
 
@@ -831,7 +837,7 @@ export const AppProvider: React.FC<{
     return { ok: true };
   };
 
-  const functions_tool: [ToolDefinitionType, Function][] = [
+  const static_tool: [ToolDefinitionType, Function][] = [
     [camera_on.definition, camera_on_handler],
     [camera_take_photo.definition, camera_take_photo_handler],
     [opacity.definition, opacity_handler],
@@ -864,6 +870,11 @@ export const AppProvider: React.FC<{
     [devices_action.definition, devices_action.handler],
   ];
 
+  const functions_tool: [ToolDefinitionType, Function][] = [
+    ...loadFunctionsTool,
+    ...static_tool,
+  ];
+
   // functions_tools array
   const functionsToolsRef =
     useRef<[ToolDefinitionType, Function][]>(functions_tool);
@@ -872,7 +883,7 @@ export const AppProvider: React.FC<{
   const prompt = localStorage.getItem('prompt') || '';
 
   let updateInstructions = prompt
-    ? `${instructions}\n\nOther requirements of the user: \n${prompt}`
+    ? `${instructions}\n\nUser Instructions: \n${prompt}`
     : instructions;
 
   if (enableFunctionCalling()) {
@@ -1039,6 +1050,7 @@ export const AppProvider: React.FC<{
         outputAudioTokens,
         outputAudioTokensRef,
         setOutputAudioTokens,
+        appKey,
       }}
     >
       {children}

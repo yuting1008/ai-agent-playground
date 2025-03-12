@@ -11,7 +11,7 @@ export const DEEPSEEK_FUNCTION_CALL_DISABLE = 'Disable';
 
 export const ASSISTANT_TYPE_DEFAULT = ASSISTANT_TYPE_REALTIME;
 
-export const ALLOW_PROMPT_CHARACTERS = 1500;
+export const ALLOW_PROMPT_CHARACTERS = 15000;
 export const CAMERA_PHOTO_LIMIT = 50; // gpt limit 50 images
 export const CAMERA_PHOTO_INTERVAL_MS = 1000;
 
