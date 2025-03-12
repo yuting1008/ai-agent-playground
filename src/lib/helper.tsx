@@ -188,3 +188,14 @@ export function loadFunctions() {
 
   return [];
 }
+
+export function recordMessage(message: any) {
+  const messages = localStorage.getItem('messages');
+  if (!messages) {
+    localStorage.setItem('messages', JSON.stringify([message]));
+  } else {
+    const messagesArray = JSON.parse(messages);
+    messagesArray.push(message);
+    localStorage.setItem('messages', JSON.stringify(messagesArray));
+  }
+}
