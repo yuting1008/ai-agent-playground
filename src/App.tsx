@@ -37,21 +37,26 @@ function App() {
 
   const functions = localStorage.getItem('functions');
   if (functions) {
-    const functionsArray = JSON.parse(functions);
-    for (const functionItem of functionsArray) {
-      // if functionItem.function already exists, skip
-      if (
-        loadFunctionsTool.find(
-          (tool) => tool[0].name === functionItem.function.name,
-        )
-      ) {
-        continue;
+    try {
+      const functionsArray = JSON.parse(functions);
+      for (const functionItem of functionsArray) {
+        // if functionItem.function already exists, skip
+        if (
+          loadFunctionsTool.find(
+            (tool) => tool[0].name === functionItem.function.name,
+          )
+        ) {
+          continue;
+        }
+        console.log(functionItem.function.name);
+        setLoadFunctionsTool([
+          ...loadFunctionsTool,
+          [functionItem.function, load_functions.handler],
+        ]);
       }
-      console.log(functionItem.function.name);
-      setLoadFunctionsTool([
-        ...loadFunctionsTool,
-        [functionItem.function, load_functions.handler],
-      ]);
+    } catch (error: any) {
+      console.log('load functions failed');
+      console.error(error);
     }
   }
 

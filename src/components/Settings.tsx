@@ -5,6 +5,7 @@ import { Button } from './button/Button';
 import Dropdown from './Dropdown';
 import { GRAPHRAG_ABOUT } from '../tools/azure_docs';
 import {
+  ALLOW_FUNCTIONS_CHARACTERS,
   ALLOW_PROMPT_CHARACTERS,
   ASSISTANT_TYPE_ASSISTANT,
   ASSISTANT_TYPE_DEEPSEEK,
@@ -27,7 +28,8 @@ const SPEECH = 'Speech';
 const TTS = 'TTS';
 const COMPLETION = 'Completion';
 const DEEPSEEK = 'DeepSeek';
-const TOKENS = 'Third-party API';
+const TOKENS = 'Third API';
+const FUNCTIONS = 'Functions';
 const PROMPT = 'Prompt';
 const BING = 'Bing';
 
@@ -799,6 +801,39 @@ const SettingsComponent: React.FC<{
     );
   };
 
+  const Functions = () => {
+    const [functions, setFunctions] = useState(
+      localStorage.getItem('functions') || '',
+    );
+
+    const format_functions = (functions: string) => {
+      try {
+        return JSON.stringify(JSON.parse(functions), null, 2);
+      } catch {
+        return functions;
+      }
+    };
+
+    return (
+      <div>
+        <textarea
+          style={styles.settingInput}
+          value={format_functions(functions)}
+          placeholder={''}
+          rows={30}
+          maxLength={ALLOW_FUNCTIONS_CHARACTERS}
+          onChange={(e) => {
+            setFunctions(e.target.value);
+            handleChange('functions', e.target.value);
+          }}
+        />
+        <div style={styles.settingLabel}>
+          Remaining Characters: {ALLOW_FUNCTIONS_CHARACTERS - functions.length}
+        </div>
+      </div>
+    );
+  };
+
   const Tokens = () => {
     const [feishuHook, setFeishuHook] = useState(
       localStorage.getItem('feishuHook') || '',
@@ -1083,6 +1118,8 @@ const SettingsComponent: React.FC<{
         return <Prompt />;
       case BING:
         return <Bing />;
+      case FUNCTIONS:
+        return <Functions />;
       default:
         return <DefaultSettings />;
     }
@@ -1160,6 +1197,16 @@ const SettingsComponent: React.FC<{
                   onClick={() => setActiveTab(PROMPT)}
                 >
                   {PROMPT}
+                </button>
+                <button
+                  style={{
+                    ...styles.settingsTabButton,
+                    ...styles.settingsTabButtonLast,
+                    ...(activeTab === FUNCTIONS ? styles.tabActive : {}),
+                  }}
+                  onClick={() => setActiveTab(FUNCTIONS)}
+                >
+                  {FUNCTIONS}
                 </button>
                 <button
                   style={{
