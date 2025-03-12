@@ -28,6 +28,7 @@ import RealtimeMessages from '../components/RealtimeMessages';
 import { InputBarRealtime } from '../components/InputBarRealtime';
 import { RealtimeClient } from '@theodoreniu/realtime-api-beta';
 import { RealtimeEvent, RealtimeTokenUsage } from '../types/RealtimeEvent';
+import { recordMessage } from '../lib/helper';
 
 export function ConsolePageRealtime() {
   const {
@@ -165,6 +166,8 @@ export function ConsolePageRealtime() {
 
       if (item.type === 'function_call_output') {
         const call = callStates[item.call_id];
+        console.log('load function call', call);
+
         for (const fc of loadFunctionsTools) {
           if (fc[0].name === call.name) {
             const result = {
@@ -172,8 +175,7 @@ export function ConsolePageRealtime() {
               arguments: JSON.parse(call.arguments),
               output: JSON.parse(item.output),
             };
-            console.log(result);
-            alert(JSON.stringify(result, null, 2));
+            recordMessage(result);
           }
         }
       }

@@ -34,6 +34,7 @@ import {
 } from 'openai/resources/beta/vector-stores/vector-stores';
 
 import { Run } from 'openai/resources/beta/threads/runs/runs';
+import { recordMessage } from '../lib/helper';
 
 export function ConsolePageAssistant() {
   const {
@@ -54,6 +55,7 @@ export function ConsolePageAssistant() {
     isDebugModeRef,
     setInputTokens,
     setOutputTokens,
+    loadFunctionsTools,
   } = useContexts();
 
   const [messagesAssistant, setMessagesAssistant] = useState<any[]>([]);
@@ -188,8 +190,18 @@ export function ConsolePageAssistant() {
   };
 
   const functionCallHandler = async (call: any) => {
-    console.log('function call', call);
+    console.log('load function call', call);
+
     const args = JSON.parse(call.function.arguments);
+
+    for (const fc of loadFunctionsTools) {
+      if (fc[0].name === call.function.name) {
+        recordMessage({
+          name: call.function.name,
+          arguments: args,
+        });
+      }
+    }
 
     for (const [definition, handler] of functionsToolsRef.current) {
       if (definition.name === call?.function?.name) {
