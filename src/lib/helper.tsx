@@ -1,6 +1,8 @@
 import { ItemType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
 import {
   ASSISTANT_TYPE_DEEPSEEK,
+  BUILD_IN_FUNCTIONS_ENABLE,
+  BUILD_IN_PROMPT_ENABLE,
   DEEPSEEK_FUNCTION_CALL_ENABLE,
 } from './const';
 
@@ -96,4 +98,18 @@ export function calculatePercentiles(
   });
 
   return result;
+}
+
+export function buildInPromptEnabled() {
+  return (
+    (localStorage.getItem('buildInPrompt') || BUILD_IN_PROMPT_ENABLE) ===
+    BUILD_IN_PROMPT_ENABLE
+  );
+}
+
+export function buildInFunctionsEnabled() {
+  return (
+    (localStorage.getItem('buildInFunctions') || BUILD_IN_FUNCTIONS_ENABLE) ===
+    BUILD_IN_FUNCTIONS_ENABLE
+  );
 }
