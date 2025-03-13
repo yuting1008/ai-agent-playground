@@ -17,6 +17,7 @@ import {
   CONNECT_CONNECTED,
   DEEPSEEK_FUNCTION_CALL_DISABLE,
   DEEPSEEK_FUNCTION_CALL_ENABLE,
+  NOT_SETTINGS_STATUS,
 } from '../lib/const';
 import { useContexts } from '../providers/AppProvider';
 import { getAppName } from '../lib/helper';
@@ -1231,7 +1232,7 @@ const SettingsComponent: React.FC<{
     resetApp();
   };
 
-  return connectStatus === CONNECT_CONNECTED ? null : (
+  return NOT_SETTINGS_STATUS.includes(connectStatus) ? null : (
     <div className="content-actions">
       <Button
         className="container_bg"

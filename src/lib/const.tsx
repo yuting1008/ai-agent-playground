@@ -34,6 +34,7 @@ export const CAMERA_READY = 'camera_ready';
 export const CONNECT_DISCONNECTED = 'connect_disconnected';
 export const CONNECT_CONNECTING = 'connect_connecting';
 export const CONNECT_CONNECTED = 'connect_connected';
+export const NOT_SETTINGS_STATUS = [CONNECT_CONNECTING, CONNECT_CONNECTED];
 
 export const AVATAR_OFF = 'avatar_off';
 export const AVATAR_STARTING = 'avatar_starting';
