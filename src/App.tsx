@@ -26,11 +26,17 @@ function App() {
   }, [background, isNightMode]);
 
   useEffect(() => {
-    const now = new Date();
-    const hour = now.getHours();
-    if (hour >= 18 || hour < 6) {
+    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)')
+      .matches
+      ? 'dark'
+      : 'light';
+
+    if (systemTheme === 'dark') {
       setIsNightMode(true);
+    } else {
+      setIsNightMode(false);
     }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
