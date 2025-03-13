@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { useContexts } from '../providers/AppProvider';
 import * as SpeechSDK from 'microsoft-cognitiveservices-speech-sdk';
-import { htmlEncodeAvatar } from '../lib/helper';
+import { buildInFunctionsEnabled, htmlEncodeAvatar } from '../lib/helper';
 import { AVATAR_OFF, AVATAR_READY, AVATAR_STARTING } from '../lib/const';
 import { componentLoadingStyles } from '../styles/componentLoadingStyles';
 
@@ -295,7 +295,7 @@ const Avatar: React.FC = () => {
     }
   };
 
-  return (
+  return buildInFunctionsEnabled() ? (
     <div className="content-actions container_bg remoteVideo">
       {avatarStatus === AVATAR_STARTING && (
         <div style={componentLoading.camLoading}>
@@ -325,7 +325,7 @@ const Avatar: React.FC = () => {
         Your browser does not support the audio tag.
       </audio>
     </div>
-  );
+  ) : null;
 };
 
 export default Avatar;
