@@ -78,7 +78,7 @@ export function ConsolePage() {
       backgroundColor: 'green',
       borderRadius: '5px',
       padding: '3px 6px',
-      marginLeft: '10px',
+      marginLeft: '0',
       marginTop: '-5px',
     },
   };
