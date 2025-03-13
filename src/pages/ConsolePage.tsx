@@ -18,13 +18,17 @@ import { AlertTriangle } from 'react-feather';
 import AboutApp from '../components/AboutApp';
 import { ConsolePageDeepSeek } from './ConsolePageDeepSeek';
 import GithubLink from '../components/GithubLink';
-import { getFunctionsFromUrl, getPromptFromUrl } from '../lib/helper';
-import { useEffect } from 'react';
+import {
+  getAppName,
+  getFunctionsFromUrl,
+  getPromptFromUrl,
+} from '../lib/helper';
+import { useEffect, useState } from 'react';
 import AppMessage from '../components/AppMessage';
 
 export function ConsolePage() {
   const { isDebugMode, setIsDebugMode } = useContexts();
-
+  const [appName] = useState(getAppName());
   const assistantType =
     localStorage.getItem('assistantType') || ASSISTANT_TYPE_DEFAULT;
   const isAssistant = assistantType === ASSISTANT_TYPE_ASSISTANT;
@@ -32,6 +36,7 @@ export function ConsolePage() {
   const isDeepSeek = assistantType === ASSISTANT_TYPE_DEEPSEEK;
 
   useEffect(() => {
+    document.title = appName;
     const timer = setInterval(async () => {
       await getPromptFromUrl();
       await getFunctionsFromUrl();
@@ -61,7 +66,7 @@ export function ConsolePage() {
       <div className="content-top">
         <div className="content-title">
           <img src="/logomark.svg" alt="logo" />
-          <h1>AI Agent Playground</h1>
+          <h1>{appName}</h1>
           <a
             href="https://github.com/theodoreniu/ai-agent-playground"
             target="_blank"
