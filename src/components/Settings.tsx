@@ -254,16 +254,6 @@ const SettingsComponent: React.FC<{
           }}
         />
 
-        <div style={styles.settingLabel}>Default Language</div>
-        <Dropdown
-          options={supportedLanguages}
-          selectedValue={language}
-          onChange={(e) => {
-            setLanguage(e);
-            handleChange('language', e);
-          }}
-        />
-
         <div style={styles.settingLabel}>Build-in Prompt</div>
         <Dropdown
           options={buildInPromptOptions}
@@ -273,6 +263,24 @@ const SettingsComponent: React.FC<{
             handleChange('buildInPrompt', e);
           }}
         />
+
+        <div
+          style={{
+            ...styles.settingLabel,
+            display:
+              buildInPrompt === BUILD_IN_PROMPT_DISABLE ? 'none' : 'block',
+          }}
+        >
+          Default Language
+          <Dropdown
+            options={supportedLanguages}
+            selectedValue={language}
+            onChange={(e) => {
+              setLanguage(e);
+              handleChange('language', e);
+            }}
+          />
+        </div>
 
         <div style={styles.settingLabel}>Build-in Functions</div>
         <Dropdown
