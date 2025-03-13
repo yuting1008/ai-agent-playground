@@ -36,13 +36,16 @@ export function ConsolePage() {
   const isDeepSeek = assistantType === ASSISTANT_TYPE_DEEPSEEK;
 
   useEffect(() => {
-    document.title = appName;
     const timer = setInterval(async () => {
       await getPromptFromUrl();
       await getFunctionsFromUrl();
     }, 10000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    document.title = appName;
+  }, [appName]);
 
   function IsDebugMode() {
     if (!isDebugMode) {
