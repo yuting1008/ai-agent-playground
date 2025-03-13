@@ -27,10 +27,18 @@ import {
 import { useEffect, useState } from 'react';
 import AppMessage from '../components/AppMessage';
 import { supportedAssistantTypes } from '../components/Settings';
-
+import defaultIcon from '../static/logomark.svg';
 export function ConsolePage() {
-  const { isDebugMode, setIsDebugMode } = useContexts();
+  const { isDebugMode, setIsDebugMode, isNightMode } = useContexts();
   const [appName] = useState(getAppName());
+
+  const [appIconDark, setAppIconDark] = useState(
+    localStorage.getItem('appIconDark') || defaultIcon,
+  );
+
+  const [appIconLight, setAppIconLight] = useState(
+    localStorage.getItem('appIconLight') || defaultIcon,
+  );
 
   let assistantType =
     localStorage.getItem('assistantType') || ASSISTANT_TYPE_DEFAULT;
@@ -81,6 +89,13 @@ export function ConsolePage() {
       marginLeft: '0',
       marginTop: '-5px',
     },
+    title: {
+      fontSize: '30px',
+      fontWeight: '500',
+    },
+    logo: {
+      height: '40px',
+    },
   };
 
   /**
@@ -92,8 +107,12 @@ export function ConsolePage() {
 
       <div className="content-top">
         <div className="content-title">
-          <img src="/logomark.svg" alt="logo" />
-          <h1>{appName}</h1>
+          <img
+            style={styles.logo}
+            src={isNightMode ? appIconDark : appIconLight}
+            alt="logo"
+          />
+          <h1 style={styles.title}>{appName}</h1>
           <span style={styles.assistantType}>
             {supportedAssistantType?.label}
           </span>

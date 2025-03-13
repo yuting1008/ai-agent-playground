@@ -208,3 +208,7 @@ export function getAppName() {
 export function setAppName(appName: string) {
   localStorage.setItem('appName', appName);
 }
+
+export function svgToBase64(xml: string) {
+  return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(xml)))}`;
+}
