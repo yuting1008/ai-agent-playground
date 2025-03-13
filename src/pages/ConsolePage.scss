@@ -265,6 +265,21 @@
         }
       }
 
+      & > div.functionsDisabled {
+        height: 230px;
+        max-height: 230px;
+        white-space: pre;
+
+        @media (max-width: 768px) {
+          max-height: 150px;
+        }
+
+        .content-block-body {
+          padding: 16px;
+          margin-top: 56px;
+        }
+      }
+
       & > div.camera {
         height: 230px;
         max-height: 230px;

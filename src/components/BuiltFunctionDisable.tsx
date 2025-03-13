@@ -9,10 +9,7 @@ const BuiltFunctionDisable: React.FC = () => {
   const componentLoading = componentLoadingStyles({ isNightMode });
 
   return buildInFunctionsEnabled() ? null : (
-    <div
-      className="content-block camera container_bg"
-      style={{ backgroundImage: 'none' }}
-    >
+    <div className="content-block functionsDisabled container_bg">
       <div
         style={{
           ...componentLoading.camLoading,
