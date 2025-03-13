@@ -39,7 +39,7 @@ const supportedLanguages = [
   { value: 'english', label: 'English' },
 ];
 
-const supportedAssistantTypes = [
+export const supportedAssistantTypes = [
   { value: ASSISTANT_TYPE_REALTIME, label: 'Realtime' },
   { value: ASSISTANT_TYPE_ASSISTANT, label: 'STT -> Assistant -> TTS' },
   { value: ASSISTANT_TYPE_DEEPSEEK, label: 'STT -> DeepSeek -> TTS' },
