@@ -195,7 +195,7 @@ export function recordMessage(message: any) {
     localStorage.setItem('messages', JSON.stringify([message]));
   } else {
     const messagesArray = JSON.parse(messages);
-    messagesArray.push(message);
+    messagesArray.unshift(message);
     localStorage.setItem('messages', JSON.stringify(messagesArray));
   }
 }
