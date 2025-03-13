@@ -1232,21 +1232,11 @@ const SettingsComponent: React.FC<{
   };
 
   return connectStatus === CONNECT_CONNECTED ? null : (
-    <div
-      className="content-actions"
-      style={{
-        display: connectStatus === CONNECT_CONNECTED ? 'none' : '',
-      }}
-    >
+    <div className="content-actions">
       <Button
         className="container_bg"
-        label={
-          connectStatus === CONNECT_CONNECTED
-            ? 'Disconnect to Settings'
-            : 'Settings'
-        }
+        label={'Settings'}
         icon={Settings}
-        disabled={connectStatus === CONNECT_CONNECTED ? true : false}
         onClick={handleClick}
       />
 
