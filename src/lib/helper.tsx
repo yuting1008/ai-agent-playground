@@ -199,3 +199,11 @@ export function recordMessage(message: any) {
     localStorage.setItem('messages', JSON.stringify(messagesArray));
   }
 }
+
+export function getAppName() {
+  return localStorage.getItem('appName') || 'AI Agent Playground';
+}
+
+export function setAppName(appName: string) {
+  localStorage.setItem('appName', appName);
+}

@@ -19,6 +19,7 @@ import {
   DEEPSEEK_FUNCTION_CALL_ENABLE,
 } from '../lib/const';
 import { useContexts } from '../providers/AppProvider';
+import { getAppName } from '../lib/helper';
 
 const DEFAULT = 'Default';
 const REAL_TIME_API = 'Realtime';
@@ -230,6 +231,8 @@ const SettingsComponent: React.FC<{
       localStorage.getItem('language') || 'chinese',
     );
 
+    const [appName, setAppName] = useState(getAppName());
+
     const [assistantType, setAssistantType] = useState(
       localStorage.getItem('assistantType') || ASSISTANT_TYPE_REALTIME,
     );
@@ -244,6 +247,17 @@ const SettingsComponent: React.FC<{
 
     return (
       <div>
+        <div style={styles.settingLabel}>App Name</div>
+        <input
+          type={'text'}
+          style={{ ...styles.settingInput, width: '200px' }}
+          value={appName}
+          onChange={(e) => {
+            setAppName(e.target.value);
+            handleChange('appName', e.target.value);
+          }}
+        />
+
         <div style={styles.settingLabel}>Assistant Type</div>
         <Dropdown
           options={supportedAssistantTypes}
@@ -1043,6 +1057,8 @@ const SettingsComponent: React.FC<{
   const handleExport = () => {
     // get all settings to json object and base64 encode
     const settings = {
+      appName: localStorage.getItem('appName') || '',
+
       endpoint: localStorage.getItem('endpoint') || '',
       key: localStorage.getItem('key') || '',
 
@@ -1110,6 +1126,8 @@ const SettingsComponent: React.FC<{
         const settings = JSON.parse(e.target?.result as string);
 
         // update settings
+        handleChange('appName', settings.appName);
+
         handleChange('endpoint', settings.endpoint);
         handleChange('key', settings.key);
 
