@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useContexts } from '../providers/AppProvider';
 import { X } from 'react-feather';
 
 const AppMessage: React.FC = () => {
-  const { isNightMode } = useContexts();
-
   const [messages, setMessages] = useState<any[]>(
     JSON.parse(localStorage.getItem('messages') || '[]'),
   );

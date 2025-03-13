@@ -3,7 +3,7 @@ import { Code, X } from 'react-feather';
 import { Package } from 'react-feather';
 import { useContexts } from '../../providers/AppProvider';
 import { modalStyles } from '../../styles/modalStyles';
-import { enableFunctionCalling } from '../../lib/helper';
+import { buildInPromptEnabled, enableFunctionCalling } from '../../lib/helper';
 import IconWithBadge from '../IconWithBadge';
 
 const FunctionsList: React.FC = () => {
@@ -147,26 +147,27 @@ const FunctionsList: React.FC = () => {
               </div>
             ))}
 
-            {builtinFunctionTools.map((item) => (
-              <div style={styles.functionItem} key={item[0].name}>
-                <div style={styles.functionItemName}>
-                  {item[0].name} (Built-in)
+            {buildInPromptEnabled() &&
+              builtinFunctionTools.map((item) => (
+                <div style={styles.functionItem} key={item[0].name}>
+                  <div style={styles.functionItemName}>
+                    {item[0].name} (Built-in)
+                  </div>
+                  <div style={styles.functionItemDescription}>
+                    {item[0].description}
+                    <Code
+                      size={14}
+                      style={{
+                        cursor: 'pointer',
+                        marginLeft: '5px',
+                      }}
+                      onClick={() => {
+                        setShowFunctionDefinition(item[0]);
+                      }}
+                    />
+                  </div>
                 </div>
-                <div style={styles.functionItemDescription}>
-                  {item[0].description}
-                  <Code
-                    size={14}
-                    style={{
-                      cursor: 'pointer',
-                      marginLeft: '5px',
-                    }}
-                    onClick={() => {
-                      setShowFunctionDefinition(item[0]);
-                    }}
-                  />
-                </div>
-              </div>
-            ))}
+              ))}
           </div>
         </div>
       </div>
