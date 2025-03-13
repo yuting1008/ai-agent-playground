@@ -12,6 +12,7 @@ import { Camera as CameraIcon, CameraOff, RefreshCw } from 'react-feather';
 import { X } from 'react-feather';
 import { componentLoadingStyles } from '../styles/componentLoadingStyles';
 import { addTextWatermarkToBase64 } from '../lib/watermark';
+import { buildInFunctionsEnabled } from '../lib/helper';
 
 const Camera: React.FC = () => {
   const webcamRef = React.useRef<Webcam>(null);
@@ -175,7 +176,7 @@ const Camera: React.FC = () => {
     ) : null;
   };
 
-  return (
+  return buildInFunctionsEnabled() ? (
     <div className="content-block camera container_bg">
       <div>
         <SwitchCameraIcon />
@@ -202,7 +203,7 @@ const Camera: React.FC = () => {
 
       <PhotosBrowser />
     </div>
-  );
+  ) : null;
 };
 
 const styles = {
