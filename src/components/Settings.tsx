@@ -14,13 +14,13 @@ import {
   BUILD_IN_FUNCTIONS_ENABLE,
   BUILD_IN_PROMPT_DISABLE,
   BUILD_IN_PROMPT_ENABLE,
-  CONNECT_CONNECTED,
   DEEPSEEK_FUNCTION_CALL_DISABLE,
   DEEPSEEK_FUNCTION_CALL_ENABLE,
   NOT_SETTINGS_STATUS,
 } from '../lib/const';
 import { useContexts } from '../providers/AppProvider';
-import { getAppName } from '../lib/helper';
+import { getAppName, svgToBase64 } from '../lib/helper';
+import defaultIcon from '../static/logomark.svg';
 
 const DEFAULT = 'Default';
 const REAL_TIME_API = 'Realtime';
@@ -69,6 +69,14 @@ const SettingsComponent: React.FC<{
   const [activeTab, setActiveTab] = useState(DEFAULT);
   const { resetApp, isNightMode } = useContexts();
 
+  const [appIconDark, setAppIconDark] = useState(
+    localStorage.getItem('appIconDark') || defaultIcon,
+  );
+
+  const [appIconLight, setAppIconLight] = useState(
+    localStorage.getItem('appIconLight') || defaultIcon,
+  );
+
   const styles = {
     link: {
       color: isNightMode ? '#dddddd' : '#3e3e47',
@@ -106,7 +114,6 @@ const SettingsComponent: React.FC<{
       float: 'right',
       fontSize: '14px',
       backgroundColor: 'transparent',
-
       '&:hover': {
         color: isNightMode ? '#a8a7a7' : '#515050',
       },
@@ -201,6 +208,14 @@ const SettingsComponent: React.FC<{
       width: '100%',
       fontStyle: 'italic',
     } as React.CSSProperties,
+    appIcon: {
+      height: '40px',
+      background: 'transparent',
+      marginTop: '10px',
+      cursor: 'pointer',
+      padding: '0',
+      border: '1px solid #f1f1f1',
+    } as React.CSSProperties,
   };
 
   useEffect(() => {
@@ -216,6 +231,63 @@ const SettingsComponent: React.FC<{
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
+
+  // handle click app icon to upload svg and save to local storage
+  const handleAppIconClickDark = (e: React.MouseEvent<HTMLImageElement>) => {
+    e.stopPropagation();
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.svg';
+    fileInput.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const svgData = e.target?.result;
+          if (svgData) {
+            const imgStr = svgToBase64(svgData as string);
+            localStorage.setItem('appIconDark', imgStr);
+            setAppIconDark(imgStr);
+            handleChange('appIconDark', imgStr);
+          }
+        };
+        reader.readAsText(file);
+      }
+    };
+    fileInput.click();
+  };
+
+  const handleAppIconClickLight = (e: React.MouseEvent<HTMLImageElement>) => {
+    e.stopPropagation();
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.svg';
+    fileInput.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const svgData = e.target?.result;
+          if (svgData) {
+            const imgStr = svgToBase64(svgData as string);
+            localStorage.setItem('appIconLight', imgStr);
+            setAppIconLight(imgStr);
+            handleChange('appIconLight', imgStr);
+          }
+        };
+        reader.readAsText(file);
+      }
+    };
+    fileInput.click();
+  };
+
+  const handleAppIconClickReset = (e: React.MouseEvent<HTMLImageElement>) => {
+    e.stopPropagation();
+    localStorage.removeItem('appIconDark');
+    localStorage.removeItem('appIconLight');
+    setAppIconDark(defaultIcon);
+    setAppIconLight(defaultIcon);
+  };
 
   const handleChange = (name: string, value: string) => {
     if (value === '') {
@@ -258,6 +330,38 @@ const SettingsComponent: React.FC<{
             handleChange('appName', e.target.value);
           }}
         />
+
+        <div style={{ display: 'flex', gap: '60px' }}>
+          <div>
+            <div style={styles.settingLabel}>Light Icon</div>
+            <img
+              src={appIconLight}
+              alt="App Icon"
+              style={{ ...styles.appIcon }}
+              onClick={handleAppIconClickLight}
+            />
+          </div>
+
+          <div>
+            <div style={styles.settingLabel}>Dark Icon</div>
+            <img
+              src={appIconDark}
+              alt="App Icon"
+              style={{ ...styles.appIcon }}
+              onClick={handleAppIconClickDark}
+            />
+          </div>
+
+          <div>
+            <div style={styles.settingLabel}>Reset Icon</div>
+            <img
+              src={defaultIcon}
+              alt="App Icon"
+              style={{ ...styles.appIcon }}
+              onClick={handleAppIconClickReset}
+            />
+          </div>
+        </div>
 
         <div style={styles.settingLabel}>Assistant Type</div>
         <Dropdown
@@ -1059,6 +1163,8 @@ const SettingsComponent: React.FC<{
     // get all settings to json object and base64 encode
     const settings = {
       appName: localStorage.getItem('appName') || '',
+      appIconDark: localStorage.getItem('appIconDark') || '',
+      appIconLight: localStorage.getItem('appIconLight') || '',
 
       endpoint: localStorage.getItem('endpoint') || '',
       key: localStorage.getItem('key') || '',
@@ -1128,6 +1234,8 @@ const SettingsComponent: React.FC<{
 
         // update settings
         handleChange('appName', settings.appName);
+        handleChange('appIconDark', settings.appIconDark);
+        handleChange('appIconLight', settings.appIconLight);
 
         handleChange('endpoint', settings.endpoint);
         handleChange('key', settings.key);
