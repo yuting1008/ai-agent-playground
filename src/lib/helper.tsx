@@ -3,6 +3,7 @@ import {
   ToolDefinitionType,
 } from '@theodoreniu/realtime-api-beta/dist/lib/client';
 import {
+  APP_AGENT,
   ASSISTANT_TYPE_DEEPSEEK,
   BUILD_IN_FUNCTIONS_ENABLE,
   BUILD_IN_PROMPT_ENABLE,
@@ -201,7 +202,7 @@ export function recordMessage(message: any) {
 }
 
 export function getAppName() {
-  return localStorage.getItem('appName') || 'AI Agent Playground';
+  return localStorage.getItem('appName') || APP_AGENT;
 }
 
 export function setAppName(appName: string) {

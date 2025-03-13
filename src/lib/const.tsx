@@ -2,9 +2,15 @@ export const APP_AGENT = 'AI Agent Playground';
 export const APP_AGENT_VECTOR_STORE =
   'ai-agent-playground-assistant-vector-store';
 
-export const ASSISTANT_TYPE_ASSISTANT = 'assistant';
-export const ASSISTANT_TYPE_REALTIME = 'realtime';
-export const ASSISTANT_TYPE_DEEPSEEK = 'deepseek';
+export const ASSISTANT_TYPE_ASSISTANT = 'Assistant';
+export const ASSISTANT_TYPE_REALTIME = 'Realtime';
+export const ASSISTANT_TYPE_DEEPSEEK = 'DeepSeek';
+export const ASSISTANT_TYPE_DEFAULT = ASSISTANT_TYPE_REALTIME;
+export const ASSISTANT_TYPES = [
+  ASSISTANT_TYPE_ASSISTANT,
+  ASSISTANT_TYPE_REALTIME,
+  ASSISTANT_TYPE_DEEPSEEK,
+];
 
 export const DEEPSEEK_FUNCTION_CALL_ENABLE = 'Enable';
 export const DEEPSEEK_FUNCTION_CALL_DISABLE = 'Disable';
@@ -14,8 +20,6 @@ export const BUILD_IN_FUNCTIONS_DISABLE = 'Disable';
 
 export const BUILD_IN_PROMPT_ENABLE = 'Enable';
 export const BUILD_IN_PROMPT_DISABLE = 'Disable';
-
-export const ASSISTANT_TYPE_DEFAULT = ASSISTANT_TYPE_REALTIME;
 
 export const ALLOW_PROMPT_CHARACTERS = 15000;
 export const ALLOW_FUNCTIONS_CHARACTERS = 100000;

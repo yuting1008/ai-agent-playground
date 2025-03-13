@@ -13,6 +13,7 @@ import {
   ASSISTANT_TYPE_DEEPSEEK,
   ASSISTANT_TYPE_DEFAULT,
   ASSISTANT_TYPE_REALTIME,
+  ASSISTANT_TYPES,
 } from '../lib/const';
 import { AlertTriangle } from 'react-feather';
 import AboutApp from '../components/AboutApp';
@@ -25,15 +26,26 @@ import {
 } from '../lib/helper';
 import { useEffect, useState } from 'react';
 import AppMessage from '../components/AppMessage';
+import { supportedAssistantTypes } from '../components/Settings';
 
 export function ConsolePage() {
   const { isDebugMode, setIsDebugMode } = useContexts();
   const [appName] = useState(getAppName());
-  const assistantType =
+
+  let assistantType =
     localStorage.getItem('assistantType') || ASSISTANT_TYPE_DEFAULT;
+
+  if (!ASSISTANT_TYPES.includes(assistantType)) {
+    assistantType = ASSISTANT_TYPE_DEFAULT;
+  }
+
   const isAssistant = assistantType === ASSISTANT_TYPE_ASSISTANT;
   const isRealtime = assistantType === ASSISTANT_TYPE_REALTIME;
   const isDeepSeek = assistantType === ASSISTANT_TYPE_DEEPSEEK;
+
+  const supportedAssistantType = supportedAssistantTypes.find(
+    (type) => type.value === assistantType,
+  );
 
   useEffect(() => {
     const timer = setInterval(async () => {
@@ -59,6 +71,18 @@ export function ConsolePage() {
     );
   }
 
+  const styles = {
+    assistantType: {
+      fontSize: '10px',
+      color: 'white',
+      backgroundColor: 'green',
+      borderRadius: '5px',
+      padding: '3px 6px',
+      marginLeft: '10px',
+      marginTop: '-5px',
+    },
+  };
+
   /**
    * Render the application
    */
@@ -70,6 +94,9 @@ export function ConsolePage() {
         <div className="content-title">
           <img src="/logomark.svg" alt="logo" />
           <h1>{appName}</h1>
+          <span style={styles.assistantType}>
+            {supportedAssistantType?.label}
+          </span>
           <a
             href="https://github.com/theodoreniu/ai-agent-playground"
             target="_blank"
