@@ -35,6 +35,7 @@ import {
 
 import { Run } from 'openai/resources/beta/threads/runs/runs';
 import { recordMessage } from '../lib/helper';
+import BuiltFunctionDisable from '../components/BuiltFunctionDisable';
 
 export function ConsolePageAssistant() {
   const {
@@ -509,6 +510,8 @@ export function ConsolePageAssistant() {
       </div>
 
       <div className="content-right">
+        <BuiltFunctionDisable />
+
         <Avatar />
 
         <Camera />

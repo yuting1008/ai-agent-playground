@@ -24,7 +24,7 @@ import { DeepSeekTokenUsage } from '../types/DeepSeek';
 import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
 import { FunctionTool } from '../types/FunctionTool';
 import { enableFunctionCalling } from '../lib/helper';
-
+import BuiltFunctionDisable from '../components/BuiltFunctionDisable';
 export function ConsolePageDeepSeek() {
   const {
     setResponseBuffer,
@@ -264,6 +264,8 @@ export function ConsolePageDeepSeek() {
       </div>
 
       <div className="content-right">
+        <BuiltFunctionDisable />
+
         <Avatar />
 
         <Camera />

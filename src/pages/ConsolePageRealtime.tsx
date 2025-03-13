@@ -29,6 +29,7 @@ import { InputBarRealtime } from '../components/InputBarRealtime';
 import { RealtimeClient } from '@theodoreniu/realtime-api-beta';
 import { RealtimeEvent, RealtimeTokenUsage } from '../types/RealtimeEvent';
 import { recordMessage } from '../lib/helper';
+import BuiltFunctionDisable from '../components/BuiltFunctionDisable';
 
 export function ConsolePageRealtime() {
   const {
@@ -397,8 +398,8 @@ export function ConsolePageRealtime() {
       </div>
 
       <div className="content-right">
+        <BuiltFunctionDisable />
         <Avatar />
-
         <Camera />
 
         <SettingsComponent connectStatus={connectStatus} />
