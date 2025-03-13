@@ -213,8 +213,8 @@ const SettingsComponent: React.FC<{
       background: 'transparent',
       marginTop: '10px',
       cursor: 'pointer',
-      padding: '0',
-      border: '1px solid #f1f1f1',
+      border: '1px solid gray',
+      padding: '5px',
     } as React.CSSProperties,
   };
 
@@ -347,7 +347,7 @@ const SettingsComponent: React.FC<{
             <img
               src={appIconDark}
               alt="App Icon"
-              style={{ ...styles.appIcon }}
+              style={{ ...styles.appIcon, backgroundColor: '#000000' }}
               onClick={handleAppIconClickDark}
             />
           </div>
