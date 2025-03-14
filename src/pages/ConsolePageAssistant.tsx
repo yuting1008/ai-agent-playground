@@ -171,6 +171,7 @@ export function ConsolePageAssistant() {
         tools: [{ type: 'code_interpreter' }, { type: 'file_search' }],
       };
 
+      // add custom functions to the assistant
       functionsToolsRef.current.forEach(
         ([definition]: [ToolDefinitionType, Function]) => {
           params.tools?.push({ type: 'function', function: definition });
