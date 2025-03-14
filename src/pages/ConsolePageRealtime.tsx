@@ -104,6 +104,10 @@ export function ConsolePageRealtime() {
     client.updateSession({ input_audio_transcription: { model: 'whisper-1' } });
     // Set voice
     client.updateSession({ voice: 'echo' });
+    // Set temperature
+    client.updateSession({
+      temperature: parseFloat(localStorage.getItem('temperature') || '0.5'),
+    });
 
     // Add tools
     functionsToolsRef.current.forEach(

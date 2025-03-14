@@ -164,7 +164,7 @@ export function ConsolePageAssistant() {
       const params: AssistantCreateParams = {
         instructions: llmInstructionsRef.current,
         name: APP_AGENT,
-        temperature: 1,
+        temperature: parseFloat(localStorage.getItem('temperature') || '0.5'),
         top_p: 1,
         model: modelName,
         tools: [{ type: 'code_interpreter' }, { type: 'file_search' }],

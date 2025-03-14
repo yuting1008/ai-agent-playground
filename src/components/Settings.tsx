@@ -40,6 +40,20 @@ const supportedLanguages = [
   { value: 'english', label: 'English' },
 ];
 
+const temperatureOptions = [
+  { value: '0', label: '0' },
+  { value: '0.1', label: '0.1' },
+  { value: '0.2', label: '0.2' },
+  { value: '0.3', label: '0.3' },
+  { value: '0.4', label: '0.4' },
+  { value: '0.5', label: '0.5' },
+  { value: '0.6', label: '0.6' },
+  { value: '0.7', label: '0.7' },
+  { value: '0.8', label: '0.8' },
+  { value: '0.9', label: '0.9' },
+  { value: '1', label: '1' },
+];
+
 export const supportedAssistantTypes = [
   { value: ASSISTANT_TYPE_REALTIME, label: 'Realtime' },
   { value: ASSISTANT_TYPE_ASSISTANT, label: 'STT -> Assistant -> TTS' },
@@ -318,6 +332,10 @@ const SettingsComponent: React.FC<{
       localStorage.getItem('buildInFunctions') || BUILD_IN_FUNCTIONS_ENABLE,
     );
 
+    const [temperature, setTemperature] = useState(
+      localStorage.getItem('temperature') || 0.5,
+    );
+
     return (
       <div>
         <div style={styles.settingLabel}>App Name</div>
@@ -408,6 +426,16 @@ const SettingsComponent: React.FC<{
           onChange={(e) => {
             setBuildInFunctions(e);
             handleChange('buildInFunctions', e);
+          }}
+        />
+
+        <div style={styles.settingLabel}>Temperature</div>
+        <Dropdown
+          options={temperatureOptions}
+          selectedValue={temperature.toString()}
+          onChange={(e) => {
+            setTemperature(e);
+            handleChange('temperature', e);
           }}
         />
 
@@ -1208,6 +1236,8 @@ const SettingsComponent: React.FC<{
 
       buildInPrompt: localStorage.getItem('buildInPrompt') || '',
       buildInFunctions: localStorage.getItem('buildInFunctions') || '',
+
+      temperature: localStorage.getItem('temperature') || '',
     };
     const content = JSON.stringify(settings, null, 2);
     const blob = new Blob([content], { type: 'application/json' });
@@ -1279,6 +1309,8 @@ const SettingsComponent: React.FC<{
         handleChange('functionsUrl', settings.functionsUrl);
         handleChange('buildInPrompt', settings.buildInPrompt);
         handleChange('buildInFunctions', settings.buildInFunctions);
+
+        handleChange('temperature', settings.temperature);
 
         alert('Import success');
 
