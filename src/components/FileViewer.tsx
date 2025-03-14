@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { getOpenAIClient } from '../lib/openai';
 import { useContexts } from '../providers/AppProvider';
-import { APP_AGENT_VECTOR_STORE, CONNECT_CONNECTED } from '../lib/const';
+import { CONNECT_CONNECTED } from '../lib/const';
 
 const FileViewer = ({ connectStatus }: { connectStatus: string }) => {
   const [files, setFiles] = useState<any[]>([]);
 
-  const { assistantRef, vectorStore, vectorStoreRef } = useContexts();
+  const { assistantRef, vectorStoreRef, isNightMode } = useContexts();
 
   const styles = {
     fileViewer: {
@@ -55,11 +55,12 @@ const FileViewer = ({ connectStatus }: { connectStatus: string }) => {
 
     fileStatus: {
       fontSize: '0.8em',
-      color: '#666',
+      color: isNightMode ? '#fff' : '#000',
     } as React.CSSProperties,
 
     fileDeleteIcon: {
       cursor: 'pointer',
+      color: isNightMode ? '#fff' : '#000',
     } as React.CSSProperties,
 
     fileUploadContainer: {
@@ -123,13 +124,13 @@ const FileViewer = ({ connectStatus }: { connectStatus: string }) => {
 
     const vectorStoreId = vectorStoreRef?.current?.id || '';
     const fileList =
-      await getOpenAIClient().beta.vectorStores.files.list(vectorStoreId);
+      await getOpenAIClient().vectorStores.files.list(vectorStoreId);
 
     const filesArray = await Promise.all(
       fileList.data.map(async (file) => {
         const fileDetails = await getOpenAIClient().files.retrieve(file.id);
         const vectorFileDetails =
-          await getOpenAIClient().beta.vectorStores.files.retrieve(
+          await getOpenAIClient().vectorStores.files.retrieve(
             vectorStoreId,
             file.id,
           );
@@ -147,7 +148,7 @@ const FileViewer = ({ connectStatus }: { connectStatus: string }) => {
   // delete file from assistant's vector store
   const handleFileDelete = async (fileId: string) => {
     const vectorStoreId = vectorStoreRef?.current?.id || '';
-    await getOpenAIClient().beta.vectorStores.files.del(vectorStoreId, fileId); // delete file from vector store
+    await getOpenAIClient().vectorStores.files.del(vectorStoreId, fileId); // delete file from vector store
   };
 
   const handleFileUpload = async (event: any) => {
@@ -171,10 +172,12 @@ const FileViewer = ({ connectStatus }: { connectStatus: string }) => {
       console.log('OpenAI file: ', openaiFile);
 
       // add file to vector store
-      const vectorStoreFile =
-        await getOpenAIClient().beta.vectorStores.files.create(vectorStoreId, {
+      const vectorStoreFile = await getOpenAIClient().vectorStores.files.create(
+        vectorStoreId,
+        {
           file_id: openaiFile.id,
-        });
+        },
+      );
       console.log('add file to vector store: ', vectorStoreFile);
     } catch (error) {
       console.error('Error uploading file: ', error);

@@ -60,7 +60,6 @@ import {
   buildInFunctionsEnabled,
   buildInPromptEnabled,
   delayFunction,
-  enableFunctionCalling,
 } from '../lib/helper';
 import { Assistant } from 'openai/resources/beta/assistants';
 import { processAndStoreSentence } from '../lib/sentence';
@@ -71,7 +70,7 @@ import {
   useGptImagesDispatch,
   useGptImagesRef,
 } from '../contexts/GptImagesContext';
-import { VectorStore } from 'openai/resources/beta/vector-stores/vector-stores';
+import { VectorStore } from 'openai/resources/vector-stores/vector-stores';
 
 interface AppContextType {
   photos: string[];
@@ -899,12 +898,12 @@ export const AppProvider: React.FC<{
     ? SYSTEM_INSTRUCTIONS
     : USER_INSTRUCTIONS;
 
-  if (enableFunctionCalling() && functionsToolsRef.current.length > 0) {
-    updateInstructions += `\n\nYou have the following tools and abilities:`;
-    for (const tool of functionsToolsRef.current) {
-      updateInstructions += `\n${tool[0].name}: ${tool[0].description}`;
-    }
-  }
+  // if (enableFunctionCalling() && functionsToolsRef.current.length > 0) {
+  //   updateInstructions += `\n\nYou have the following tools and abilities:`;
+  //   for (const tool of functionsToolsRef.current) {
+  //     updateInstructions += `\n${tool[0].name}: ${tool[0].description}`;
+  //   }
+  // }
 
   const [messages, setMessages] = useState<any[]>([]);
 

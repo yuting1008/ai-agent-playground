@@ -32,11 +32,11 @@ export function ConsolePage() {
   const { isDebugMode, setIsDebugMode, isNightMode } = useContexts();
   const [appName] = useState(getAppName());
 
-  const [appIconDark, setAppIconDark] = useState(
+  const [appIconDark] = useState(
     localStorage.getItem('appIconDark') || defaultIcon,
   );
 
-  const [appIconLight, setAppIconLight] = useState(
+  const [appIconLight] = useState(
     localStorage.getItem('appIconLight') || defaultIcon,
   );
 
@@ -85,7 +85,7 @@ export function ConsolePage() {
       color: 'white',
       backgroundColor: 'green',
       borderRadius: '5px',
-      padding: '3px 6px',
+      padding: '2px 3px',
       marginLeft: '0',
       marginTop: '-5px',
     },
