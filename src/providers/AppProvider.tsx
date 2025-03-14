@@ -214,6 +214,9 @@ interface AppContextType {
 
   loadFunctionsTools: [ToolDefinitionType, Function][];
   builtinFunctionTools: [ToolDefinitionType, Function][];
+
+  messages: any[];
+  setMessages: React.Dispatch<React.SetStateAction<any[]>>;
 }
 
 const IS_DEBUG: boolean = window.location.href.includes('localhost');
@@ -903,6 +906,8 @@ export const AppProvider: React.FC<{
     }
   }
 
+  const [messages, setMessages] = useState<any[]>([]);
+
   const language = localStorage.getItem('language') || 'chinese';
   updateInstructions = updateInstructions.replaceAll('{language}', language);
 
@@ -1063,6 +1068,8 @@ export const AppProvider: React.FC<{
         appKey,
         loadFunctionsTools,
         builtinFunctionTools,
+        messages,
+        setMessages,
       }}
     >
       {children}

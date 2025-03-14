@@ -1,23 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { X } from 'react-feather';
+import { useContexts } from '../providers/AppProvider';
 
 const AppMessage: React.FC = () => {
-  const [messages, setMessages] = useState<any[]>(
-    JSON.parse(localStorage.getItem('messages') || '[]'),
-  );
-
-  useEffect(() => {
-    localStorage.setItem('messages', JSON.stringify(messages));
-  }, [messages]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const messages = JSON.parse(localStorage.getItem('messages') || '[]');
-      setMessages(messages);
-    }, 500);
-
-    return () => clearInterval(interval);
-  }, []);
+  const { messages, setMessages } = useContexts();
 
   const styles = {
     content: {
