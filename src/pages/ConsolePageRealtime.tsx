@@ -28,7 +28,6 @@ import RealtimeMessages from '../components/RealtimeMessages';
 import { InputBarRealtime } from '../components/InputBarRealtime';
 import { RealtimeClient } from '@theodoreniu/realtime-api-beta';
 import { RealtimeEvent, RealtimeTokenUsage } from '../types/RealtimeEvent';
-import { recordMessage } from '../lib/helper';
 import BuiltFunctionDisable from '../components/BuiltFunctionDisable';
 
 export function ConsolePageRealtime() {
@@ -55,6 +54,7 @@ export function ConsolePageRealtime() {
     setOutputAudioTokens,
     appKey,
     loadFunctionsTools,
+    setMessages,
   } = useContexts();
 
   const endpoint = localStorage.getItem('endpoint') || '';
@@ -176,7 +176,7 @@ export function ConsolePageRealtime() {
               arguments: JSON.parse(call.arguments),
               output: JSON.parse(item.output),
             };
-            recordMessage(result);
+            setMessages((prevMessages) => [result, ...prevMessages]);
           }
         }
       }

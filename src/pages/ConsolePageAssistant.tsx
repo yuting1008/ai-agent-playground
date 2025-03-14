@@ -34,7 +34,6 @@ import {
 } from 'openai/resources/beta/vector-stores/vector-stores';
 
 import { Run } from 'openai/resources/beta/threads/runs/runs';
-import { recordMessage } from '../lib/helper';
 import BuiltFunctionDisable from '../components/BuiltFunctionDisable';
 
 export function ConsolePageAssistant() {
@@ -57,6 +56,7 @@ export function ConsolePageAssistant() {
     setInputTokens,
     setOutputTokens,
     loadFunctionsTools,
+    setMessages,
   } = useContexts();
 
   const [messagesAssistant, setMessagesAssistant] = useState<any[]>([]);
@@ -197,10 +197,11 @@ export function ConsolePageAssistant() {
 
     for (const fc of loadFunctionsTools) {
       if (fc[0].name === call.function.name) {
-        recordMessage({
+        const result = {
           name: call.function.name,
           arguments: args,
-        });
+        };
+        setMessages((prevMessages) => [result, ...prevMessages]);
       }
     }
 
