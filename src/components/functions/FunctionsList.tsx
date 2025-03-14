@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Code, X } from 'react-feather';
 import { Package } from 'react-feather';
 import { useContexts } from '../../providers/AppProvider';

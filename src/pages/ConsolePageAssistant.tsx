@@ -31,7 +31,7 @@ import { InputBarAssistant } from '../components/InputBarAssistant';
 import {
   VectorStore,
   VectorStoresPage,
-} from 'openai/resources/beta/vector-stores/vector-stores';
+} from 'openai/resources/vector-stores/vector-stores';
 
 import { Run } from 'openai/resources/beta/threads/runs/runs';
 import BuiltFunctionDisable from '../components/BuiltFunctionDisable';
@@ -65,6 +65,17 @@ export function ConsolePageAssistant() {
 
   const { functionsToolsRef, llmInstructions, llmInstructionsRef } =
     useContexts();
+
+  useEffect(() => {
+    (async () => {
+      console.log('llmInstructions updated');
+      if (assistantRef?.current?.id) {
+        getOpenAIClient().beta.assistants.update(assistantRef?.current?.id, {
+          instructions: llmInstructions,
+        });
+      }
+    })();
+  }, [llmInstructions, assistantRef]);
 
   const cleanupAssistants = async () => {
     try {
@@ -101,8 +112,7 @@ export function ConsolePageAssistant() {
   const cleanupVectorStores = async () => {
     try {
       const vectorStoresPages: VectorStore[] = [];
-      let lists: VectorStoresPage =
-        await getOpenAIClient().beta.vectorStores.list();
+      let lists: VectorStoresPage = await getOpenAIClient().vectorStores.list();
 
       vectorStoresPages.push(...lists.data);
       setConnectMessage(
@@ -122,7 +132,7 @@ export function ConsolePageAssistant() {
           setConnectMessage(
             `Deleting Vector Store(${index}/${vectorStoresPages.length}): ${vectorStore.id}`,
           );
-          await getOpenAIClient().beta.vectorStores.del(vectorStore.id);
+          await getOpenAIClient().vectorStores.del(vectorStore.id);
         }
       }
     } catch (error: any) {
@@ -131,19 +141,8 @@ export function ConsolePageAssistant() {
     }
   };
 
-  useEffect(() => {
-    (async () => {
-      console.log('llmInstructions updated');
-      if (assistantRef?.current?.id) {
-        getOpenAIClient().beta.assistants.update(assistantRef?.current?.id, {
-          instructions: llmInstructions,
-        });
-      }
-    })();
-  }, [llmInstructions, assistantRef]);
-
   const setupVectorStore = async (assistantId: string) => {
-    const vectorStore = await getOpenAIClient().beta.vectorStores.create({
+    const vectorStore = await getOpenAIClient().vectorStores.create({
       name: APP_AGENT_VECTOR_STORE,
     });
     await getOpenAIClient().beta.assistants.update(assistantId, {
@@ -171,6 +170,7 @@ export function ConsolePageAssistant() {
         tools: [{ type: 'code_interpreter' }, { type: 'file_search' }],
       };
 
+      // add custom functions to the assistant
       functionsToolsRef.current.forEach(
         ([definition]: [ToolDefinitionType, Function]) => {
           params.tools?.push({ type: 'function', function: definition });
@@ -431,9 +431,10 @@ export function ConsolePageAssistant() {
       return;
     }
 
-    // wait 1.5 seconds to see if the thread is already running
+    // wait to see if the thread is already running
+    const waitSeconds = 3 * 1000;
     if (threadJobRef.current) {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, waitSeconds));
       if (threadJobRef.current) {
         console.error('Thread is already running');
         return;
@@ -441,7 +442,6 @@ export function ConsolePageAssistant() {
     }
 
     // may need to add a check to see if the thread is already created
-
     try {
       handleAssistantTextCreated();
       await getOpenAIClient().beta.threads.messages.create(
