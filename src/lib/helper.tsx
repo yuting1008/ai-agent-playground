@@ -135,6 +135,7 @@ export async function getPromptFromUrl() {
   } catch (error) {
     console.error(`Failed to get prompt from url: ${promptUrl}`);
     console.error(error);
+    alert(`Failed to get prompt from url: ${promptUrl}`);
   }
 
   return localStorage.getItem('prompt') || '';
@@ -156,6 +157,7 @@ export async function getFunctionsFromUrl() {
   } catch (error) {
     console.error(`Failed to get functions from url: ${functionsUrl}`);
     console.error(error);
+    alert(`Failed to get functions from url: ${functionsUrl}`);
   }
 
   return localStorage.getItem('functions') || '';
@@ -188,17 +190,6 @@ export function loadFunctions() {
   }
 
   return [];
-}
-
-export function recordMessage(message: any) {
-  const messages = localStorage.getItem('messages');
-  if (!messages) {
-    localStorage.setItem('messages', JSON.stringify([message]));
-  } else {
-    const messagesArray = JSON.parse(messages);
-    messagesArray.unshift(message);
-    localStorage.setItem('messages', JSON.stringify(messagesArray));
-  }
 }
 
 export function getAppName() {
