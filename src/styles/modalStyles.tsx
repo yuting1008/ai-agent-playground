@@ -18,7 +18,7 @@ export function modalStyles({ isNightMode }: { isNightMode: boolean }) {
     } as React.CSSProperties,
     modal: {
       borderRadius: '4px',
-      width: '80%',
+      width: '900px',
       maxHeight: '80%',
       overflowY: 'auto',
       boxShadow: '0 0 10px rgba(0,0,0,0.3)',

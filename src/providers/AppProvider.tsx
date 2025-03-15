@@ -907,9 +907,6 @@ export const AppProvider: React.FC<{
 
   const [messages, setMessages] = useState<any[]>([]);
 
-  const language = localStorage.getItem('language') || 'chinese';
-  updateInstructions = updateInstructions.replaceAll('{language}', language);
-
   const [llmInstructions, setLlmInstructions] =
     useState<string>(updateInstructions);
   const llmInstructionsRef = useRef(llmInstructions);
