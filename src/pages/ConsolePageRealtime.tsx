@@ -123,6 +123,15 @@ export function ConsolePageRealtime() {
         event: { type },
       } = realtimeEvent;
 
+      if (type === 'error') {
+        if (realtimeEvent.event?.error?.code === null) {
+          console.error(realtimeEvent.event);
+        } else {
+          alert(JSON.stringify(realtimeEvent.event, null, 2));
+          window.location.reload();
+        }
+      }
+
       if (realtimeEvent.event?.response?.status === 'failed') {
         setItems([]);
         console.error(realtimeEvent.event.response?.status_details?.error);

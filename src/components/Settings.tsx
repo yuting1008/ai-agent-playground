@@ -25,7 +25,7 @@ import defaultIcon from '../static/logomark.svg';
 const DEFAULT = 'Default';
 const REAL_TIME_API = 'Realtime';
 const DALL_E = 'Dall-E-3';
-const GRAPHRAG = 'GraphRAG';
+const GRAPHRAG = 'RAG';
 const SPEECH = 'Speech';
 const TTS = 'TTS';
 const COMPLETION = 'Completion';
@@ -112,9 +112,8 @@ const SettingsComponent: React.FC<{
       padding: '20px',
       borderRadius: '8px',
       color: isNightMode ? '#dddddf' : '#3e3e47',
-      width: '80%',
-      maxWidth: '900px',
-      maxHeight: '80%',
+      width: '805px',
+      maxHeight: '90%',
       overflowY: 'auto',
     } as React.CSSProperties,
     settingsModalHeader: {
@@ -201,15 +200,16 @@ const SettingsComponent: React.FC<{
     } as React.CSSProperties,
     settings_inline: {
       display: 'flex',
-      gap: '40px',
+      gap: '20px',
     } as React.CSSProperties,
     settings_inline_block: {
       display: 'inline-block',
-      width: '50%',
+      width: '100%',
     } as React.CSSProperties,
     export_settings: {
       border: '1px solid #b2b1b1',
       background: 'transparent',
+      marginTop: '20px',
     } as React.CSSProperties,
     settings_tip: {
       backgroundColor: isNightMode
@@ -314,10 +314,6 @@ const SettingsComponent: React.FC<{
   };
 
   const DefaultSettings = () => {
-    const [language, setLanguage] = useState(
-      localStorage.getItem('language') || 'chinese',
-    );
-
     const [appName, setAppName] = useState(getAppName());
 
     const [assistantType, setAssistantType] = useState(
@@ -333,21 +329,27 @@ const SettingsComponent: React.FC<{
     );
 
     const [temperature, setTemperature] = useState(
-      localStorage.getItem('temperature') || 0.5,
+      localStorage.getItem('temperature') || 0.7,
     );
 
     return (
       <div>
-        <div style={styles.settingLabel}>App Name</div>
-        <input
-          type={'text'}
-          style={{ ...styles.settingInput, width: '200px' }}
-          value={appName}
-          onChange={(e) => {
-            setAppName(e.target.value);
-            handleChange('appName', e.target.value);
-          }}
-        />
+        <div style={styles.settings_inline}>
+          <div style={styles.settings_inline_block}>
+            <div style={styles.settingLabel}>App Name</div>
+            <input
+              type={'text'}
+              style={styles.settingInput}
+              value={appName}
+              onChange={(e) => {
+                setAppName(e.target.value);
+                handleChange('appName', e.target.value);
+              }}
+            />
+          </div>
+
+          <div style={styles.settings_inline_block}></div>
+        </div>
 
         <div style={{ display: 'flex', gap: '60px' }}>
           <div>
@@ -381,88 +383,85 @@ const SettingsComponent: React.FC<{
           </div>
         </div>
 
-        <div style={styles.settingLabel}>Assistant Type</div>
-        <Dropdown
-          options={supportedAssistantTypes}
-          selectedValue={assistantType}
-          onChange={(e) => {
-            setAssistantType(e);
-            handleChange('assistantType', e);
-          }}
-        />
+        <div style={styles.settings_inline}>
+          <div style={styles.settings_inline_block}>
+            <div style={styles.settingLabel}>Assistant Type</div>
+            <Dropdown
+              options={supportedAssistantTypes}
+              selectedValue={assistantType}
+              onChange={(e) => {
+                setAssistantType(e);
+                handleChange('assistantType', e);
+              }}
+            />
+          </div>
 
-        <div style={styles.settingLabel}>Build-in Prompt</div>
-        <Dropdown
-          options={buildInPromptOptions}
-          selectedValue={buildInPrompt}
-          onChange={(e) => {
-            setBuildInPrompt(e);
-            handleChange('buildInPrompt', e);
-          }}
-        />
-
-        <div
-          style={{
-            ...styles.settingLabel,
-            display:
-              buildInPrompt === BUILD_IN_PROMPT_DISABLE ? 'none' : 'block',
-          }}
-        >
-          Default Language
-          <Dropdown
-            options={supportedLanguages}
-            selectedValue={language}
-            onChange={(e) => {
-              setLanguage(e);
-              handleChange('language', e);
-            }}
-          />
+          <div style={styles.settings_inline_block}>
+            <div style={styles.settingLabel}>Temperature</div>
+            <Dropdown
+              options={temperatureOptions}
+              selectedValue={temperature.toString()}
+              onChange={(e) => {
+                setTemperature(e);
+                handleChange('temperature', e);
+              }}
+            />
+          </div>
         </div>
 
-        <div style={styles.settingLabel}>Build-in Functions</div>
-        <Dropdown
-          options={buildInFunctionsOptions}
-          selectedValue={buildInFunctions}
-          onChange={(e) => {
-            setBuildInFunctions(e);
-            handleChange('buildInFunctions', e);
-          }}
-        />
+        <div style={styles.settings_inline}>
+          <div style={styles.settings_inline_block}>
+            <div style={styles.settingLabel}>Built-in Prompt</div>
+            <Dropdown
+              options={buildInPromptOptions}
+              selectedValue={buildInPrompt}
+              onChange={(e) => {
+                setBuildInPrompt(e);
+                handleChange('buildInPrompt', e);
+              }}
+            />
+          </div>
 
-        <div style={styles.settingLabel}>Temperature</div>
-        <Dropdown
-          options={temperatureOptions}
-          selectedValue={temperature.toString()}
-          onChange={(e) => {
-            setTemperature(e);
-            handleChange('temperature', e);
-          }}
-        />
+          <div style={styles.settings_inline_block}>
+            <div style={styles.settingLabel}>Built-in Functions</div>
+            <Dropdown
+              options={buildInFunctionsOptions}
+              selectedValue={buildInFunctions}
+              onChange={(e) => {
+                setBuildInFunctions(e);
+                handleChange('buildInFunctions', e);
+              }}
+            />
+          </div>
+        </div>
 
-        <div style={{ display: 'flex', gap: '15px', marginTop: '30px' }}>
-          <Button
-            label={'Import Settings'}
-            icon={Upload}
-            style={styles.export_settings}
-            buttonStyle={'regular'}
-            onClick={handleButtonClick}
-          />
+        <div style={styles.settings_inline}>
+          <div style={styles.settings_inline_block}>
+            <Button
+              label={'Import Settings'}
+              icon={Upload}
+              style={styles.export_settings}
+              buttonStyle={'regular'}
+              onClick={handleButtonClick}
+            />
+          </div>
 
-          <Button
-            label={'Export Settings'}
-            icon={Download}
-            style={styles.export_settings}
-            buttonStyle={'regular'}
-            onClick={handleExport}
-          />
-
-          <input
-            type="file"
-            accept=".json"
-            ref={fileInputRef}
-            onChange={handleImport}
-            style={{ display: 'none' }}
-          />
+          <div style={styles.settings_inline_block}>
+            <Button
+              label={'Export Settings'}
+              icon={Download}
+              style={styles.export_settings}
+              buttonStyle={'regular'}
+              onClick={handleExport}
+            />
+            <input
+              type="file"
+              accept=".json"
+              ref={fileInputRef}
+              onChange={handleImport}
+              style={{ display: 'none' }}
+            />
+          </div>
         </div>
       </div>
     );
@@ -1425,7 +1424,6 @@ const SettingsComponent: React.FC<{
                 <button
                   style={{
                     ...styles.settingsTabButton,
-                    ...styles.settingsTabButtonLast,
                     ...(activeTab === FUNCTIONS ? styles.tabActive : {}),
                   }}
                   onClick={() => setActiveTab(FUNCTIONS)}

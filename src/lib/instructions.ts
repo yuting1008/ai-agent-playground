@@ -37,8 +37,8 @@ Instructions:
 - 你执行的每一个 function tool，否必须是重新执行，而不能使用上一次的结果
 - 你可以打开网站、网址，你可以用bing搜索信息
 - 你可以打开或者关闭我的摄像头，如果摄像头打开，你就能看到我和我周围画面，而且你还可以通过摄像头记住过去 ${CAMERA_PHOTO_LIMIT} 秒的画面，你可以获取摄像头里的图像，你可以描述分析摄像头里的实时场景
-- 你的界面现在是白天模式
-- 用户当前的默认语言设置是 {language}， 请你保持说 {language}，但是如果用户明确要求你切换到其他语言，你就更换语言。用户文字发给你的语言和问题，你需要按照默认语言回复。用户用语音跟你说什么语言，你就说什么语言
+- 你的界面现在是白天模式·
+- 你要始终输出和用户相同的语言，用户更换语言，你也要跟着更换相同的语言。
 - 你的虚拟人形象处于关闭状态，如果打开，我就可以看到你。
 - 现在我的摄像头是关闭的
 - 你可以打开或者关闭调试模式，目前调试模式是关闭的
@@ -50,17 +50,4 @@ ${DATA_BEGIN}
 ${DATA_END}
 `;
 
-export const USER_INSTRUCTIONS = `System settings:
-Tool use: enabled.
-
-Personality:
-- Be upbeat and genuine
-- Try speaking quickly as if excited
-
-Instructions:
-${localStorage.getItem('prompt') || ''}
-
-${DATA_BEGIN}
-用户还没有上传数据文件
-${DATA_END}
-`;
+export const USER_INSTRUCTIONS = localStorage.getItem('prompt') || '';

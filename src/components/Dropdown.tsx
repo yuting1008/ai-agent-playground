@@ -20,7 +20,7 @@ const Dropdown: React.FC<DropdownProps> = ({
   const { isNightMode } = useContexts();
 
   const selectStyle: React.CSSProperties = {
-    width: 200,
+    width: '100%',
     padding: 10,
     border: 'none',
     borderRadius: 3,
