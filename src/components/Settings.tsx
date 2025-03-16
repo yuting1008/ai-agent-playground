@@ -285,8 +285,8 @@ const SettingsComponent: React.FC<{
 
   const handleAppIconClickReset = (e: React.MouseEvent<HTMLImageElement>) => {
     e.stopPropagation();
-    profiles.currentProfile!.appIconDark = defaultIcon;
-    profiles.currentProfile!.appIconLight = defaultIcon;
+    profiles.currentProfile!.appIconDark = '';
+    profiles.currentProfile!.appIconLight = '';
     profiles.save();
     setProfiles(new Profiles());
   };
