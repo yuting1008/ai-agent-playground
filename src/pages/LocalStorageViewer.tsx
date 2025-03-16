@@ -210,12 +210,6 @@ const LocalStorageViewer: React.FC = () => {
                   <td className={styles.tdKey}>llmInstructions</td>
                   <td className={styles.tdValue}>{llmInstructions}</td>
                 </tr>
-                <tr key="functionsToolsRef">
-                  <td className={styles.tdKey}>functionsToolsRef</td>
-                  <td className={styles.tdValue}>
-                    {JSON.stringify(functionsToolsRef.current, null, 2)}
-                  </td>
-                </tr>
               </tbody>
             </table>
 

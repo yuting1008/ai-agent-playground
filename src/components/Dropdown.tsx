@@ -26,6 +26,7 @@ const Dropdown: React.FC<DropdownProps> = ({
     borderRadius: 3,
     backgroundColor: isNightMode ? 'rgba(0, 0, 0, 0.8)' : 'rgba(0, 0, 0, 0.1)',
     color: isNightMode ? '#ffffff' : '#000000',
+    height: '35px',
   };
 
   const optionStyle: React.CSSProperties = {
