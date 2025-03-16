@@ -24,17 +24,13 @@ const Dropdown: React.FC<DropdownProps> = ({
     padding: 10,
     border: 'none',
     borderRadius: 3,
-    backgroundColor: isNightMode
-      ? 'rgba(0, 0, 0, 0.8)'
-      : 'rgba(255, 255, 255, 0.7)',
+    backgroundColor: isNightMode ? 'rgba(0, 0, 0, 0.8)' : 'rgba(0, 0, 0, 0.1)',
     color: isNightMode ? '#ffffff' : '#000000',
   };
 
   const optionStyle: React.CSSProperties = {
     padding: '15px 20px',
-    backgroundColor: isNightMode
-      ? 'rgba(0, 0, 0, 0.3)'
-      : 'rgba(255, 255, 255, 0.7)',
+    backgroundColor: isNightMode ? 'rgba(0, 0, 0, 0.3)' : 'rgba(0, 0, 0, 0.1)',
     color: isNightMode ? '#ffffff' : '#000000',
   };
 

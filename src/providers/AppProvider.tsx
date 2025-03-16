@@ -461,7 +461,6 @@ export const AppProvider: React.FC<{
 
   const resetApp = () => {
     setAppKey((prevKey) => prevKey + 1);
-    window.location.reload();
   };
 
   const resetTokenLatency = () => {
