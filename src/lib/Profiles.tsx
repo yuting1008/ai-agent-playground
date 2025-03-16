@@ -72,6 +72,8 @@ export class Profiles {
   constructor() {
     this.init();
 
+    this.migrateFromOldProfile();
+
     this.currentProfileId = localStorage.getItem('currentProfileId') || '';
 
     if (this.profiles.length === 1) {
@@ -85,8 +87,6 @@ export class Profiles {
     }
 
     this.currentProfile = this.find(this.currentProfileId);
-
-    this.loadOldProfile();
   }
 
   clone() {
@@ -138,7 +138,7 @@ export class Profiles {
     }
   }
 
-  loadOldProfile() {
+  migrateFromOldProfile() {
     if (this.profiles.length > 0) {
       return;
     }
