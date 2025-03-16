@@ -1,15 +1,17 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Code, X } from 'react-feather';
 import { Package } from 'react-feather';
 import { useContexts } from '../../providers/AppProvider';
 import { modalStyles } from '../../styles/modalStyles';
-import { buildInPromptEnabled, enableFunctionCalling } from '../../lib/helper';
+import { enableFunctionCalling } from '../../lib/helper';
 import IconWithBadge from '../IconWithBadge';
+import { Profiles } from '../../lib/Profiles';
 
 const FunctionsList: React.FC = () => {
   const [isShow, setIsShow] = useState(false);
   const { isNightMode } = useContexts();
   const importModalStyles = modalStyles({ isNightMode });
+
   const { functionsToolsRef, builtinFunctionTools, loadFunctionsTools } =
     useContexts();
   const [showFunctionDefinition, setShowFunctionDefinition] = useState<
@@ -113,6 +115,8 @@ const FunctionsList: React.FC = () => {
       return null;
     }
 
+    const profiles = new Profiles();
+
     return (
       <div style={importModalStyles.backdrop}>
         <div style={importModalStyles.modal} className={'modal'}>
@@ -147,7 +151,7 @@ const FunctionsList: React.FC = () => {
               </div>
             ))}
 
-            {buildInPromptEnabled() &&
+            {profiles.currentProfile?.buildInFunctions &&
               builtinFunctionTools.map((item) => (
                 <div style={styles.functionItem} key={item[0].name}>
                   <div style={styles.functionItemName}>

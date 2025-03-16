@@ -1,4 +1,5 @@
 import { AzureOpenAI } from 'openai';
+import { Profiles } from './Profiles';
 
 export const getOpenAIClientSSt = (ttsApiKey: string, ttsTargetUri: string) => {
   if (!ttsApiKey || !ttsTargetUri) {
@@ -29,8 +30,11 @@ export function parseOpenaiSetting(targetUri: string) {
 }
 
 export const getOpenAIClient = () => {
-  const completionApiKey = localStorage.getItem('completionApiKey') || '';
-  const completionTargetUri = localStorage.getItem('completionTargetUri') || '';
+  const profiles = new Profiles();
+  const profile = profiles.currentProfile;
+
+  const completionApiKey = profile?.completionApiKey || '';
+  const completionTargetUri = profile?.completionTargetUri || '';
 
   if (!completionApiKey || !completionTargetUri) {
     throw new Error(
@@ -53,36 +57,33 @@ export const getOpenAIClient = () => {
 export function extractUrlInfo(
   url: string,
 ): { deployment: string; apiVersion: string; endpoint: string } | null {
-  try {
-    const urlObj = new URL(url);
+  const urlObj = new URL(url);
 
-    // Extract deployment from the path
-    const pathSegments = urlObj.pathname.split('/');
-    const deploymentIndex = pathSegments.indexOf('deployments');
-    const deployment =
-      deploymentIndex !== -1 ? pathSegments[deploymentIndex + 1] : null;
+  // Extract deployment from the path
+  const pathSegments = urlObj.pathname.split('/');
+  const deploymentIndex = pathSegments.indexOf('deployments');
+  const deployment =
+    deploymentIndex !== -1 ? pathSegments[deploymentIndex + 1] : null;
 
-    // Extract api-version from query parameters
-    const apiVersion = urlObj.searchParams.get('api-version');
+  // Extract api-version from query parameters
+  const apiVersion = urlObj.searchParams.get('api-version');
 
-    // Extract endpoint
-    const endpoint = `${urlObj.protocol}//${urlObj.host}`;
+  // Extract endpoint
+  const endpoint = `${urlObj.protocol}//${urlObj.host}`;
 
-    if (!deployment || !apiVersion) {
-      throw new Error('Required values missing in the URL.');
-    }
-
-    return { deployment, apiVersion, endpoint };
-  } catch (error: any) {
-    console.error('Invalid URL or extraction error:', error.message);
-    console.error(url);
-    return null;
+  if (!deployment || !apiVersion) {
+    throw new Error('Required values missing in the URL.');
   }
+
+  return { deployment, apiVersion, endpoint };
 }
 
 export async function getCompletion(messages: any): Promise<string> {
-  const completionApiKey = localStorage.getItem('completionApiKey') || '';
-  const completionTargetUri = localStorage.getItem('completionTargetUri') || '';
+  const profiles = new Profiles();
+  const profile = profiles.currentProfile;
+
+  const completionApiKey = profile?.completionApiKey || '';
+  const completionTargetUri = profile?.completionTargetUri || '';
 
   if (!completionApiKey || !completionTargetUri) {
     return 'Missing API key or target URI, Please check your settings';
@@ -123,8 +124,11 @@ export async function getCompletion(messages: any): Promise<string> {
 }
 
 export async function getJsonData(messages: any): Promise<string> {
-  const completionApiKey = localStorage.getItem('completionApiKey') || '';
-  const completionTargetUri = localStorage.getItem('completionTargetUri') || '';
+  const profiles = new Profiles();
+  const profile = profiles.currentProfile;
+
+  const completionApiKey = profile?.completionApiKey || '';
+  const completionTargetUri = profile?.completionTargetUri || '';
 
   if (!completionApiKey || !completionTargetUri) {
     return 'Missing API key or target URI, Please check your settings';
@@ -159,8 +163,11 @@ export async function getJsonData(messages: any): Promise<string> {
 }
 
 export async function getImages(prompt: string, n: number = 1): Promise<any> {
-  const dallApiKey = localStorage.getItem('dallApiKey') || '';
-  const dallTargetUri = localStorage.getItem('dallTargetUri') || '';
+  const profiles = new Profiles();
+  const profile = profiles.currentProfile;
+
+  const dallApiKey = profile?.dallApiKey || '';
+  const dallTargetUri = profile?.dallTargetUri || '';
 
   if (!dallApiKey || !dallTargetUri) {
     return 'Missing API key or target URI, Please check your settings';
@@ -208,8 +215,11 @@ export async function editImages(
   prompt: string,
   image_base_64: string,
 ): Promise<any> {
-  const completionApiKey = localStorage.getItem('completionApiKey') || '';
-  const completionTargetUri = localStorage.getItem('completionTargetUri') || '';
+  const profiles = new Profiles();
+  const profile = profiles.currentProfile;
+
+  const completionApiKey = profile?.completionApiKey || '';
+  const completionTargetUri = profile?.completionTargetUri || '';
 
   if (!completionApiKey || !completionTargetUri) {
     return 'Missing API key or target URI, Please check your settings';
@@ -273,7 +283,7 @@ export async function image_vision(image_base_64: string) {
         content: [
           {
             type: 'text',
-            text: `Can you describe what you saw? please describe in ${localStorage.getItem('language') || 'chinese'}`,
+            text: `Can you describe what you saw? `,
           },
           {
             type: 'image_url',

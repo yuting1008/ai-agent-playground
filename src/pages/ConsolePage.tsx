@@ -8,52 +8,20 @@ import TrafficMonitor from '../components/functions/TrafficMonitor';
 import FunctionsList from '../components/functions/FunctionsList';
 import { ConsolePageRealtime } from './ConsolePageRealtime';
 import { ConsolePageAssistant } from './ConsolePageAssistant';
-import {
-  ASSISTANT_TYPE_ASSISTANT,
-  ASSISTANT_TYPE_DEEPSEEK,
-  ASSISTANT_TYPE_DEFAULT,
-  ASSISTANT_TYPE_REALTIME,
-  ASSISTANT_TYPES,
-} from '../lib/const';
 import { AlertTriangle } from 'react-feather';
 import AboutApp from '../components/AboutApp';
 import { ConsolePageDeepSeek } from './ConsolePageDeepSeek';
 import GithubLink from '../components/GithubLink';
-import {
-  getAppName,
-  getFunctionsFromUrl,
-  getPromptFromUrl,
-} from '../lib/helper';
+import { getFunctionsFromUrl, getPromptFromUrl } from '../lib/helper';
 import { useEffect, useState } from 'react';
 import AppMessage from '../components/AppMessage';
-import { supportedAssistantTypes } from '../components/Settings';
+import { Profiles } from '../lib/Profiles';
 import defaultIcon from '../static/logomark.svg';
+
 export function ConsolePage() {
   const { isDebugMode, setIsDebugMode, isNightMode } = useContexts();
-  const [appName] = useState(getAppName());
 
-  const [appIconDark, setAppIconDark] = useState(
-    localStorage.getItem('appIconDark') || defaultIcon,
-  );
-
-  const [appIconLight, setAppIconLight] = useState(
-    localStorage.getItem('appIconLight') || defaultIcon,
-  );
-
-  let assistantType =
-    localStorage.getItem('assistantType') || ASSISTANT_TYPE_DEFAULT;
-
-  if (!ASSISTANT_TYPES.includes(assistantType)) {
-    assistantType = ASSISTANT_TYPE_DEFAULT;
-  }
-
-  const isAssistant = assistantType === ASSISTANT_TYPE_ASSISTANT;
-  const isRealtime = assistantType === ASSISTANT_TYPE_REALTIME;
-  const isDeepSeek = assistantType === ASSISTANT_TYPE_DEEPSEEK;
-
-  const supportedAssistantType = supportedAssistantTypes.find(
-    (type) => type.value === assistantType,
-  );
+  const [profiles] = useState(new Profiles());
 
   useEffect(() => {
     const timer = setInterval(async () => {
@@ -64,8 +32,8 @@ export function ConsolePage() {
   }, []);
 
   useEffect(() => {
-    document.title = appName;
-  }, [appName]);
+    document.title = profiles.currentProfile?.name || '';
+  }, [profiles]);
 
   function IsDebugMode() {
     if (!isDebugMode) {
@@ -85,7 +53,7 @@ export function ConsolePage() {
       color: 'white',
       backgroundColor: 'green',
       borderRadius: '5px',
-      padding: '3px 6px',
+      padding: '2px 5px',
       marginLeft: '0',
       marginTop: '-5px',
     },
@@ -109,13 +77,19 @@ export function ConsolePage() {
         <div className="content-title">
           <img
             style={styles.logo}
-            src={isNightMode ? appIconDark : appIconLight}
+            src={
+              isNightMode
+                ? profiles.currentProfile?.appIconDark || defaultIcon
+                : profiles.currentProfile?.appIconLight || defaultIcon
+            }
             alt="logo"
           />
-          <h1 style={styles.title}>{appName}</h1>
+          <h1 style={styles.title}>{profiles.currentProfile?.name}</h1>
+
           <span style={styles.assistantType}>
-            {supportedAssistantType?.label}
+            {profiles.currentProfile?.supportedAssistantType}
           </span>
+
           <a
             href="https://github.com/theodoreniu/ai-agent-playground"
             target="_blank"
@@ -142,9 +116,9 @@ export function ConsolePage() {
       </div>
 
       <div className="content-main">
-        {isRealtime && <ConsolePageRealtime />}
-        {isAssistant && <ConsolePageAssistant />}
-        {isDeepSeek && <ConsolePageDeepSeek />}
+        {profiles.currentProfile?.isRealtime && <ConsolePageRealtime />}
+        {profiles.currentProfile?.isAssistant && <ConsolePageAssistant />}
+        {profiles.currentProfile?.isDeepSeek && <ConsolePageDeepSeek />}
       </div>
     </div>
   );

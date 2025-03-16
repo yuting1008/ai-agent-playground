@@ -5,6 +5,7 @@ import {
   APP_AGENT_VECTOR_STORE,
   CONNECT_CONNECTED,
   CONNECT_CONNECTING,
+  CONNECT_DISCONNECTED,
 } from '../lib/const';
 
 import './ConsolePage.scss';
@@ -31,10 +32,11 @@ import { InputBarAssistant } from '../components/InputBarAssistant';
 import {
   VectorStore,
   VectorStoresPage,
-} from 'openai/resources/beta/vector-stores/vector-stores';
+} from 'openai/resources/vector-stores/vector-stores';
 
 import { Run } from 'openai/resources/beta/threads/runs/runs';
 import BuiltFunctionDisable from '../components/BuiltFunctionDisable';
+import { Profiles } from '../lib/Profiles';
 
 export function ConsolePageAssistant() {
   const {
@@ -63,73 +65,10 @@ export function ConsolePageAssistant() {
 
   const [assistantRunning, setAssistantRunning] = useState(false);
 
+  const [profiles] = useState<Profiles>(new Profiles());
+
   const { functionsToolsRef, llmInstructions, llmInstructionsRef } =
     useContexts();
-
-  const cleanupAssistants = async () => {
-    try {
-      const assistantsPageList: Assistant[] = [];
-      let lists: AssistantsPage =
-        await getOpenAIClient().beta.assistants.list();
-      assistantsPageList.push(...lists.data);
-      setConnectMessage(
-        `Collecting Assistants(${assistantsPageList.length})...`,
-      );
-
-      while (lists.hasNextPage()) {
-        lists = await lists.getNextPage();
-        assistantsPageList.push(...lists.data);
-        setConnectMessage(
-          `Collecting Assistants(${assistantsPageList.length})...`,
-        );
-      }
-
-      for (const [index, assistant] of assistantsPageList.entries()) {
-        if (assistant.name === APP_AGENT) {
-          setConnectMessage(
-            `Deleting Assistant(${index}/${assistantsPageList.length}): ${assistant.id}`,
-          );
-          await getOpenAIClient().beta.assistants.del(assistant.id);
-        }
-      }
-    } catch (error: any) {
-      console.error(`Error listing assistants: ${error.message}`);
-      alert(`Error listing assistants: ${error.message}`);
-    }
-  };
-
-  const cleanupVectorStores = async () => {
-    try {
-      const vectorStoresPages: VectorStore[] = [];
-      let lists: VectorStoresPage =
-        await getOpenAIClient().beta.vectorStores.list();
-
-      vectorStoresPages.push(...lists.data);
-      setConnectMessage(
-        `Collecting Vector Stores(${vectorStoresPages.length})...`,
-      );
-
-      while (lists.hasNextPage()) {
-        lists = await lists.getNextPage();
-        vectorStoresPages.push(...lists.data);
-        setConnectMessage(
-          `Collecting Vector Stores(${vectorStoresPages.length})...`,
-        );
-      }
-
-      for (const [index, vectorStore] of vectorStoresPages.entries()) {
-        if (vectorStore.name === APP_AGENT_VECTOR_STORE) {
-          setConnectMessage(
-            `Deleting Vector Store(${index}/${vectorStoresPages.length}): ${vectorStore.id}`,
-          );
-          await getOpenAIClient().beta.vectorStores.del(vectorStore.id);
-        }
-      }
-    } catch (error: any) {
-      console.error(`Error listing assistants: ${error.message}`);
-      alert(`Error listing assistants: ${error.message}`);
-    }
-  };
 
   useEffect(() => {
     (async () => {
@@ -142,8 +81,59 @@ export function ConsolePageAssistant() {
     })();
   }, [llmInstructions, assistantRef]);
 
+  const cleanupAssistants = async () => {
+    const assistantsPageList: Assistant[] = [];
+    let lists: AssistantsPage = await getOpenAIClient().beta.assistants.list();
+    assistantsPageList.push(...lists.data);
+    setConnectMessage(`Collecting Assistants(${assistantsPageList.length})...`);
+
+    while (lists.hasNextPage()) {
+      lists = await lists.getNextPage();
+      assistantsPageList.push(...lists.data);
+      setConnectMessage(
+        `Collecting Assistants(${assistantsPageList.length})...`,
+      );
+    }
+
+    for (const [index, assistant] of assistantsPageList.entries()) {
+      if (assistant.name === APP_AGENT) {
+        setConnectMessage(
+          `Deleting Assistant(${index}/${assistantsPageList.length}): ${assistant.id}`,
+        );
+        await getOpenAIClient().beta.assistants.del(assistant.id);
+      }
+    }
+  };
+
+  const cleanupVectorStores = async () => {
+    const vectorStoresPages: VectorStore[] = [];
+    let lists: VectorStoresPage = await getOpenAIClient().vectorStores.list();
+
+    vectorStoresPages.push(...lists.data);
+    setConnectMessage(
+      `Collecting Vector Stores(${vectorStoresPages.length})...`,
+    );
+
+    while (lists.hasNextPage()) {
+      lists = await lists.getNextPage();
+      vectorStoresPages.push(...lists.data);
+      setConnectMessage(
+        `Collecting Vector Stores(${vectorStoresPages.length})...`,
+      );
+    }
+
+    for (const [index, vectorStore] of vectorStoresPages.entries()) {
+      if (vectorStore.name === APP_AGENT_VECTOR_STORE) {
+        setConnectMessage(
+          `Deleting Vector Store(${index}/${vectorStoresPages.length}): ${vectorStore.id}`,
+        );
+        await getOpenAIClient().vectorStores.del(vectorStore.id);
+      }
+    }
+  };
+
   const setupVectorStore = async (assistantId: string) => {
-    const vectorStore = await getOpenAIClient().beta.vectorStores.create({
+    const vectorStore = await getOpenAIClient().vectorStores.create({
       name: APP_AGENT_VECTOR_STORE,
     });
     await getOpenAIClient().beta.assistants.update(assistantId, {
@@ -157,37 +147,33 @@ export function ConsolePageAssistant() {
   };
 
   const setupAssistant = async () => {
-    try {
-      const { modelName } = parseOpenaiSetting(
-        localStorage.getItem('completionTargetUri') || '',
-      );
+    const { modelName } = parseOpenaiSetting(
+      profiles.currentProfile?.completionTargetUri || '',
+    );
 
-      const params: AssistantCreateParams = {
-        instructions: llmInstructionsRef.current,
-        name: APP_AGENT,
-        temperature: 1,
-        top_p: 1,
-        model: modelName,
-        tools: [{ type: 'code_interpreter' }, { type: 'file_search' }],
-      };
+    const params: AssistantCreateParams = {
+      instructions: llmInstructionsRef.current,
+      name: APP_AGENT,
+      temperature: profiles.currentProfile?.temperature || 0.5,
+      top_p: 1,
+      model: modelName,
+      tools: [{ type: 'code_interpreter' }, { type: 'file_search' }],
+    };
 
-      functionsToolsRef.current.forEach(
-        ([definition]: [ToolDefinitionType, Function]) => {
-          params.tools?.push({ type: 'function', function: definition });
-        },
-      );
+    // add custom functions to the assistant
+    functionsToolsRef.current.forEach(
+      ([definition]: [ToolDefinitionType, Function]) => {
+        params.tools?.push({ type: 'function', function: definition });
+      },
+    );
 
-      const assistant: Assistant =
-        await getOpenAIClient().beta.assistants.create(params);
-      console.log(`Assistant created:`, assistant);
+    const assistant: Assistant =
+      await getOpenAIClient().beta.assistants.create(params);
+    console.log(`Assistant created:`, assistant);
 
-      setAssistant(assistant);
-      setConnectMessage(`Creating Vector Store...`);
-      setupVectorStore(assistant.id);
-    } catch (error: any) {
-      console.error(`Error creating assistant: ${error.message}`);
-      alert(`Error creating assistant: ${error.message}`);
-    }
+    setAssistant(assistant);
+    setConnectMessage(`Creating Vector Store...`);
+    setupVectorStore(assistant.id);
   };
 
   const functionCallHandler = async (call: any) => {
@@ -431,9 +417,10 @@ export function ConsolePageAssistant() {
       return;
     }
 
-    // wait 1.5 seconds to see if the thread is already running
+    // wait to see if the thread is already running
+    const waitSeconds = 3 * 1000;
     if (threadJobRef.current) {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, waitSeconds));
       if (threadJobRef.current) {
         console.error('Thread is already running');
         return;
@@ -441,7 +428,6 @@ export function ConsolePageAssistant() {
     }
 
     // may need to add a check to see if the thread is already created
-
     try {
       handleAssistantTextCreated();
       await getOpenAIClient().beta.threads.messages.create(
@@ -470,17 +456,22 @@ export function ConsolePageAssistant() {
   };
 
   const connectConversation = useCallback(async () => {
-    setConnectStatus(CONNECT_CONNECTING);
-    setConnectMessage('Collecting Assistants...');
-    await cleanupAssistants();
-    setConnectMessage('Collecting Vector Stores...');
-    await cleanupVectorStores();
-    setConnectMessage('Creating Assistant...');
-    await setupAssistant();
-    setConnectMessage('Creating Thread...');
-    await createThread();
-    setConnectStatus(CONNECT_CONNECTED);
-    setConnectMessage('');
+    try {
+      setConnectStatus(CONNECT_CONNECTING);
+      setConnectMessage('Collecting Assistants...');
+      await cleanupAssistants();
+      setConnectMessage('Collecting Vector Stores...');
+      await cleanupVectorStores();
+      setConnectMessage('Creating Assistant...');
+      await setupAssistant();
+      setConnectMessage('Creating Thread...');
+      await createThread();
+      setConnectStatus(CONNECT_CONNECTED);
+      setConnectMessage('');
+    } catch (error: any) {
+      setConnectStatus(CONNECT_DISCONNECTED);
+      setConnectMessage(error.message);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

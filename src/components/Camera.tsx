@@ -12,7 +12,7 @@ import { Camera as CameraIcon, CameraOff, RefreshCw } from 'react-feather';
 import { X } from 'react-feather';
 import { componentLoadingStyles } from '../styles/componentLoadingStyles';
 import { addTextWatermarkToBase64 } from '../lib/watermark';
-import { buildInFunctionsEnabled } from '../lib/helper';
+import { Profiles } from '../lib/Profiles';
 
 const Camera: React.FC = () => {
   const webcamRef = React.useRef<Webcam>(null);
@@ -33,6 +33,8 @@ const Camera: React.FC = () => {
   const [cameraCount, setCameraCount] = useState(0);
 
   const componentLoading = componentLoadingStyles({ isNightMode });
+
+  const [profiles, setProfiles] = useState<Profiles>(new Profiles());
 
   useEffect(() => {
     console.log('cameraStatus:', cameraStatus);
@@ -176,7 +178,7 @@ const Camera: React.FC = () => {
     ) : null;
   };
 
-  return buildInFunctionsEnabled() ? (
+  return profiles.currentProfile?.buildInFunctions ? (
     <div className="content-block camera container_bg">
       <div>
         <SwitchCameraIcon />

@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { SYSTEM_INSTRUCTIONS, USER_INSTRUCTIONS } from '../lib/instructions';
+import { SYSTEM_INSTRUCTIONS } from '../lib/instructions';
 
 import * as memory from '../tools/memory';
 import * as weather from '../tools/weather';
@@ -56,12 +56,7 @@ import {
   getImages,
   getOpenAIClient,
 } from '../lib/openai';
-import {
-  buildInFunctionsEnabled,
-  buildInPromptEnabled,
-  delayFunction,
-  enableFunctionCalling,
-} from '../lib/helper';
+import { delayFunction } from '../lib/helper';
 import { Assistant } from 'openai/resources/beta/assistants';
 import { processAndStoreSentence } from '../lib/sentence';
 import axios from 'axios';
@@ -71,7 +66,9 @@ import {
   useGptImagesDispatch,
   useGptImagesRef,
 } from '../contexts/GptImagesContext';
-import { VectorStore } from 'openai/resources/beta/vector-stores/vector-stores';
+import { VectorStore } from 'openai/resources/vector-stores/vector-stores';
+import { Profiles } from '../lib/Profiles';
+import { GRAPHRAG_ABOUT } from '../tools/azure_docs';
 
 interface AppContextType {
   photos: string[];
@@ -244,8 +241,7 @@ export const AppProvider: React.FC<{
 }) => {
   const isOnline = useOnlineStatus();
 
-  const cogSvcSubKey = localStorage.getItem('cogSvcSubKey') || '';
-  const cogSvcRegion = localStorage.getItem('cogSvcRegion') || 'westus2';
+  const [profiles, setProfiles] = useState<Profiles>(new Profiles());
 
   // caption string
   const [caption, setCaption] = useState('');
@@ -355,7 +351,6 @@ export const AppProvider: React.FC<{
   const assistantRef = useRef(assistant);
   useEffect(() => {
     assistantRef.current = assistant;
-    localStorage.setItem('assistant', JSON.stringify(assistant));
   }, [assistant]);
 
   // vectorStore
@@ -544,7 +539,7 @@ export const AppProvider: React.FC<{
       let content: any = [
         {
           type: 'text',
-          text: `Can you describe what you saw? ${prompt} \n please describe in ${localStorage.getItem('language') || 'chinese'}. The top left corner of the image is the time, and usually you don't need to explain this time.`,
+          text: `Can you describe what you saw? ${prompt}. The top left corner of the image is the time, and usually you don't need to explain this time.`,
         },
       ];
 
@@ -599,7 +594,7 @@ export const AppProvider: React.FC<{
     let content: any = [
       {
         type: 'text',
-        text: `I'm going to give you a set of video frames from the video head capture, just captured. The images are displayed in reverse chronological order. Can you describe what you saw? If there are more pictures, it is continuous, please tell me the complete event that happened just now. ${prompt} \n please describe in ${localStorage.getItem('language') || 'chinese'}`,
+        text: `I'm going to give you a set of video frames from the video head capture, just captured. The images are displayed in reverse chronological order. Can you describe what you saw? If there are more pictures, it is continuous, please tell me the complete event that happened just now. ${prompt}`,
       },
     ];
 
@@ -653,7 +648,10 @@ export const AppProvider: React.FC<{
     [key: string]: boolean;
   }) => {
     if (on) {
-      if (!cogSvcSubKey || !cogSvcRegion) {
+      if (
+        !profiles.currentProfile?.cogSvcSubKey ||
+        !profiles.currentProfile?.cogSvcRegion
+      ) {
         return {
           message:
             'Please set your Cognitive Services subscription key and region.',
@@ -767,16 +765,16 @@ export const AppProvider: React.FC<{
   }: {
     [key: string]: any;
   }) => {
-    const subscriptionKey = localStorage.getItem('bingApiKey') || '';
-
-    if (!subscriptionKey) {
+    if (!profiles.currentProfile?.bingApiKey) {
       throw new Error('Bing API key is not set');
     }
 
     const offset = (page - 1) * count;
     const mkt = 'en-US';
     const params = { q: query, mkt: mkt, count: count, offset: offset };
-    const headers = { 'Ocp-Apim-Subscription-Key': subscriptionKey };
+    const headers = {
+      'Ocp-Apim-Subscription-Key': profiles.currentProfile?.bingApiKey,
+    };
 
     const response = await axios.get(
       'https://api.bing.microsoft.com/v7.0/search',
@@ -848,6 +846,14 @@ export const AppProvider: React.FC<{
     return { ok: true };
   };
 
+  const azure_docs_definition = {
+    ...azure_docs.definition,
+    description: azure_docs.definition.description.replace(
+      '{rag}',
+      profiles.currentProfile?.graphragAbout || GRAPHRAG_ABOUT,
+    ),
+  };
+
   const builtinFunctionTools: [ToolDefinitionType, Function][] = [
     [camera_on.definition, camera_on_handler],
     [camera_take_photo.definition, camera_take_photo_handler],
@@ -874,7 +880,7 @@ export const AppProvider: React.FC<{
     [location.definition, location.handler],
     [feishu.definition, feishu.handler],
     [open_url.definition, open_url.handler],
-    [azure_docs.definition, azure_docs.handler],
+    [azure_docs_definition, azure_docs.handler],
     [demo.definition, demo.handler],
     [quote.definition, quote.handler],
     [stock_recommend.definition, stock_recommend.handler],
@@ -882,7 +888,8 @@ export const AppProvider: React.FC<{
   ];
   builtinFunctionTools.sort((a, b) => a[0].name.localeCompare(b[0].name));
 
-  let merge_tools: [ToolDefinitionType, Function][] = buildInFunctionsEnabled()
+  let merge_tools: [ToolDefinitionType, Function][] = profiles.currentProfile
+    ?.buildInFunctions
     ? [...loadFunctionsTools, ...builtinFunctionTools]
     : [...loadFunctionsTools];
 
@@ -895,21 +902,18 @@ export const AppProvider: React.FC<{
   const functionsToolsRef =
     useRef<[ToolDefinitionType, Function][]>(functions_tool);
 
-  let updateInstructions = buildInPromptEnabled()
+  let updateInstructions = profiles.currentProfile?.buildInPrompt
     ? SYSTEM_INSTRUCTIONS
-    : USER_INSTRUCTIONS;
+    : profiles.currentProfile?.prompt || '';
 
-  if (enableFunctionCalling() && functionsToolsRef.current.length > 0) {
-    updateInstructions += `\n\nYou have the following tools and abilities:`;
-    for (const tool of functionsToolsRef.current) {
-      updateInstructions += `\n${tool[0].name}: ${tool[0].description}`;
-    }
-  }
+  // if (enableFunctionCalling() && functionsToolsRef.current.length > 0) {
+  //   updateInstructions += `\n\nYou have the following tools and abilities:`;
+  //   for (const tool of functionsToolsRef.current) {
+  //     updateInstructions += `\n${tool[0].name}: ${tool[0].description}`;
+  //   }
+  // }
 
   const [messages, setMessages] = useState<any[]>([]);
-
-  const language = localStorage.getItem('language') || 'chinese';
-  updateInstructions = updateInstructions.replaceAll('{language}', language);
 
   const [llmInstructions, setLlmInstructions] =
     useState<string>(updateInstructions);

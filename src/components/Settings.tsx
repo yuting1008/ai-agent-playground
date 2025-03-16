@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { FaRegEye, FaRegEyeSlash } from 'react-icons/fa';
-import { Download, Settings, Upload, X } from 'react-feather';
+import { Download, Plus, Settings, Upload, X, Trash } from 'react-feather';
 import { Button } from './button/Button';
 import Dropdown from './Dropdown';
 import { GRAPHRAG_ABOUT } from '../tools/azure_docs';
@@ -19,13 +19,13 @@ import {
   NOT_SETTINGS_STATUS,
 } from '../lib/const';
 import { useContexts } from '../providers/AppProvider';
-import { getAppName, svgToBase64 } from '../lib/helper';
+import { svgToBase64 } from '../lib/helper';
 import defaultIcon from '../static/logomark.svg';
-
+import { Profiles } from '../lib/Profiles';
 const DEFAULT = 'Default';
 const REAL_TIME_API = 'Realtime';
-const DALL_E = 'Dall-E-3';
-const GRAPHRAG = 'GraphRAG';
+const DALL_E = 'Dall-E';
+const GRAPHRAG = 'RAG';
 const SPEECH = 'Speech';
 const TTS = 'TTS';
 const COMPLETION = 'Completion';
@@ -35,9 +35,18 @@ const FUNCTIONS = 'Functions';
 const PROMPT = 'Prompt';
 const BING = 'Bing';
 
-const supportedLanguages = [
-  { value: 'chinese', label: 'Chinese' },
-  { value: 'english', label: 'English' },
+const temperatureOptions = [
+  { value: '0', label: '0' },
+  { value: '0.1', label: '0.1' },
+  { value: '0.2', label: '0.2' },
+  { value: '0.3', label: '0.3' },
+  { value: '0.4', label: '0.4' },
+  { value: '0.5', label: '0.5' },
+  { value: '0.6', label: '0.6' },
+  { value: '0.7', label: '0.7' },
+  { value: '0.8', label: '0.8' },
+  { value: '0.9', label: '0.9' },
+  { value: '1', label: '1' },
 ];
 
 export const supportedAssistantTypes = [
@@ -67,15 +76,8 @@ const SettingsComponent: React.FC<{
   const [isVisible, setIsVisible] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(DEFAULT);
+  const [profiles, setProfiles] = useState(new Profiles());
   const { resetApp, isNightMode } = useContexts();
-
-  const [appIconDark, setAppIconDark] = useState(
-    localStorage.getItem('appIconDark') || defaultIcon,
-  );
-
-  const [appIconLight, setAppIconLight] = useState(
-    localStorage.getItem('appIconLight') || defaultIcon,
-  );
 
   const styles = {
     link: {
@@ -98,9 +100,8 @@ const SettingsComponent: React.FC<{
       padding: '20px',
       borderRadius: '8px',
       color: isNightMode ? '#dddddf' : '#3e3e47',
-      width: '80%',
-      maxWidth: '900px',
-      maxHeight: '80%',
+      width: '805px',
+      maxHeight: '90%',
       overflowY: 'auto',
     } as React.CSSProperties,
     settingsModalHeader: {
@@ -177,9 +178,9 @@ const SettingsComponent: React.FC<{
       fontSize: '12px',
       margin: '0',
       backgroundColor: isNightMode
-        ? 'rgba(0, 0, 0, 0.3)'
-        : 'rgba(255, 255, 255, 0.7)',
-      color: isNightMode ? '#ababab' : '#3e3e47',
+        ? 'rgba(0, 0, 0, 0.8)'
+        : 'rgba(0, 0, 0, 0.1)',
+      color: isNightMode ? '#ffffff' : '#000000',
 
       ':disabled': {
         backgroundColor: '#336643',
@@ -187,15 +188,16 @@ const SettingsComponent: React.FC<{
     } as React.CSSProperties,
     settings_inline: {
       display: 'flex',
-      gap: '40px',
+      gap: '20px',
     } as React.CSSProperties,
     settings_inline_block: {
       display: 'inline-block',
-      width: '50%',
+      width: '100%',
     } as React.CSSProperties,
     export_settings: {
       border: '1px solid #b2b1b1',
       background: 'transparent',
+      marginTop: '20px',
     } as React.CSSProperties,
     settings_tip: {
       backgroundColor: isNightMode
@@ -246,9 +248,9 @@ const SettingsComponent: React.FC<{
           const svgData = e.target?.result;
           if (svgData) {
             const imgStr = svgToBase64(svgData as string);
-            localStorage.setItem('appIconDark', imgStr);
-            setAppIconDark(imgStr);
-            handleChange('appIconDark', imgStr);
+            profiles.currentProfile!.appIconDark = imgStr;
+            profiles.save();
+            setProfiles(new Profiles());
           }
         };
         reader.readAsText(file);
@@ -270,9 +272,9 @@ const SettingsComponent: React.FC<{
           const svgData = e.target?.result;
           if (svgData) {
             const imgStr = svgToBase64(svgData as string);
-            localStorage.setItem('appIconLight', imgStr);
-            setAppIconLight(imgStr);
-            handleChange('appIconLight', imgStr);
+            profiles.currentProfile!.appIconLight = imgStr;
+            profiles.save();
+            setProfiles(new Profiles());
           }
         };
         reader.readAsText(file);
@@ -283,72 +285,69 @@ const SettingsComponent: React.FC<{
 
   const handleAppIconClickReset = (e: React.MouseEvent<HTMLImageElement>) => {
     e.stopPropagation();
-    localStorage.removeItem('appIconDark');
-    localStorage.removeItem('appIconLight');
-    setAppIconDark(defaultIcon);
-    setAppIconLight(defaultIcon);
+    profiles.currentProfile!.appIconDark = defaultIcon;
+    profiles.currentProfile!.appIconLight = defaultIcon;
+    profiles.save();
+    setProfiles(new Profiles());
   };
 
-  const handleChange = (name: string, value: string) => {
-    if (value === '') {
-      localStorage.removeItem(name);
-      console.log(`${name} removed`);
-    } else {
-      localStorage.setItem(name, value);
-      console.log(name, value);
-    }
-  };
-
+  // Default Settings Tab
   const DefaultSettings = () => {
-    const [language, setLanguage] = useState(
-      localStorage.getItem('language') || 'chinese',
-    );
-
-    const [appName, setAppName] = useState(getAppName());
-
-    const [assistantType, setAssistantType] = useState(
-      localStorage.getItem('assistantType') || ASSISTANT_TYPE_REALTIME,
-    );
-
-    const [buildInPrompt, setBuildInPrompt] = useState(
-      localStorage.getItem('buildInPrompt') || BUILD_IN_PROMPT_ENABLE,
-    );
-
-    const [buildInFunctions, setBuildInFunctions] = useState(
-      localStorage.getItem('buildInFunctions') || BUILD_IN_FUNCTIONS_ENABLE,
-    );
+    const [profiles, setProfiles] = useState(new Profiles());
 
     return (
       <div>
-        <div style={styles.settingLabel}>App Name</div>
-        <input
-          type={'text'}
-          style={{ ...styles.settingInput, width: '200px' }}
-          value={appName}
-          onChange={(e) => {
-            setAppName(e.target.value);
-            handleChange('appName', e.target.value);
-          }}
-        />
+        <div style={styles.settings_inline}>
+          <div style={styles.settings_inline_block}>
+            <div style={styles.settingLabel}>Profiles</div>
+
+            <Dropdown
+              options={profiles.getProfileNamesAsDropdown()}
+              selectedValue={profiles.currentProfile?.name || ''}
+              onChange={(e) => {
+                profiles.profiles.forEach((p) => {
+                  if (p.name === e) {
+                    profiles.switch(p);
+                    setProfiles(new Profiles());
+                  }
+                });
+              }}
+            />
+          </div>
+
+          <div style={styles.settings_inline_block}>
+            <div style={styles.settingLabel}>App Name</div>
+            <input
+              type={'text'}
+              style={styles.settingInput}
+              value={profiles.currentProfile?.name || ''}
+              onChange={(e) => {
+                profiles.currentProfile!.name = e.target.value;
+                profiles.save();
+                setProfiles(new Profiles());
+              }}
+            />
+          </div>
+        </div>
 
         <div style={{ display: 'flex', gap: '60px' }}>
           <div>
-            <div style={styles.settingLabel}>Light Icon</div>
+            <div style={styles.settingLabel}>Dark Icon</div>
             <img
-              src={appIconLight}
+              src={profiles.currentProfile?.appIconDark || defaultIcon}
               alt="App Icon"
-              style={{ ...styles.appIcon }}
-              onClick={handleAppIconClickLight}
+              style={{ ...styles.appIcon, backgroundColor: '#000000' }}
+              onClick={handleAppIconClickDark}
             />
           </div>
 
           <div>
-            <div style={styles.settingLabel}>Dark Icon</div>
+            <div style={styles.settingLabel}>Light Icon</div>
             <img
-              src={appIconDark}
+              src={profiles.currentProfile?.appIconLight || defaultIcon}
               alt="App Icon"
-              style={{ ...styles.appIcon, backgroundColor: '#000000' }}
-              onClick={handleAppIconClickDark}
+              style={{ ...styles.appIcon }}
+              onClick={handleAppIconClickLight}
             />
           </div>
 
@@ -363,88 +362,129 @@ const SettingsComponent: React.FC<{
           </div>
         </div>
 
-        <div style={styles.settingLabel}>Assistant Type</div>
-        <Dropdown
-          options={supportedAssistantTypes}
-          selectedValue={assistantType}
-          onChange={(e) => {
-            setAssistantType(e);
-            handleChange('assistantType', e);
-          }}
-        />
+        <div style={styles.settings_inline}>
+          <div style={styles.settings_inline_block}>
+            <div style={styles.settingLabel}>Assistant Type</div>
+            <Dropdown
+              options={supportedAssistantTypes}
+              selectedValue={profiles.currentProfile?.assistantType || ''}
+              onChange={(e) => {
+                profiles.currentProfile!.assistantType = e;
+                profiles.save();
+                setProfiles(new Profiles());
+              }}
+            />
+          </div>
 
-        <div style={styles.settingLabel}>Build-in Prompt</div>
-        <Dropdown
-          options={buildInPromptOptions}
-          selectedValue={buildInPrompt}
-          onChange={(e) => {
-            setBuildInPrompt(e);
-            handleChange('buildInPrompt', e);
-          }}
-        />
-
-        <div
-          style={{
-            ...styles.settingLabel,
-            display:
-              buildInPrompt === BUILD_IN_PROMPT_DISABLE ? 'none' : 'block',
-          }}
-        >
-          Default Language
-          <Dropdown
-            options={supportedLanguages}
-            selectedValue={language}
-            onChange={(e) => {
-              setLanguage(e);
-              handleChange('language', e);
-            }}
-          />
+          <div style={styles.settings_inline_block}>
+            <div style={styles.settingLabel}>Temperature</div>
+            <Dropdown
+              options={temperatureOptions}
+              selectedValue={
+                profiles.currentProfile?.temperature.toString() || ''
+              }
+              onChange={(e) => {
+                profiles.currentProfile!.temperature = parseFloat(e);
+                profiles.save();
+                setProfiles(new Profiles());
+              }}
+            />
+          </div>
         </div>
 
-        <div style={styles.settingLabel}>Build-in Functions</div>
-        <Dropdown
-          options={buildInFunctionsOptions}
-          selectedValue={buildInFunctions}
-          onChange={(e) => {
-            setBuildInFunctions(e);
-            handleChange('buildInFunctions', e);
-          }}
-        />
+        <div style={styles.settings_inline}>
+          <div style={styles.settings_inline_block}>
+            <div style={styles.settingLabel}>Built-in Prompt</div>
+            <Dropdown
+              options={buildInPromptOptions}
+              selectedValue={
+                profiles.currentProfile?.buildInPrompt ? 'Enable' : 'Disable'
+              }
+              onChange={(e) => {
+                profiles.currentProfile!.buildInPrompt = e === 'Enable';
+                profiles.save();
+                setProfiles(new Profiles());
+              }}
+            />
+          </div>
 
-        <div style={{ display: 'flex', gap: '15px', marginTop: '30px' }}>
-          <Button
-            label={'Import Settings'}
-            icon={Upload}
-            style={styles.export_settings}
-            buttonStyle={'regular'}
-            onClick={handleButtonClick}
-          />
+          <div style={styles.settings_inline_block}>
+            <div style={styles.settingLabel}>Built-in Functions</div>
+            <Dropdown
+              options={buildInFunctionsOptions}
+              selectedValue={
+                profiles.currentProfile?.buildInFunctions ? 'Enable' : 'Disable'
+              }
+              onChange={(e) => {
+                profiles.currentProfile!.buildInFunctions = e === 'Enable';
+                profiles.save();
+                setProfiles(new Profiles());
+              }}
+            />
+          </div>
+        </div>
 
-          <Button
-            label={'Export Settings'}
-            icon={Download}
-            style={styles.export_settings}
-            buttonStyle={'regular'}
-            onClick={handleExport}
-          />
+        <div style={styles.settings_inline}>
+          <div style={styles.settings_inline_block}>
+            <Button
+              label={'Clone Profile'}
+              icon={Plus}
+              style={styles.export_settings}
+              buttonStyle={'regular'}
+              onClick={() => {
+                profiles.clone();
+                setProfiles(new Profiles());
+              }}
+            />
+          </div>
 
-          <input
-            type="file"
-            accept=".json"
-            ref={fileInputRef}
-            onChange={handleImport}
-            style={{ display: 'none' }}
-          />
+          <div style={styles.settings_inline_block}>
+            <Button
+              label={'Delete Profile'}
+              icon={Trash}
+              style={styles.export_settings}
+              buttonStyle={'regular'}
+              onClick={() => {
+                profiles.delete(profiles.currentProfile);
+                setProfiles(new Profiles());
+              }}
+            />
+          </div>
+
+          <div style={styles.settings_inline_block}>
+            <Button
+              label={'Import Settings'}
+              icon={Upload}
+              style={styles.export_settings}
+              buttonStyle={'regular'}
+              onClick={handleButtonClick}
+            />
+          </div>
+
+          <div style={styles.settings_inline_block}>
+            <Button
+              label={'Export Settings'}
+              icon={Download}
+              style={styles.export_settings}
+              buttonStyle={'regular'}
+              onClick={handleExport}
+            />
+            <input
+              type="file"
+              accept=".json"
+              ref={fileInputRef}
+              onChange={handleImport}
+              style={{ display: 'none' }}
+            />
+          </div>
         </div>
       </div>
     );
   };
 
+  // Realtime Settings Tab
   const Realtime = () => {
-    const [endpoint, setEndpoint] = useState(
-      localStorage.getItem('endpoint') || '',
-    );
-    const [key, setKey] = useState(localStorage.getItem('key') || '');
+    const [profiles, setProfiles] = useState(new Profiles());
 
     return (
       <div>
@@ -452,13 +492,14 @@ const SettingsComponent: React.FC<{
         <input
           type={'text'}
           style={styles.settingInput}
-          value={endpoint}
+          value={profiles.currentProfile?.realtimeEndpoint || ''}
           placeholder={
             'https://xxx.openai.azure.com/openai/realtime?api-version=2024-10-01-preview&deployment=xxx'
           }
           onChange={(e) => {
-            setEndpoint(e.target.value);
-            handleChange('endpoint', e.target.value);
+            profiles.currentProfile!.realtimeEndpoint = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
           }}
         />
 
@@ -471,24 +512,21 @@ const SettingsComponent: React.FC<{
         <input
           type={isVisible ? 'text' : 'password'}
           style={styles.settingInput}
-          value={key}
+          value={profiles.currentProfile?.realtimeKey || ''}
           placeholder={''}
           onChange={(e) => {
-            setKey(e.target.value);
-            handleChange('key', e.target.value);
+            profiles.currentProfile!.realtimeKey = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
           }}
         />
       </div>
     );
   };
 
+  // TTS Settings Tab
   const SettingsTTS = () => {
-    const [ttsTargetUri, setTtsTargetUri] = useState(
-      localStorage.getItem('ttsTargetUri') || '',
-    );
-    const [ttsApiKey, setTtsApiKey] = useState(
-      localStorage.getItem('ttsApiKey') || '',
-    );
+    const [profiles, setProfiles] = useState(new Profiles());
 
     return (
       <div>
@@ -496,13 +534,14 @@ const SettingsComponent: React.FC<{
         <input
           type={'text'}
           style={styles.settingInput}
-          value={ttsTargetUri}
+          value={profiles.currentProfile?.ttsTargetUri || ''}
           placeholder={
             'https://xxxx.openai.azure.com/openai/deployments/tts/audio/speech?api-version=2024-05-01-preview'
           }
           onChange={(e) => {
-            setTtsTargetUri(e.target.value);
-            handleChange('ttsTargetUri', e.target.value);
+            profiles.currentProfile!.ttsTargetUri = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
           }}
         />
 
@@ -515,24 +554,21 @@ const SettingsComponent: React.FC<{
         <input
           type={isVisible ? 'text' : 'password'}
           style={styles.settingInput}
-          value={ttsApiKey}
+          value={profiles.currentProfile?.ttsApiKey || ''}
           placeholder={''}
           onChange={(e) => {
-            setTtsApiKey(e.target.value);
-            handleChange('ttsApiKey', e.target.value);
+            profiles.currentProfile!.ttsApiKey = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
           }}
         />
       </div>
     );
   };
 
+  // DALL-E Settings Tab
   const DALLE = () => {
-    const [dallTargetUri, setDallTargetUri] = useState(
-      localStorage.getItem('dallTargetUri') || '',
-    );
-    const [dallApiKey, setDallApiKey] = useState(
-      localStorage.getItem('dallApiKey') || '',
-    );
+    const [profiles, setProfiles] = useState(new Profiles());
 
     return (
       <div>
@@ -540,13 +576,14 @@ const SettingsComponent: React.FC<{
         <input
           type={'text'}
           style={styles.settingInput}
-          value={dallTargetUri}
+          value={profiles.currentProfile?.dallTargetUri || ''}
           placeholder={
             'https://xxx.openai.azure.com/openai/deployments/dall-e-3/images/generations?api-version=2024-02-01'
           }
           onChange={(e) => {
-            setDallTargetUri(e.target.value);
-            handleChange('dallTargetUri', e.target.value);
+            profiles.currentProfile!.dallTargetUri = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
           }}
         />
 
@@ -559,30 +596,21 @@ const SettingsComponent: React.FC<{
         <input
           type={isVisible ? 'text' : 'password'}
           style={styles.settingInput}
-          value={dallApiKey}
+          value={profiles.currentProfile?.dallApiKey || ''}
           placeholder={''}
           onChange={(e) => {
-            setDallApiKey(e.target.value);
-            handleChange('dallApiKey', e.target.value);
+            profiles.currentProfile!.dallApiKey = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
           }}
         />
       </div>
     );
   };
 
+  // GraphRAG Settings Tab
   const GraphRAG = () => {
-    const [graphragUrl, setGraphragUrl] = useState(
-      localStorage.getItem('graphragUrl') || '',
-    );
-    const [graphragApiKey, setGraphragApiKey] = useState(
-      localStorage.getItem('graphragApiKey') || '',
-    );
-    const [graphragProjectName, setGraphragProjectName] = useState(
-      localStorage.getItem('graphragProjectName') || '',
-    );
-    const [graphragAbout, setGraphragAbout] = useState(
-      localStorage.getItem('graphragAbout') || '',
-    );
+    const [profiles, setProfiles] = useState(new Profiles());
 
     return (
       <div>
@@ -600,11 +628,12 @@ const SettingsComponent: React.FC<{
         <input
           type={'text'}
           style={styles.settingInput}
-          value={graphragUrl}
+          value={profiles.currentProfile?.graphragUrl || ''}
           placeholder={'https://xxx.xxx.xxx.azurecontainerapps.io'}
           onChange={(e) => {
-            setGraphragUrl(e.target.value);
-            handleChange('graphragUrl', e.target.value);
+            profiles.currentProfile!.graphragUrl = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
           }}
         />
 
@@ -617,11 +646,12 @@ const SettingsComponent: React.FC<{
         <input
           type={isVisible ? 'text' : 'password'}
           style={styles.settingInput}
-          value={graphragApiKey}
+          value={profiles.currentProfile?.graphragApiKey || ''}
           placeholder={''}
           onChange={(e) => {
-            setGraphragApiKey(e.target.value);
-            handleChange('graphragApiKey', e.target.value);
+            profiles.currentProfile!.graphragApiKey = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
           }}
         />
 
@@ -629,11 +659,12 @@ const SettingsComponent: React.FC<{
         <input
           type={'text'}
           style={styles.settingInput}
-          value={graphragProjectName}
+          value={profiles.currentProfile?.graphragProjectName || ''}
           placeholder={''}
           onChange={(e) => {
-            setGraphragProjectName(e.target.value);
-            handleChange('graphragProjectName', e.target.value);
+            profiles.currentProfile!.graphragProjectName = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
           }}
         />
 
@@ -641,38 +672,34 @@ const SettingsComponent: React.FC<{
         <input
           type={'text'}
           style={styles.settingInput}
-          value={graphragAbout}
+          value={profiles.currentProfile?.graphragAbout || ''}
           placeholder={GRAPHRAG_ABOUT}
           onChange={(e) => {
-            setGraphragAbout(e.target.value);
-            handleChange('graphragAbout', e.target.value);
+            profiles.currentProfile!.graphragAbout = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
           }}
         />
       </div>
     );
   };
 
+  // Speech Settings Tab
   const Speech = () => {
-    const [cogSvcRegion, setCogSvcRegion] = useState(
-      localStorage.getItem('cogSvcRegion') || '',
-    );
-    const [cogSvcSubKey, setCogSvcSubKey] = useState(
-      localStorage.getItem('cogSvcSubKey') || '',
-    );
-    const [cogSvcEndpoint, setCogSvcEndpoint] = useState(
-      localStorage.getItem('cogSvcEndpoint') || '',
-    );
+    const [profiles, setProfiles] = useState(new Profiles());
+
     return (
       <div>
         <div style={styles.settingLabel}>Region</div>
         <input
           type={'text'}
           style={styles.settingInput}
-          value={cogSvcRegion}
+          value={profiles.currentProfile?.cogSvcRegion || ''}
           placeholder={'westus2'}
           onChange={(e) => {
-            setCogSvcRegion(e.target.value);
-            handleChange('cogSvcRegion', e.target.value);
+            profiles.currentProfile!.cogSvcRegion = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
           }}
         />
 
@@ -685,11 +712,12 @@ const SettingsComponent: React.FC<{
         <input
           type={isVisible ? 'text' : 'password'}
           style={styles.settingInput}
-          value={cogSvcSubKey}
+          value={profiles.currentProfile?.cogSvcSubKey || ''}
           placeholder={''}
           onChange={(e) => {
-            setCogSvcSubKey(e.target.value);
-            handleChange('cogSvcSubKey', e.target.value);
+            profiles.currentProfile!.cogSvcSubKey = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
           }}
         />
 
@@ -708,23 +736,23 @@ const SettingsComponent: React.FC<{
         <input
           type={'text'}
           style={styles.settingInput}
-          value={cogSvcEndpoint}
+          value={profiles.currentProfile?.cogSvcEndpoint || ''}
           placeholder={
             'https://xxx.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1'
           }
           onChange={(e) => {
-            setCogSvcEndpoint(e.target.value);
-            handleChange('cogSvcEndpoint', e.target.value);
+            profiles.currentProfile!.cogSvcEndpoint = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
           }}
         />
       </div>
     );
   };
 
+  // Bing Settings Tab
   const Bing = () => {
-    const [bingApiKey, setBingApiKey] = useState(
-      localStorage.getItem('bingApiKey') || '',
-    );
+    const [profiles, setProfiles] = useState(new Profiles());
 
     return (
       <div>
@@ -737,11 +765,12 @@ const SettingsComponent: React.FC<{
         <input
           type={isVisible ? 'text' : 'password'}
           style={styles.settingInput}
-          value={bingApiKey}
+          value={profiles.currentProfile?.bingApiKey || ''}
           placeholder={''}
           onChange={(e) => {
-            setBingApiKey(e.target.value);
-            handleChange('bingApiKey', e.target.value);
+            profiles.currentProfile!.bingApiKey = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
           }}
         />
 
@@ -751,7 +780,9 @@ const SettingsComponent: React.FC<{
           style={styles.settingInput}
           disabled
           onChange={(e) => {
-            handleChange('bingEndpoint', e.target.value);
+            profiles.currentProfile!.bingEndpoint = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
           }}
           value={'https://api.bing.microsoft.com/'}
         />
@@ -762,7 +793,9 @@ const SettingsComponent: React.FC<{
           style={styles.settingInput}
           disabled
           onChange={(e) => {
-            handleChange('bingLocation', e.target.value);
+            profiles.currentProfile!.bingLocation = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
           }}
           value={'global'}
         />
@@ -770,13 +803,9 @@ const SettingsComponent: React.FC<{
     );
   };
 
+  // Completion Settings Tab
   const Completion = () => {
-    const [completionTargetUri, setCompletionTargetUri] = useState(
-      localStorage.getItem('completionTargetUri') || '',
-    );
-    const [completionApiKey, setCompletionApiKey] = useState(
-      localStorage.getItem('completionApiKey') || '',
-    );
+    const [profiles, setProfiles] = useState(new Profiles());
 
     return (
       <div>
@@ -784,13 +813,14 @@ const SettingsComponent: React.FC<{
         <input
           type={'text'}
           style={styles.settingInput}
-          value={completionTargetUri}
+          value={profiles.currentProfile?.completionTargetUri || ''}
           placeholder={
             'https://xxxx.openai.azure.com/openai/deployments/gpt-4o-mini/chat/completions?api-version=2024-08-01-preview'
           }
           onChange={(e) => {
-            setCompletionTargetUri(e.target.value);
-            handleChange('completionTargetUri', e.target.value);
+            profiles.currentProfile!.completionTargetUri = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
           }}
         />
 
@@ -803,31 +833,21 @@ const SettingsComponent: React.FC<{
         <input
           type={isVisible ? 'text' : 'password'}
           style={styles.settingInput}
-          value={completionApiKey}
+          value={profiles.currentProfile?.completionApiKey || ''}
           placeholder={''}
           onChange={(e) => {
-            setCompletionApiKey(e.target.value);
-            handleChange('completionApiKey', e.target.value);
+            profiles.currentProfile!.completionApiKey = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
           }}
         />
       </div>
     );
   };
 
+  // DeepSeek Settings Tab
   const DeepSeek = () => {
-    const [deepSeekTargetUri, setDeepSeekTargetUri] = useState(
-      localStorage.getItem('deepSeekTargetUri') || '',
-    );
-    const [deepSeekApiKey, setDeepSeekApiKey] = useState(
-      localStorage.getItem('deepSeekApiKey') || '',
-    );
-    const [deepSeekDeploymentName, setDeepSeekDeploymentName] = useState(
-      localStorage.getItem('deepSeekDeploymentName') || 'DeepSeek-R1',
-    );
-    const [functionCalling, setFunctionCalling] = useState(
-      localStorage.getItem('deepSeekFunctionCalling') ||
-        DEEPSEEK_FUNCTION_CALL_DISABLE,
-    );
+    const [profiles, setProfiles] = useState(new Profiles());
 
     return (
       <div>
@@ -845,11 +865,12 @@ const SettingsComponent: React.FC<{
         <input
           type={'text'}
           style={styles.settingInput}
-          value={deepSeekDeploymentName}
-          placeholder={deepSeekDeploymentName}
+          value={profiles.currentProfile?.deepSeekDeploymentName || ''}
+          placeholder={profiles.currentProfile?.deepSeekDeploymentName || ''}
           onChange={(e) => {
-            setDeepSeekDeploymentName(e.target.value);
-            handleChange('deepSeekDeploymentName', e.target.value);
+            profiles.currentProfile!.deepSeekDeploymentName = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
           }}
         />
 
@@ -857,13 +878,14 @@ const SettingsComponent: React.FC<{
         <input
           type={'text'}
           style={styles.settingInput}
-          value={deepSeekTargetUri}
+          value={profiles.currentProfile?.deepSeekTargetUri || ''}
           placeholder={
             'https://ai-xxx.services.ai.azure.com/models/chat/completions?api-version=2024-05-01-preview'
           }
           onChange={(e) => {
-            setDeepSeekTargetUri(e.target.value);
-            handleChange('deepSeekTargetUri', e.target.value);
+            profiles.currentProfile!.deepSeekTargetUri = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
           }}
         />
 
@@ -876,11 +898,12 @@ const SettingsComponent: React.FC<{
         <input
           type={isVisible ? 'text' : 'password'}
           style={styles.settingInput}
-          value={deepSeekApiKey}
+          value={profiles.currentProfile?.deepSeekApiKey || ''}
           placeholder={''}
           onChange={(e) => {
-            setDeepSeekApiKey(e.target.value);
-            handleChange('deepSeekApiKey', e.target.value);
+            profiles.currentProfile!.deepSeekApiKey = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
           }}
         />
 
@@ -900,21 +923,23 @@ const SettingsComponent: React.FC<{
         </p>
         <Dropdown
           options={deepSeekFunctionCallingTypes}
-          selectedValue={functionCalling}
+          selectedValue={
+            profiles.currentProfile?.deepSeekFunctionCalling ||
+            DEEPSEEK_FUNCTION_CALL_DISABLE
+          }
           onChange={(e) => {
-            setFunctionCalling(e);
-            handleChange('deepSeekFunctionCalling', e);
+            profiles.currentProfile!.deepSeekFunctionCalling = e;
+            profiles.save();
+            setProfiles(new Profiles());
           }}
         />
       </div>
     );
   };
 
+  // Prompt Settings Tab
   const Prompt = () => {
-    const [prompt, setPrompt] = useState(localStorage.getItem('prompt') || '');
-    const [promptUrl, setPromptUrl] = useState(
-      localStorage.getItem('promptUrl') || '',
-    );
+    const [profiles, setProfiles] = useState(new Profiles());
 
     return (
       <div>
@@ -922,14 +947,16 @@ const SettingsComponent: React.FC<{
         <input
           type="text"
           style={styles.settingInput}
-          value={promptUrl}
+          value={profiles.currentProfile?.promptUrl || ''}
           placeholder={''}
           onChange={(e) => {
-            setPromptUrl(e.target.value);
-            handleChange('promptUrl', e.target.value);
+            profiles.currentProfile!.promptUrl = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
             if (e.target.value === '') {
-              setPrompt('');
-              handleChange('prompt', '');
+              profiles.currentProfile!.prompt = '';
+              profiles.save();
+              setProfiles(new Profiles());
             }
           }}
         />
@@ -937,39 +964,38 @@ const SettingsComponent: React.FC<{
         <div
           style={{
             ...styles.settingLabel,
-            display: promptUrl !== '' ? 'none' : 'block',
+            display:
+              profiles.currentProfile?.promptUrl !== '' ? 'none' : 'block',
           }}
         >
           Prompt
         </div>
         <textarea
           style={styles.settingInput}
-          value={prompt}
+          value={profiles.currentProfile?.prompt || ''}
           placeholder={''}
-          hidden={promptUrl !== ''}
+          hidden={profiles.currentProfile?.promptUrl !== ''}
           rows={20}
           maxLength={ALLOW_PROMPT_CHARACTERS}
           onChange={(e) => {
-            setPrompt(e.target.value);
-            handleChange('prompt', e.target.value);
+            profiles.currentProfile!.prompt = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
           }}
         />
 
         <div style={styles.settingLabel}>
-          Remaining Characters: {ALLOW_PROMPT_CHARACTERS - prompt.length}
+          Remaining Characters:{' '}
+          {ALLOW_PROMPT_CHARACTERS -
+            (profiles.currentProfile?.prompt?.length || 0)}
         </div>
       </div>
     );
   };
 
+  // Functions Settings Tab
   const Functions = () => {
-    const [functions, setFunctions] = useState(
-      localStorage.getItem('functions') || '',
-    );
-
-    const [functionsUrl, setFunctionsUrl] = useState(
-      localStorage.getItem('functionsUrl') || '',
-    );
+    const [profiles, setProfiles] = useState(new Profiles());
 
     const format_functions = (functions: string) => {
       try {
@@ -985,14 +1011,16 @@ const SettingsComponent: React.FC<{
         <input
           type="text"
           style={styles.settingInput}
-          value={functionsUrl}
+          value={profiles.currentProfile?.functionsUrl || ''}
           placeholder={''}
           onChange={(e) => {
-            setFunctionsUrl(e.target.value);
-            handleChange('functionsUrl', e.target.value);
+            profiles.currentProfile!.functionsUrl = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
             if (e.target.value === '') {
-              setFunctions('');
-              handleChange('functions', '');
+              profiles.currentProfile!.functions = '';
+              profiles.save();
+              setProfiles(new Profiles());
             }
           }}
         />
@@ -1000,51 +1028,38 @@ const SettingsComponent: React.FC<{
         <div
           style={{
             ...styles.settingLabel,
-            display: functionsUrl !== '' ? 'none' : 'block',
+            display:
+              profiles.currentProfile?.functionsUrl !== '' ? 'none' : 'block',
           }}
         >
           Functions
         </div>
         <textarea
           style={styles.settingInput}
-          value={format_functions(functions)}
+          value={format_functions(profiles.currentProfile?.functions || '')}
           placeholder={''}
-          hidden={functionsUrl !== ''}
+          hidden={profiles.currentProfile?.functionsUrl !== ''}
           rows={20}
           maxLength={ALLOW_FUNCTIONS_CHARACTERS}
           onChange={(e) => {
-            setFunctions(e.target.value);
-            handleChange('functions', e.target.value);
+            profiles.currentProfile!.functions = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
           }}
         />
 
         <div style={styles.settingLabel}>
-          Remaining Characters: {ALLOW_FUNCTIONS_CHARACTERS - functions.length}
+          Remaining Characters:{' '}
+          {ALLOW_FUNCTIONS_CHARACTERS -
+            (profiles.currentProfile?.functions?.length || 0)}
         </div>
       </div>
     );
   };
 
+  // Tokens Settings Tab
   const Tokens = () => {
-    const [feishuHook, setFeishuHook] = useState(
-      localStorage.getItem('feishuHook') || '',
-    );
-
-    const [quoteToken, setQuoteToken] = useState(
-      localStorage.getItem('quoteToken') || '',
-    );
-
-    const [newsKey, setNewsKey] = useState(
-      localStorage.getItem('newsKey') || '',
-    );
-
-    const [mxnzpAppId, setMxnzpAppId] = useState(
-      localStorage.getItem('mxnzpAppId') || '',
-    );
-
-    const [mxnzpAppSecret, setMxnzpAppSecret] = useState(
-      localStorage.getItem('mxnzpAppSecret') || '',
-    );
+    const [profiles, setProfiles] = useState(new Profiles());
 
     return (
       <div>
@@ -1057,11 +1072,12 @@ const SettingsComponent: React.FC<{
         <input
           type={isVisible ? 'text' : 'password'}
           style={styles.settingInput}
-          value={feishuHook}
+          value={profiles.currentProfile?.feishuHook || ''}
           placeholder={''}
           onChange={(e) => {
-            setFeishuHook(e.target.value);
-            handleChange('feishuHook', e.target.value);
+            profiles.currentProfile!.feishuHook = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
           }}
         />
 
@@ -1076,11 +1092,12 @@ const SettingsComponent: React.FC<{
         <input
           type={isVisible ? 'text' : 'password'}
           style={styles.settingInput}
-          value={quoteToken}
+          value={profiles.currentProfile?.quoteToken || ''}
           placeholder={''}
           onChange={(e) => {
-            setQuoteToken(e.target.value);
-            handleChange('quoteToken', e.target.value);
+            profiles.currentProfile!.quoteToken = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
           }}
         />
 
@@ -1099,11 +1116,12 @@ const SettingsComponent: React.FC<{
         <input
           type={isVisible ? 'text' : 'password'}
           style={styles.settingInput}
-          value={newsKey}
+          value={profiles.currentProfile?.newsKey || ''}
           placeholder={''}
           onChange={(e) => {
-            setNewsKey(e.target.value);
-            handleChange('newsKey', e.target.value);
+            profiles.currentProfile!.newsKey = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
           }}
         />
 
@@ -1121,11 +1139,12 @@ const SettingsComponent: React.FC<{
             <input
               type={'text'}
               style={styles.settingInput}
-              value={mxnzpAppId}
+              value={profiles.currentProfile?.mxnzpAppId || ''}
               placeholder={''}
               onChange={(e) => {
-                setMxnzpAppId(e.target.value);
-                handleChange('mxnzpAppId', e.target.value);
+                profiles.currentProfile!.mxnzpAppId = e.target.value;
+                profiles.save();
+                setProfiles(new Profiles());
               }}
             />
           </div>
@@ -1146,11 +1165,12 @@ const SettingsComponent: React.FC<{
             <input
               type={isVisible ? 'text' : 'password'}
               style={styles.settingInput}
-              value={mxnzpAppSecret}
+              value={profiles.currentProfile?.mxnzpAppSecret || ''}
               placeholder={''}
               onChange={(e) => {
-                setMxnzpAppSecret(e.target.value);
-                handleChange('mxnzpAppSecret', e.target.value);
+                profiles.currentProfile!.mxnzpAppSecret = e.target.value;
+                profiles.save();
+                setProfiles(new Profiles());
               }}
             />
           </div>
@@ -1160,54 +1180,9 @@ const SettingsComponent: React.FC<{
   };
 
   const handleExport = () => {
-    // get all settings to json object and base64 encode
     const settings = {
-      appName: localStorage.getItem('appName') || '',
-      appIconDark: localStorage.getItem('appIconDark') || '',
-      appIconLight: localStorage.getItem('appIconLight') || '',
-
-      endpoint: localStorage.getItem('endpoint') || '',
-      key: localStorage.getItem('key') || '',
-
-      completionTargetUri: localStorage.getItem('completionTargetUri') || '',
-      completionApiKey: localStorage.getItem('completionApiKey') || '',
-
-      deepSeekTargetUri: localStorage.getItem('deepSeekTargetUri') || '',
-      deepSeekApiKey: localStorage.getItem('deepSeekApiKey') || '',
-
-      cogSvcRegion: localStorage.getItem('cogSvcRegion') || '',
-      cogSvcSubKey: localStorage.getItem('cogSvcSubKey') || '',
-      cogSvcEndpoint: localStorage.getItem('cogSvcEndpoint') || '',
-      dallTargetUri: localStorage.getItem('dallTargetUri') || '',
-      dallApiKey: localStorage.getItem('dallApiKey') || '',
-
-      graphragUrl: localStorage.getItem('graphragUrl') || '',
-      graphragApiKey: localStorage.getItem('graphragApiKey') || '',
-      graphragProjectName: localStorage.getItem('graphragProjectName') || '',
-      graphragAbout: localStorage.getItem('graphragAbout') || '',
-
-      assistantType: localStorage.getItem('assistantType') || '',
-      language: localStorage.getItem('language') || '',
-      prompt: localStorage.getItem('prompt') || '',
-      promptUrl: localStorage.getItem('promptUrl') || '',
-
-      feishuHook: localStorage.getItem('feishuHook') || '',
-      quoteToken: localStorage.getItem('quoteToken') || '',
-      newsKey: localStorage.getItem('newsKey') || '',
-
-      mxnzpAppId: localStorage.getItem('mxnzpAppId') || '',
-      mxnzpAppSecret: localStorage.getItem('mxnzpAppSecret') || '',
-
-      ttsTargetUri: localStorage.getItem('ttsTargetUri') || '',
-      ttsApiKey: localStorage.getItem('ttsApiKey') || '',
-
-      bingApiKey: localStorage.getItem('bingApiKey') || '',
-
-      functions: localStorage.getItem('functions') || '',
-      functionsUrl: localStorage.getItem('functionsUrl') || '',
-
-      buildInPrompt: localStorage.getItem('buildInPrompt') || '',
-      buildInFunctions: localStorage.getItem('buildInFunctions') || '',
+      currentProfileId: profiles.currentProfileId,
+      profiles: profiles.profiles,
     };
     const content = JSON.stringify(settings, null, 2);
     const blob = new Blob([content], { type: 'application/json' });
@@ -1216,7 +1191,6 @@ const SettingsComponent: React.FC<{
     a.href = url;
     a.download = 'ai-agent-playground-settings.json';
     a.click();
-    console.log('export: ' + content);
   };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1232,53 +1206,8 @@ const SettingsComponent: React.FC<{
       try {
         const settings = JSON.parse(e.target?.result as string);
 
-        // update settings
-        handleChange('appName', settings.appName);
-        handleChange('appIconDark', settings.appIconDark);
-        handleChange('appIconLight', settings.appIconLight);
-
-        handleChange('endpoint', settings.endpoint);
-        handleChange('key', settings.key);
-
-        handleChange('completionTargetUri', settings.completionTargetUri);
-        handleChange('completionApiKey', settings.completionApiKey);
-
-        handleChange('deepSeekTargetUri', settings.deepSeekTargetUri);
-        handleChange('deepSeekApiKey', settings.deepSeekApiKey);
-
-        handleChange('cogSvcRegion', settings.cogSvcRegion);
-        handleChange('cogSvcSubKey', settings.cogSvcSubKey);
-        handleChange('cogSvcEndpoint', settings.cogSvcEndpoint);
-
-        handleChange('dallTargetUri', settings.dallTargetUri);
-        handleChange('dallApiKey', settings.dallApiKey);
-
-        handleChange('graphragUrl', settings.graphragUrl);
-        handleChange('graphragApiKey', settings.graphragApiKey);
-        handleChange('graphragProjectName', settings.graphragProjectName);
-        handleChange('graphragAbout', settings.graphragAbout);
-
-        handleChange('feishuHook', settings.feishuHook);
-        handleChange('quoteToken', settings.quoteToken);
-        handleChange('newsKey', settings.newsKey);
-
-        handleChange('mxnzpAppId', settings.mxnzpAppId);
-        handleChange('mxnzpAppSecret', settings.mxnzpAppSecret);
-
-        handleChange('language', settings.language);
-        handleChange('assistantType', settings.assistantType);
-
-        handleChange('prompt', settings.prompt);
-        handleChange('promptUrl', settings.promptUrl);
-        handleChange('bingApiKey', settings.bingApiKey);
-
-        handleChange('ttsApiKey', settings.ttsApiKey);
-        handleChange('ttsTargetUri', settings.ttsTargetUri);
-
-        handleChange('functions', settings.functions);
-        handleChange('functionsUrl', settings.functionsUrl);
-        handleChange('buildInPrompt', settings.buildInPrompt);
-        handleChange('buildInFunctions', settings.buildInFunctions);
+        localStorage.setItem('currentProfileId', settings.currentProfileId);
+        localStorage.setItem('profiles', JSON.stringify(settings.profiles));
 
         alert('Import success');
 
@@ -1338,6 +1267,7 @@ const SettingsComponent: React.FC<{
   const closeModal = () => {
     setIsModalOpen(false);
     resetApp();
+    window.location.reload();
   };
 
   return NOT_SETTINGS_STATUS.includes(connectStatus) ? null : (
@@ -1393,7 +1323,6 @@ const SettingsComponent: React.FC<{
                 <button
                   style={{
                     ...styles.settingsTabButton,
-                    ...styles.settingsTabButtonLast,
                     ...(activeTab === FUNCTIONS ? styles.tabActive : {}),
                   }}
                   onClick={() => setActiveTab(FUNCTIONS)}

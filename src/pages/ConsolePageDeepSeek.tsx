@@ -25,6 +25,7 @@ import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/clie
 import { FunctionTool } from '../types/FunctionTool';
 import { enableFunctionCalling } from '../lib/helper';
 import BuiltFunctionDisable from '../components/BuiltFunctionDisable';
+import { Profiles } from '../lib/Profiles';
 export function ConsolePageDeepSeek() {
   const {
     setResponseBuffer,
@@ -42,6 +43,9 @@ export function ConsolePageDeepSeek() {
   const [messagesAssistant, setMessagesAssistant] = useState<any[]>([]);
 
   const [assistantRunning, setAssistantRunning] = useState(false);
+
+  const profiles = new Profiles();
+  const profile = profiles.currentProfile;
 
   const { llmInstructionsRef } = useContexts();
 
@@ -127,14 +131,13 @@ export function ConsolePageDeepSeek() {
     let stream: ReadableStream | undefined;
     let reader: ReadableStreamDefaultReader | undefined;
     try {
-      let deepSeekTargetUri = localStorage.getItem('deepSeekTargetUri') || '';
+      let deepSeekTargetUri = profile?.deepSeekTargetUri || '';
       deepSeekTargetUri = deepSeekTargetUri.replace(
         '/chat/completions?api-version=2024-05-01-preview',
         '',
       );
-      const deepSeekApiKey = localStorage.getItem('deepSeekApiKey') || '';
-      const modelName =
-        localStorage.getItem('deepSeekDeploymentName') || 'deepseek-r1';
+      const deepSeekApiKey = profile?.deepSeekApiKey || '';
+      const modelName = profile?.deepSeekDeploymentName || 'deepseek-r1';
 
       const client = ModelClient(
         deepSeekTargetUri,
@@ -181,8 +184,13 @@ export function ConsolePageDeepSeek() {
           setConnectMessage('429 Too Many Requests');
           return;
         }
-        setConnectMessage(JSON.stringify(response));
-        throw new Error(JSON.stringify(response));
+
+        throw new Error(
+          JSON.stringify({
+            status: response.status,
+            body: response.body,
+          }),
+        );
       }
 
       const sseStream = createSseStream(stream);
@@ -209,8 +217,10 @@ export function ConsolePageDeepSeek() {
       }
 
       setAssistantRunning(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('sendAssistantMessage error', error);
+      setConnectStatus(CONNECT_DISCONNECTED);
+      setConnectMessage(error.message);
     } finally {
       setAssistantRunning(false);
     }
@@ -222,8 +232,8 @@ export function ConsolePageDeepSeek() {
   };
 
   const connectConversation = useCallback(async () => {
-    const deepSeekTargetUri = localStorage.getItem('deepSeekTargetUri') || '';
-    const deepSeekApiKey = localStorage.getItem('deepSeekApiKey') || '';
+    const deepSeekTargetUri = profile?.deepSeekTargetUri || '';
+    const deepSeekApiKey = profile?.deepSeekApiKey || '';
     if (!deepSeekTargetUri || !deepSeekApiKey) {
       setConnectStatus(CONNECT_DISCONNECTED);
       setConnectMessage('Please set the DeepSeek Target URI and key');
