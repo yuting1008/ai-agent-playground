@@ -147,7 +147,7 @@ export class Profiles {
 
     p.id = uuidv4();
     p.name = APP_AGENT;
-    p.assistantType = ASSISTANT_TYPE_ASSISTANT;
+    p.assistantType = ASSISTANT_TYPE_DEFAULT;
     p.temperature = 0.7;
     p.appIconDark = defaultIcon;
     p.appIconLight = defaultIcon;
