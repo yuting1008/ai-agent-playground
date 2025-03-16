@@ -76,7 +76,7 @@ const SettingsComponent: React.FC<{
   const [isVisible, setIsVisible] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(DEFAULT);
-  const [profiles, setProfiles] = useState(new Profiles());
+
   const { resetApp, isNightMode } = useContexts();
 
   const styles = {
@@ -234,63 +234,6 @@ const SettingsComponent: React.FC<{
     };
   }, []);
 
-  // handle click app icon to upload svg and save to local storage
-  const handleAppIconClickDark = (e: React.MouseEvent<HTMLImageElement>) => {
-    e.stopPropagation();
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = '.svg';
-    fileInput.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const svgData = e.target?.result;
-          if (svgData) {
-            const imgStr = svgToBase64(svgData as string);
-            profiles.currentProfile!.appIconDark = imgStr;
-            profiles.save();
-            setProfiles(new Profiles());
-          }
-        };
-        reader.readAsText(file);
-      }
-    };
-    fileInput.click();
-  };
-
-  const handleAppIconClickLight = (e: React.MouseEvent<HTMLImageElement>) => {
-    e.stopPropagation();
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = '.svg';
-    fileInput.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const svgData = e.target?.result;
-          if (svgData) {
-            const imgStr = svgToBase64(svgData as string);
-            profiles.currentProfile!.appIconLight = imgStr;
-            profiles.save();
-            setProfiles(new Profiles());
-          }
-        };
-        reader.readAsText(file);
-      }
-    };
-    fileInput.click();
-  };
-
-  const handleAppIconClickReset = (e: React.MouseEvent<HTMLImageElement>) => {
-    e.stopPropagation();
-    profiles.currentProfile!.appIconDark = '';
-    profiles.currentProfile!.appIconLight = '';
-    profiles.save();
-    setProfiles(new Profiles());
-  };
-
   // Default Settings Tab
   const DefaultSettings = () => {
     const [profiles, setProfiles] = useState(new Profiles());
@@ -337,7 +280,29 @@ const SettingsComponent: React.FC<{
               src={profiles.currentProfile?.appIconDark || defaultIcon}
               alt="App Icon"
               style={{ ...styles.appIcon, backgroundColor: '#000000' }}
-              onClick={handleAppIconClickDark}
+              onClick={(e) => {
+                e.stopPropagation();
+                const fileInput = document.createElement('input');
+                fileInput.type = 'file';
+                fileInput.accept = '.svg';
+                fileInput.onchange = (e) => {
+                  const file = (e.target as HTMLInputElement).files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                      const svgData = e.target?.result;
+                      if (svgData) {
+                        const imgStr = svgToBase64(svgData as string);
+                        profiles.currentProfile!.appIconDark = imgStr;
+                        profiles.save();
+                        setProfiles(new Profiles());
+                      }
+                    };
+                    reader.readAsText(file);
+                  }
+                };
+                fileInput.click();
+              }}
             />
           </div>
 
@@ -347,7 +312,29 @@ const SettingsComponent: React.FC<{
               src={profiles.currentProfile?.appIconLight || defaultIcon}
               alt="App Icon"
               style={{ ...styles.appIcon }}
-              onClick={handleAppIconClickLight}
+              onClick={(e) => {
+                e.stopPropagation();
+                const fileInput = document.createElement('input');
+                fileInput.type = 'file';
+                fileInput.accept = '.svg';
+                fileInput.onchange = (e) => {
+                  const file = (e.target as HTMLInputElement).files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                      const svgData = e.target?.result;
+                      if (svgData) {
+                        const imgStr = svgToBase64(svgData as string);
+                        profiles.currentProfile!.appIconLight = imgStr;
+                        profiles.save();
+                        setProfiles(new Profiles());
+                      }
+                    };
+                    reader.readAsText(file);
+                  }
+                };
+                fileInput.click();
+              }}
             />
           </div>
 
@@ -357,7 +344,12 @@ const SettingsComponent: React.FC<{
               src={defaultIcon}
               alt="App Icon"
               style={{ ...styles.appIcon }}
-              onClick={handleAppIconClickReset}
+              onClick={() => {
+                profiles.currentProfile!.appIconDark = '';
+                profiles.currentProfile!.appIconLight = '';
+                profiles.save();
+                setProfiles(new Profiles());
+              }}
             />
           </div>
         </div>
@@ -1180,6 +1172,7 @@ const SettingsComponent: React.FC<{
   };
 
   const handleExport = () => {
+    const profiles = new Profiles();
     const settings = {
       currentProfileId: profiles.currentProfileId,
       profiles: profiles.profiles,
