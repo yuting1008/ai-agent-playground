@@ -79,6 +79,11 @@ export class Profiles {
       this.save();
     }
 
+    if (!this.currentProfileId) {
+      this.currentProfileId = this.profiles[0].id;
+      this.save();
+    }
+
     this.currentProfile = this.find(this.currentProfileId);
 
     this.loadOldProfile();
@@ -192,6 +197,9 @@ export class Profiles {
     this.profiles.push(p);
     this.save();
 
+    localStorage.removeItem('appName');
+    localStorage.removeItem('language');
+    localStorage.removeItem('assistant');
     localStorage.removeItem('endpoint');
     localStorage.removeItem('key');
     localStorage.removeItem('completionTargetUri');
