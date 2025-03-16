@@ -191,6 +191,40 @@ export class Profiles {
 
     this.profiles.push(p);
     this.save();
+
+    localStorage.removeItem('endpoint');
+    localStorage.removeItem('key');
+    localStorage.removeItem('completionTargetUri');
+    localStorage.removeItem('completionApiKey');
+    localStorage.removeItem('deepSeekTargetUri');
+    localStorage.removeItem('deepSeekApiKey');
+    localStorage.removeItem('cogSvcRegion');
+    localStorage.removeItem('cogSvcSubKey');
+    localStorage.removeItem('cogSvcEndpoint');
+    localStorage.removeItem('dallTargetUri');
+    localStorage.removeItem('dallApiKey');
+    localStorage.removeItem('graphragUrl');
+    localStorage.removeItem('graphragApiKey');
+    localStorage.removeItem('graphragProjectName');
+    localStorage.removeItem('graphragAbout');
+    localStorage.removeItem('prompt');
+    localStorage.removeItem('promptUrl');
+    localStorage.removeItem('feishuHook');
+    localStorage.removeItem('quoteToken');
+    localStorage.removeItem('newsKey');
+    localStorage.removeItem('mxnzpAppId');
+    localStorage.removeItem('mxnzpAppSecret');
+    localStorage.removeItem('ttsTargetUri');
+    localStorage.removeItem('ttsApiKey');
+    localStorage.removeItem('bingApiKey');
+    localStorage.removeItem('functions');
+    localStorage.removeItem('functionsUrl');
+    localStorage.removeItem('buildInPrompt');
+    localStorage.removeItem('buildInFunctions');
+    localStorage.removeItem('assistantType');
+    localStorage.removeItem('temperature');
+    localStorage.removeItem('appIconDark');
+    localStorage.removeItem('appIconLight');
   }
 
   add() {
