@@ -5,6 +5,7 @@ import {
   APP_AGENT_VECTOR_STORE,
   CONNECT_CONNECTED,
   CONNECT_CONNECTING,
+  CONNECT_DISCONNECTED,
 } from '../lib/const';
 
 import './ConsolePage.scss';
@@ -81,66 +82,53 @@ export function ConsolePageAssistant() {
   }, [llmInstructions, assistantRef]);
 
   const cleanupAssistants = async () => {
-    try {
-      const assistantsPageList: Assistant[] = [];
-      let lists: AssistantsPage =
-        await getOpenAIClient().beta.assistants.list();
+    const assistantsPageList: Assistant[] = [];
+    let lists: AssistantsPage = await getOpenAIClient().beta.assistants.list();
+    assistantsPageList.push(...lists.data);
+    setConnectMessage(`Collecting Assistants(${assistantsPageList.length})...`);
+
+    while (lists.hasNextPage()) {
+      lists = await lists.getNextPage();
       assistantsPageList.push(...lists.data);
       setConnectMessage(
         `Collecting Assistants(${assistantsPageList.length})...`,
       );
+    }
 
-      while (lists.hasNextPage()) {
-        lists = await lists.getNextPage();
-        assistantsPageList.push(...lists.data);
+    for (const [index, assistant] of assistantsPageList.entries()) {
+      if (assistant.name === APP_AGENT) {
         setConnectMessage(
-          `Collecting Assistants(${assistantsPageList.length})...`,
+          `Deleting Assistant(${index}/${assistantsPageList.length}): ${assistant.id}`,
         );
+        await getOpenAIClient().beta.assistants.del(assistant.id);
       }
-
-      for (const [index, assistant] of assistantsPageList.entries()) {
-        if (assistant.name === APP_AGENT) {
-          setConnectMessage(
-            `Deleting Assistant(${index}/${assistantsPageList.length}): ${assistant.id}`,
-          );
-          await getOpenAIClient().beta.assistants.del(assistant.id);
-        }
-      }
-    } catch (error: any) {
-      console.error(`Error listing assistants: ${error.message}`);
-      alert(`Error listing assistants: ${error.message}`);
     }
   };
 
   const cleanupVectorStores = async () => {
-    try {
-      const vectorStoresPages: VectorStore[] = [];
-      let lists: VectorStoresPage = await getOpenAIClient().vectorStores.list();
+    const vectorStoresPages: VectorStore[] = [];
+    let lists: VectorStoresPage = await getOpenAIClient().vectorStores.list();
 
+    vectorStoresPages.push(...lists.data);
+    setConnectMessage(
+      `Collecting Vector Stores(${vectorStoresPages.length})...`,
+    );
+
+    while (lists.hasNextPage()) {
+      lists = await lists.getNextPage();
       vectorStoresPages.push(...lists.data);
       setConnectMessage(
         `Collecting Vector Stores(${vectorStoresPages.length})...`,
       );
+    }
 
-      while (lists.hasNextPage()) {
-        lists = await lists.getNextPage();
-        vectorStoresPages.push(...lists.data);
+    for (const [index, vectorStore] of vectorStoresPages.entries()) {
+      if (vectorStore.name === APP_AGENT_VECTOR_STORE) {
         setConnectMessage(
-          `Collecting Vector Stores(${vectorStoresPages.length})...`,
+          `Deleting Vector Store(${index}/${vectorStoresPages.length}): ${vectorStore.id}`,
         );
+        await getOpenAIClient().vectorStores.del(vectorStore.id);
       }
-
-      for (const [index, vectorStore] of vectorStoresPages.entries()) {
-        if (vectorStore.name === APP_AGENT_VECTOR_STORE) {
-          setConnectMessage(
-            `Deleting Vector Store(${index}/${vectorStoresPages.length}): ${vectorStore.id}`,
-          );
-          await getOpenAIClient().vectorStores.del(vectorStore.id);
-        }
-      }
-    } catch (error: any) {
-      console.error(`Error listing assistants: ${error.message}`);
-      alert(`Error listing assistants: ${error.message}`);
     }
   };
 
@@ -159,38 +147,33 @@ export function ConsolePageAssistant() {
   };
 
   const setupAssistant = async () => {
-    try {
-      const { modelName } = parseOpenaiSetting(
-        profiles.currentProfile?.completionTargetUri || '',
-      );
+    const { modelName } = parseOpenaiSetting(
+      profiles.currentProfile?.completionTargetUri || '',
+    );
 
-      const params: AssistantCreateParams = {
-        instructions: llmInstructionsRef.current,
-        name: APP_AGENT,
-        temperature: profiles.currentProfile?.temperature || 0.5,
-        top_p: 1,
-        model: modelName,
-        tools: [{ type: 'code_interpreter' }, { type: 'file_search' }],
-      };
+    const params: AssistantCreateParams = {
+      instructions: llmInstructionsRef.current,
+      name: APP_AGENT,
+      temperature: profiles.currentProfile?.temperature || 0.5,
+      top_p: 1,
+      model: modelName,
+      tools: [{ type: 'code_interpreter' }, { type: 'file_search' }],
+    };
 
-      // add custom functions to the assistant
-      functionsToolsRef.current.forEach(
-        ([definition]: [ToolDefinitionType, Function]) => {
-          params.tools?.push({ type: 'function', function: definition });
-        },
-      );
+    // add custom functions to the assistant
+    functionsToolsRef.current.forEach(
+      ([definition]: [ToolDefinitionType, Function]) => {
+        params.tools?.push({ type: 'function', function: definition });
+      },
+    );
 
-      const assistant: Assistant =
-        await getOpenAIClient().beta.assistants.create(params);
-      console.log(`Assistant created:`, assistant);
+    const assistant: Assistant =
+      await getOpenAIClient().beta.assistants.create(params);
+    console.log(`Assistant created:`, assistant);
 
-      setAssistant(assistant);
-      setConnectMessage(`Creating Vector Store...`);
-      setupVectorStore(assistant.id);
-    } catch (error: any) {
-      console.error(`Error creating assistant: ${error.message}`);
-      alert(`Error creating assistant: ${error.message}`);
-    }
+    setAssistant(assistant);
+    setConnectMessage(`Creating Vector Store...`);
+    setupVectorStore(assistant.id);
   };
 
   const functionCallHandler = async (call: any) => {
@@ -473,17 +456,22 @@ export function ConsolePageAssistant() {
   };
 
   const connectConversation = useCallback(async () => {
-    setConnectStatus(CONNECT_CONNECTING);
-    setConnectMessage('Collecting Assistants...');
-    await cleanupAssistants();
-    setConnectMessage('Collecting Vector Stores...');
-    await cleanupVectorStores();
-    setConnectMessage('Creating Assistant...');
-    await setupAssistant();
-    setConnectMessage('Creating Thread...');
-    await createThread();
-    setConnectStatus(CONNECT_CONNECTED);
-    setConnectMessage('');
+    try {
+      setConnectStatus(CONNECT_CONNECTING);
+      setConnectMessage('Collecting Assistants...');
+      await cleanupAssistants();
+      setConnectMessage('Collecting Vector Stores...');
+      await cleanupVectorStores();
+      setConnectMessage('Creating Assistant...');
+      await setupAssistant();
+      setConnectMessage('Creating Thread...');
+      await createThread();
+      setConnectStatus(CONNECT_CONNECTED);
+      setConnectMessage('');
+    } catch (error: any) {
+      setConnectStatus(CONNECT_DISCONNECTED);
+      setConnectMessage(error.message);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

@@ -184,8 +184,13 @@ export function ConsolePageDeepSeek() {
           setConnectMessage('429 Too Many Requests');
           return;
         }
-        setConnectMessage(JSON.stringify(response));
-        throw new Error(JSON.stringify(response));
+
+        throw new Error(
+          JSON.stringify({
+            status: response.status,
+            body: response.body,
+          }),
+        );
       }
 
       const sseStream = createSseStream(stream);
@@ -212,8 +217,10 @@ export function ConsolePageDeepSeek() {
       }
 
       setAssistantRunning(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('sendAssistantMessage error', error);
+      setConnectStatus(CONNECT_DISCONNECTED);
+      setConnectMessage(error.message);
     } finally {
       setAssistantRunning(false);
     }
