@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { getOpenAIClientSSt } from '../lib/openai';
 import { useContexts } from '../providers/AppProvider';
 import { AVATAR_READY } from '../lib/const';
+import { Profiles } from '../lib/Profiles';
 
 interface Sentence {
   text: string;
@@ -16,8 +17,11 @@ const OpenAITTS: React.FC = () => {
     setNeedSpeechQueue,
   } = useContexts();
 
-  const ttsApiKey = localStorage.getItem('ttsApiKey') || '';
-  const ttsTargetUri = localStorage.getItem('ttsTargetUri') || '';
+  const profiles = new Profiles();
+  const profile = profiles.currentProfile;
+
+  const ttsApiKey = profile?.ttsApiKey || '';
+  const ttsTargetUri = profile?.ttsTargetUri || '';
 
   const [isCreating, setIsCreating] = useState(false);
   const isCreatingRef = useRef(false);

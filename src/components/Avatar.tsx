@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { useContexts } from '../providers/AppProvider';
 import * as SpeechSDK from 'microsoft-cognitiveservices-speech-sdk';
-import { buildInFunctionsEnabled, htmlEncodeAvatar } from '../lib/helper';
+import { htmlEncodeAvatar } from '../lib/helper';
 import { AVATAR_OFF, AVATAR_READY, AVATAR_STARTING } from '../lib/const';
 import { componentLoadingStyles } from '../styles/componentLoadingStyles';
+import { Profiles } from '../lib/Profiles';
 
 const Avatar: React.FC = () => {
   const {
@@ -25,6 +26,7 @@ const Avatar: React.FC = () => {
   const avatarVideoRef = useRef<HTMLVideoElement>(null);
   const avatarAudioRef = useRef<HTMLAudioElement>(null);
   const componentLoading = componentLoadingStyles({ isNightMode });
+  const profiles = new Profiles();
 
   useEffect(() => {
     if (avatarStatus === AVATAR_STARTING) {
@@ -72,9 +74,9 @@ const Avatar: React.FC = () => {
 
   const startAvatarSession = useCallback(async () => {
     try {
-      const privateEndpoint = localStorage.getItem('privateEndpoint') || '';
-      const cogSvcSubKey = localStorage.getItem('cogSvcSubKey') || '';
-      const cogSvcRegion = localStorage.getItem('cogSvcRegion') || 'westus2';
+      const privateEndpoint = profiles.currentProfile?.cogSvcEndpoint || '';
+      const cogSvcSubKey = profiles.currentProfile?.cogSvcSubKey || '';
+      const cogSvcRegion = profiles.currentProfile?.cogSvcRegion || 'westus2';
 
       if (!cogSvcSubKey || !cogSvcRegion) {
         alert(
@@ -295,7 +297,7 @@ const Avatar: React.FC = () => {
     }
   };
 
-  return buildInFunctionsEnabled() ? (
+  return profiles.currentProfile?.buildInFunctions ? (
     <div className="content-actions container_bg remoteVideo">
       {avatarStatus === AVATAR_STARTING && (
         <div style={componentLoading.camLoading}>

@@ -6,8 +6,7 @@ import { DATA_BEGIN, DATA_END } from '../lib/instructions';
 import { useContexts } from '../providers/AppProvider';
 import { RealtimeClient } from '@theodoreniu/realtime-api-beta';
 import { image_vision } from '../lib/openai';
-import { buildInFunctionsEnabled } from '../lib/helper';
-
+import { Profiles } from '../lib/Profiles';
 const FileUploadComponent: React.FC<{
   connectStatus: string;
   realtimeClient: RealtimeClient;
@@ -16,6 +15,8 @@ const FileUploadComponent: React.FC<{
 
   const [fileName, setFileName] = useState<string>('Upload File');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [profiles, setProfiles] = useState<Profiles>(new Profiles());
 
   if (connectStatus !== CONNECT_CONNECTED) {
     return null;
@@ -128,7 +129,7 @@ const FileUploadComponent: React.FC<{
     }
   };
 
-  return buildInFunctionsEnabled() ? (
+  return profiles.currentProfile?.buildInFunctions ? (
     <div className="content-actions">
       <Button
         label={fileName}

@@ -1,14 +1,15 @@
 import React from 'react';
 import { useContexts } from '../providers/AppProvider';
 import { componentLoadingStyles } from '../styles/componentLoadingStyles';
-import { buildInFunctionsEnabled } from '../lib/helper';
+import { Profiles } from '../lib/Profiles';
 
 const BuiltFunctionDisable: React.FC = () => {
   const { isNightMode } = useContexts();
 
   const componentLoading = componentLoadingStyles({ isNightMode });
+  const profiles = new Profiles();
 
-  return buildInFunctionsEnabled() ? null : (
+  return profiles.currentProfile?.buildInFunctions ? null : (
     <div className="content-block functionsDisabled container_bg">
       <div
         style={{

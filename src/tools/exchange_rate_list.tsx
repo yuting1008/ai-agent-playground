@@ -1,4 +1,8 @@
 import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
+import { Profiles } from '../lib/Profiles';
+
+const profiles = new Profiles();
+const profile = profiles.currentProfile;
 
 export const definition: ToolDefinitionType = {
   name: 'exchange_rate_list',
@@ -16,12 +20,12 @@ export const handler: Function = async ({
 }: {
   [key: string]: any;
 }) => {
-  const mxnzpAppId = localStorage.getItem('mxnzpAppId') || '';
+  const mxnzpAppId = profile?.mxnzpAppId || '';
   if (!mxnzpAppId) {
     throw new Error('mxnzpAppId is not set, please set it in the settings.');
   }
 
-  const mxnzpAppSecret = localStorage.getItem('mxnzpAppSecret') || '';
+  const mxnzpAppSecret = profile?.mxnzpAppSecret || '';
   if (!mxnzpAppSecret) {
     throw new Error(
       'mxnzpAppSecret is not set, please set it in the settings.',

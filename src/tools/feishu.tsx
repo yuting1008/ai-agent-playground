@@ -1,4 +1,8 @@
 import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
+import { Profiles } from '../lib/Profiles';
+
+const profiles = new Profiles();
+const profile = profiles.currentProfile;
 
 export const definition: ToolDefinitionType = {
   name: 'feishu',
@@ -19,7 +23,7 @@ export const handler: Function = async ({
 }: {
   [key: string]: any;
 }) => {
-  const feishuHook = localStorage.getItem('feishuHook') || '';
+  const feishuHook = profile?.feishuHook || '';
   if (!feishuHook) {
     throw new Error('Feishu hook is not set, please set it in the settings.');
   }

@@ -29,6 +29,7 @@ import { InputBarRealtime } from '../components/InputBarRealtime';
 import { RealtimeClient } from '@theodoreniu/realtime-api-beta';
 import { RealtimeEvent, RealtimeTokenUsage } from '../types/RealtimeEvent';
 import BuiltFunctionDisable from '../components/BuiltFunctionDisable';
+import { Profiles } from '../lib/Profiles';
 
 export function ConsolePageRealtime() {
   const {
@@ -57,9 +58,12 @@ export function ConsolePageRealtime() {
     setMessages,
   } = useContexts();
 
-  const endpoint = localStorage.getItem('endpoint') || '';
-  const key = localStorage.getItem('key') || '';
-  const language = localStorage.getItem('language') || 'chinese';
+  const profiles = new Profiles();
+  const profile = profiles.currentProfile;
+
+  const endpoint = profile?.realtimeEndpoint || '';
+  const key = profile?.realtimeKey || '';
+
   const [callStates, setCallStates] = useState<Record<string, any>>({});
 
   const realtimeClientRef = useRef<RealtimeClient>(
@@ -106,7 +110,7 @@ export function ConsolePageRealtime() {
     client.updateSession({ voice: 'echo' });
     // Set temperature
     client.updateSession({
-      temperature: parseFloat(localStorage.getItem('temperature') || '0.5'),
+      temperature: profile?.temperature || 0.5,
     });
 
     // Add tools
@@ -338,7 +342,7 @@ export function ConsolePageRealtime() {
     realtimeClientRef.current.sendUserMessageContent([
       {
         type: `input_text`,
-        text: language === 'chinese' ? clientHiChinese : clientHiEnglish,
+        text: clientHiEnglish,
       },
     ]);
 

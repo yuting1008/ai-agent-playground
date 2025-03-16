@@ -1,4 +1,8 @@
 import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
+import { Profiles } from '../lib/Profiles';
+
+const profiles = new Profiles();
+const profile = profiles.currentProfile;
 
 export const definition: ToolDefinitionType = {
   name: 'get_news',
@@ -10,7 +14,7 @@ export const definition: ToolDefinitionType = {
 };
 
 export const handler: Function = async () => {
-  const newsKey = localStorage.getItem('newsKey') || '';
+  const newsKey = profile?.newsKey || '';
   if (!newsKey) {
     throw new Error('News key is not set, please set it in the settings.');
   }

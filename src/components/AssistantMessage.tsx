@@ -1,7 +1,7 @@
 import Markdown from 'react-markdown';
 import { ASSISTANT_TYPE_DEEPSEEK } from '../lib/const';
 import MessageLoading from './MessageLoading';
-
+import { Profiles } from '../lib/Profiles';
 type AssistantMessageProps = {
   role: 'user' | 'assistant' | 'code';
   text: string;
@@ -53,10 +53,11 @@ function parseDeepSeekText(text: string) {
 
 const AssistantAssistantMessage = ({ text }: { text: string }) => {
   text = text.trim();
-  const isDeepSeek =
-    localStorage.getItem('assistantType') === ASSISTANT_TYPE_DEEPSEEK;
 
-  if (isDeepSeek) {
+  const profiles = new Profiles();
+  const profile = profiles.currentProfile;
+
+  if (profile?.isDeepSeek) {
     const { think, nonThink } = parseDeepSeekText(text);
     return (
       <div className={'conversation-item assistant'}>
