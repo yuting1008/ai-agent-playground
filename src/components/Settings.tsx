@@ -24,7 +24,7 @@ import defaultIcon from '../static/logomark.svg';
 import { Profiles } from '../lib/Profiles';
 const DEFAULT = 'Default';
 const REAL_TIME_API = 'Realtime';
-const DALL_E = 'Dall-E-3';
+const DALL_E = 'Dall-E';
 const GRAPHRAG = 'RAG';
 const SPEECH = 'Speech';
 const TTS = 'TTS';
