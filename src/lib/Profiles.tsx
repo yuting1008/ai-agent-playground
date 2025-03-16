@@ -149,8 +149,6 @@ export class Profiles {
     p.name = APP_AGENT;
     p.assistantType = ASSISTANT_TYPE_DEFAULT;
     p.temperature = 0.7;
-    p.appIconDark = defaultIcon;
-    p.appIconLight = defaultIcon;
 
     p.realtimeEndpoint = localStorage.getItem('endpoint') || '';
     p.realtimeKey = localStorage.getItem('key') || '';
@@ -233,6 +231,7 @@ export class Profiles {
     localStorage.removeItem('temperature');
     localStorage.removeItem('appIconDark');
     localStorage.removeItem('appIconLight');
+    localStorage.removeItem('messages');
   }
 
   add() {
