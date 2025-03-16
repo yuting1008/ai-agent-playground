@@ -76,6 +76,7 @@ export class Profiles {
 
     if (this.profiles.length === 1) {
       this.currentProfileId = this.profiles[0].id;
+      this.save();
     }
 
     this.currentProfile = this.find(this.currentProfileId);

@@ -57,31 +57,25 @@ export const getOpenAIClient = () => {
 export function extractUrlInfo(
   url: string,
 ): { deployment: string; apiVersion: string; endpoint: string } | null {
-  try {
-    const urlObj = new URL(url);
+  const urlObj = new URL(url);
 
-    // Extract deployment from the path
-    const pathSegments = urlObj.pathname.split('/');
-    const deploymentIndex = pathSegments.indexOf('deployments');
-    const deployment =
-      deploymentIndex !== -1 ? pathSegments[deploymentIndex + 1] : null;
+  // Extract deployment from the path
+  const pathSegments = urlObj.pathname.split('/');
+  const deploymentIndex = pathSegments.indexOf('deployments');
+  const deployment =
+    deploymentIndex !== -1 ? pathSegments[deploymentIndex + 1] : null;
 
-    // Extract api-version from query parameters
-    const apiVersion = urlObj.searchParams.get('api-version');
+  // Extract api-version from query parameters
+  const apiVersion = urlObj.searchParams.get('api-version');
 
-    // Extract endpoint
-    const endpoint = `${urlObj.protocol}//${urlObj.host}`;
+  // Extract endpoint
+  const endpoint = `${urlObj.protocol}//${urlObj.host}`;
 
-    if (!deployment || !apiVersion) {
-      throw new Error('Required values missing in the URL.');
-    }
-
-    return { deployment, apiVersion, endpoint };
-  } catch (error: any) {
-    console.error(error);
-    alert('Invalid URL or extraction error:' + error.message + '\n' + url);
-    return null;
+  if (!deployment || !apiVersion) {
+    throw new Error('Required values missing in the URL.');
   }
+
+  return { deployment, apiVersion, endpoint };
 }
 
 export async function getCompletion(messages: any): Promise<string> {
