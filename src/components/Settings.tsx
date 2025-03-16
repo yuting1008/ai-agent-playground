@@ -1272,10 +1272,20 @@ const SettingsComponent: React.FC<{
     setIsModalOpen(true);
   };
 
+  const oldProfiles = new Profiles();
+
   const closeModal = () => {
     setIsModalOpen(false);
-    resetApp();
-    window.location.reload();
+
+    const newProfiles = new Profiles();
+
+    if (
+      JSON.stringify(newProfiles.currentProfile) !==
+      JSON.stringify(oldProfiles.currentProfile)
+    ) {
+      alert('Current Profile changed, page will reload.');
+      window.location.reload();
+    }
   };
 
   return NOT_SETTINGS_STATUS.includes(connectStatus) ? null : (
