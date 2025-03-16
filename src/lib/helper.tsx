@@ -3,13 +3,12 @@ import {
   ToolDefinitionType,
 } from '@theodoreniu/realtime-api-beta/dist/lib/client';
 import {
-  APP_AGENT,
-  ASSISTANT_TYPE_DEEPSEEK,
   BUILD_IN_FUNCTIONS_ENABLE,
   BUILD_IN_PROMPT_ENABLE,
   DEEPSEEK_FUNCTION_CALL_ENABLE,
 } from './const';
 import * as load_functions from '../tools/load_functions';
+import { Profiles } from './Profiles';
 
 export const delayFunction = function delay(ms: number) {
   return new Promise((resolve) => {
@@ -51,16 +50,15 @@ export function lastMessageIsUserMessage(items: ItemType[]) {
 }
 
 export function enableFunctionCalling() {
-  const isDeepSeek =
-    localStorage.getItem('assistantType') === ASSISTANT_TYPE_DEEPSEEK;
+  const profiles = new Profiles();
+  const profile = profiles.currentProfile;
 
-  if (!isDeepSeek) {
+  if (!profile?.isDeepSeek) {
     return true;
   }
 
   const deepSeekFunctionCallingEnable =
-    localStorage.getItem('deepSeekFunctionCalling') ===
-    DEEPSEEK_FUNCTION_CALL_ENABLE;
+    profile?.deepSeekFunctionCalling === DEEPSEEK_FUNCTION_CALL_ENABLE;
 
   return deepSeekFunctionCallingEnable;
 }
@@ -105,29 +103,24 @@ export function calculatePercentiles(
   return result;
 }
 
-export function buildInPromptEnabled() {
-  return (
-    (localStorage.getItem('buildInPrompt') || BUILD_IN_PROMPT_ENABLE) ===
-    BUILD_IN_PROMPT_ENABLE
-  );
-}
-
-export function buildInFunctionsEnabled() {
-  return (
-    (localStorage.getItem('buildInFunctions') || BUILD_IN_FUNCTIONS_ENABLE) ===
-    BUILD_IN_FUNCTIONS_ENABLE
-  );
-}
-
 export async function getPromptFromUrl() {
-  const oldPrompt = localStorage.getItem('prompt') || '';
-  const promptUrl = localStorage.getItem('promptUrl') || '';
+  const profiles = new Profiles();
+  const profile = profiles.currentProfile;
+
+  const oldPrompt = profile?.prompt || '';
+  const promptUrl = profile?.promptUrl || '';
   try {
     if (promptUrl) {
       const result = await fetch(promptUrl).then((res) => res.text());
-      localStorage.setItem('prompt', result);
+
       if (result !== oldPrompt) {
         alert('Prompt updated, will refresh the page.');
+
+        if (profile) {
+          profile.prompt = result;
+          profiles.save();
+        }
+
         window.location.reload();
       }
       return result;
@@ -138,18 +131,27 @@ export async function getPromptFromUrl() {
     alert(`Failed to get prompt from url: ${promptUrl}`);
   }
 
-  return localStorage.getItem('prompt') || '';
+  return profile?.prompt || '';
 }
 
 export async function getFunctionsFromUrl() {
-  const oldFunctions = localStorage.getItem('functions') || '';
-  const functionsUrl = localStorage.getItem('functionsUrl') || '';
+  const profiles = new Profiles();
+  const profile = profiles.currentProfile;
+
+  const oldFunctions = profile?.functions || '';
+  const functionsUrl = profile?.functionsUrl || '';
   try {
     if (functionsUrl) {
       const result = await fetch(functionsUrl).then((res) => res.text());
-      localStorage.setItem('functions', result);
+
       if (result !== oldFunctions) {
         alert('Functions updated, will refresh the page.');
+
+        if (profile) {
+          profile.functions = result;
+          profiles.save();
+        }
+
         window.location.reload();
       }
       return result;
@@ -160,11 +162,14 @@ export async function getFunctionsFromUrl() {
     alert(`Failed to get functions from url: ${functionsUrl}`);
   }
 
-  return localStorage.getItem('functions') || '';
+  return profile?.functions || '';
 }
 
 export function loadFunctions() {
-  const functions = localStorage.getItem('functions');
+  const profiles = new Profiles();
+  const profile = profiles.currentProfile;
+
+  const functions = profile?.functions;
   if (!functions) {
     return [];
   }
@@ -190,14 +195,6 @@ export function loadFunctions() {
   }
 
   return [];
-}
-
-export function getAppName() {
-  return localStorage.getItem('appName') || APP_AGENT;
-}
-
-export function setAppName(appName: string) {
-  localStorage.setItem('appName', appName);
 }
 
 export function svgToBase64(xml: string) {

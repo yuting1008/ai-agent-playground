@@ -1,4 +1,8 @@
 import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
+import { Profiles } from '../lib/Profiles';
+
+const profiles = new Profiles();
+const profile = profiles.currentProfile;
 
 export const definition: ToolDefinitionType = {
   name: 'quote',
@@ -16,7 +20,7 @@ export const definition: ToolDefinitionType = {
 };
 
 export const handler: Function = async ({ symbol }: { [key: string]: any }) => {
-  const quoteToken = localStorage.getItem('quoteToken') || '';
+  const quoteToken = profile?.quoteToken || '';
   if (!quoteToken) {
     throw new Error('Quote token is not set, please set it in the settings.');
   }

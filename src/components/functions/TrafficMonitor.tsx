@@ -7,6 +7,7 @@ import { avgLatency, calculatePercentiles } from '../../lib/helper';
 import { TableSheet } from '../../types/Table';
 import WithFade from '../WithFade';
 import { modalStyles } from '../../styles/modalStyles';
+import { Profiles } from '../../lib/Profiles';
 
 const TrafficMonitor: React.FC = () => {
   const [isShow, setIsShow] = useState(false);
@@ -39,9 +40,6 @@ const TrafficMonitor: React.FC = () => {
   }, []);
 
   const importModalStyles = modalStyles({ isNightMode });
-
-  const isRealtime =
-    localStorage.getItem('assistantType') === ASSISTANT_TYPE_REALTIME;
 
   const firstTokenLatencyLast =
     firstTokenLatencyArray.length > 0
@@ -196,6 +194,8 @@ const TrafficMonitor: React.FC = () => {
       return null;
     }
 
+    const profiles = new Profiles();
+
     console.log('ShowTrafficMonitor Render');
 
     const firstTokenLatencyMin =
@@ -246,7 +246,7 @@ const TrafficMonitor: React.FC = () => {
 
     const tokensTable: TableSheet = {
       name: 'Tokens',
-      items: isRealtime
+      items: profiles.currentProfile?.isRealtime
         ? [
             {
               key: 'Total Tokens:',

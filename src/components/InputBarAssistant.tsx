@@ -11,7 +11,7 @@ import {
   clientHiEnglish,
   CONNECT_CONNECTED,
 } from '../lib/const';
-
+import { Profiles } from '../lib/Profiles';
 export function InputBarAssistant({
   setMessagesAssistant,
   setAssistantRunning,
@@ -33,9 +33,12 @@ export function InputBarAssistant({
     connectStatus,
   } = useContexts();
 
-  const cogSvcSubKey = localStorage.getItem('cogSvcSubKey') || '';
-  const cogSvcRegion = localStorage.getItem('cogSvcRegion') || 'westus2';
-  const cogSvcEndpoint = localStorage.getItem('cogSvcEndpoint') || '';
+  const profiles = new Profiles();
+  const profile = profiles.currentProfile;
+
+  const cogSvcSubKey = profile?.cogSvcSubKey || '';
+  const cogSvcRegion = profile?.cogSvcRegion || 'westus2';
+  const cogSvcEndpoint = profile?.cogSvcEndpoint || '';
 
   const [sttRecognizer, setSttRecognizer] =
     useState<SpeechSDK.SpeechRecognizer | null>(null);
@@ -47,10 +50,6 @@ export function InputBarAssistant({
   useEffect(() => {
     errorRef.current = error;
   }, [error]);
-
-  const assistantType =
-    localStorage.getItem('assistantType') || ASSISTANT_TYPE_DEFAULT;
-  const isAssistant = assistantType === ASSISTANT_TYPE_ASSISTANT;
 
   const sttStartRecognition = () => {
     setError(false);
@@ -85,7 +84,7 @@ export function InputBarAssistant({
     );
 
     recognizer.recognizing = (s, e) => {
-      if (!isAssistant) {
+      if (!profile?.isAssistant) {
         return;
       }
       console.log(`Recognizing: ${e.result.text}`);
@@ -102,7 +101,7 @@ export function InputBarAssistant({
     recognizer.recognized = (s, e) => {
       if (e.result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
         console.log(`Final result: ${e.result.text}`);
-        if (isAssistant) {
+        if (profile?.isAssistant) {
           (async () => {
             await stopCurrentStreamJob();
           })();
@@ -188,8 +187,7 @@ export function InputBarAssistant({
 
   useEffect(() => {
     if (connectStatus === CONNECT_CONNECTED) {
-      const language = localStorage.getItem('language') || 'chinese';
-      const hi = language === 'chinese' ? clientHiChinese : clientHiEnglish;
+      const hi = clientHiEnglish;
       sendText(hi);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

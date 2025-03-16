@@ -1,25 +1,29 @@
 import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
+import { Profiles } from '../lib/Profiles';
 
 export const GRAPHRAG_ABOUT = 'Azure(微软云) docs';
 
 export const definition: ToolDefinitionType = {
   name: 'azure_docs',
-  description: `Retrieve information from ${localStorage.getItem('graphragAbout') || GRAPHRAG_ABOUT}. respond wait message to the user before calling the tool. Do not use cache. You have to call this tool every time.`,
+  description: `Retrieve information from {rag}. respond wait message to the user before calling the tool. Do not use cache. You have to call this tool every time.`,
   parameters: {
     type: 'object',
     properties: {
       query: {
         type: 'string',
-        description: `query to retrieve information from ${localStorage.getItem('graphragAbout') || GRAPHRAG_ABOUT}. Try to use the user's original input, including language.`,
+        description:
+          "query to retrieve information from Azure docs. Try to use the user's original input, including language.",
       },
     },
   },
 };
 
 export const handler: Function = async ({ query }: { [key: string]: any }) => {
-  const graphragUrl = localStorage.getItem('graphragUrl') || '';
-  const graphragApiKey = localStorage.getItem('graphragApiKey') || '';
-  const graphragProjectName = localStorage.getItem('graphragProjectName') || '';
+  const profiles = new Profiles();
+  const profile = profiles.currentProfile;
+  const graphragUrl = profile?.graphragUrl || '';
+  const graphragApiKey = profile?.graphragApiKey || '';
+  const graphragProjectName = profile?.graphragProjectName || '';
 
   if (!graphragUrl) {
     throw new Error('GraphRAG URL is not set, please set it in the settings.');

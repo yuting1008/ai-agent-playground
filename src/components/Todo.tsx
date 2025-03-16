@@ -1,20 +1,17 @@
 import { useEffect, useState } from 'react';
+import { Profiles } from '../lib/Profiles';
 
 const TodoComponent = () => {
-  const [endpoint, setEndpoint] = useState(
-    localStorage.getItem('endpoint') || '',
-  );
-  const [key, setKey] = useState(localStorage.getItem('key') || '');
+  const profiles = new Profiles();
+  const profile = profiles.currentProfile;
+
+  const [endpoint, setEndpoint] = useState(profile?.realtimeEndpoint || '');
+  const [key, setKey] = useState(profile?.realtimeKey || '');
   const [isVisible, setIsVisible] = useState(false);
 
   const toggleVisibility = () => {
     setIsVisible(!isVisible);
   };
-
-  useEffect(() => {
-    localStorage.setItem('endpoint', endpoint.trim());
-    localStorage.setItem('key', key.trim());
-  }, [endpoint, key]);
 
   const handleEndpointChange = (e: any) => {
     setEndpoint(e.target.value);

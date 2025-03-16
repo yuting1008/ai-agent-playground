@@ -35,6 +35,7 @@ import {
 
 import { Run } from 'openai/resources/beta/threads/runs/runs';
 import BuiltFunctionDisable from '../components/BuiltFunctionDisable';
+import { Profiles } from '../lib/Profiles';
 
 export function ConsolePageAssistant() {
   const {
@@ -62,6 +63,8 @@ export function ConsolePageAssistant() {
   const [messagesAssistant, setMessagesAssistant] = useState<any[]>([]);
 
   const [assistantRunning, setAssistantRunning] = useState(false);
+
+  const [profiles] = useState<Profiles>(new Profiles());
 
   const { functionsToolsRef, llmInstructions, llmInstructionsRef } =
     useContexts();
@@ -158,13 +161,13 @@ export function ConsolePageAssistant() {
   const setupAssistant = async () => {
     try {
       const { modelName } = parseOpenaiSetting(
-        localStorage.getItem('completionTargetUri') || '',
+        profiles.currentProfile?.completionTargetUri || '',
       );
 
       const params: AssistantCreateParams = {
         instructions: llmInstructionsRef.current,
         name: APP_AGENT,
-        temperature: parseFloat(localStorage.getItem('temperature') || '0.5'),
+        temperature: profiles.currentProfile?.temperature || 0.5,
         top_p: 1,
         model: modelName,
         tools: [{ type: 'code_interpreter' }, { type: 'file_search' }],
