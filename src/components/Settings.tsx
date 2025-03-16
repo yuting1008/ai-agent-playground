@@ -446,21 +446,15 @@ const SettingsComponent: React.FC<{
 
           <div style={styles.settings_inline_block}>
             <Button
-              label={'Import Settings'}
+              label={'Import Profiles'}
               icon={Upload}
               style={styles.export_settings}
               buttonStyle={'regular'}
-              onClick={handleButtonClick}
-            />
-          </div>
-
-          <div style={styles.settings_inline_block}>
-            <Button
-              label={'Export Settings'}
-              icon={Download}
-              style={styles.export_settings}
-              buttonStyle={'regular'}
-              onClick={handleExport}
+              onClick={() => {
+                if (fileInputRef.current) {
+                  fileInputRef.current.click();
+                }
+              }}
             />
             <input
               type="file"
@@ -468,6 +462,16 @@ const SettingsComponent: React.FC<{
               ref={fileInputRef}
               onChange={handleImport}
               style={{ display: 'none' }}
+            />
+          </div>
+
+          <div style={styles.settings_inline_block}>
+            <Button
+              label={'Export Profiles'}
+              icon={Download}
+              style={styles.export_settings}
+              buttonStyle={'regular'}
+              onClick={handleExport}
             />
           </div>
         </div>
@@ -1183,7 +1187,7 @@ const SettingsComponent: React.FC<{
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'ai-agent-playground-settings.json';
+    a.download = 'ai-agent-playground-profiles.json';
     a.click();
   };
 
@@ -1200,23 +1204,33 @@ const SettingsComponent: React.FC<{
       try {
         const settings = JSON.parse(e.target?.result as string);
 
-        localStorage.setItem('currentProfileId', settings.currentProfileId);
-        localStorage.setItem('profiles', JSON.stringify(settings.profiles));
+        if (!settings.currentProfileId) {
+          alert('Invalid profiles file, currentProfileId is empty');
+          return;
+        }
 
-        alert('Import success');
+        if (!settings.profiles) {
+          alert('Invalid profiles file, profiles is empty');
+          return;
+        }
 
-        resetApp();
+        const profiles = new Profiles();
+
+        for (const profile of settings.profiles) {
+          profiles.profiles.push(profile);
+        }
+
+        profiles.currentProfileId = settings.currentProfileId;
+        profiles.save();
+
+        alert('Import Profiles succeed, page will reload.');
+
+        window.location.reload();
       } catch (error) {
         console.error(`import error: ${error}`);
       }
     };
     reader.readAsText(e);
-  };
-
-  const handleButtonClick = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
   };
 
   const renderContent = () => {
