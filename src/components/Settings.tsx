@@ -175,6 +175,7 @@ const SettingsComponent: React.FC<{
       border: '0px solid #ccc',
       borderRadius: '4px',
       width: '100%',
+      height: '35px',
       fontSize: '12px',
       margin: '0',
       backgroundColor: isNightMode
