@@ -179,7 +179,7 @@ const SettingsComponent: React.FC<{
       margin: '0',
       backgroundColor: isNightMode
         ? 'rgba(0, 0, 0, 0.8)'
-        : 'rgba(255, 255, 255, 0.7)',
+        : 'rgba(0, 0, 0, 0.1)',
       color: isNightMode ? '#ffffff' : '#000000',
 
       ':disabled': {
@@ -1267,6 +1267,7 @@ const SettingsComponent: React.FC<{
   const closeModal = () => {
     setIsModalOpen(false);
     resetApp();
+    window.location.reload();
   };
 
   return NOT_SETTINGS_STATUS.includes(connectStatus) ? null : (
