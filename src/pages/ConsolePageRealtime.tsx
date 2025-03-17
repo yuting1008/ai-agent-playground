@@ -110,7 +110,11 @@ export function ConsolePageRealtime() {
     client.updateSession({ voice: 'echo' });
     // Set temperature
     client.updateSession({
-      temperature: profile?.temperature || 0.5,
+      temperature: profile?.temperature,
+    });
+    // Set tool choice
+    client.updateSession({
+      tool_choice: 'auto',
     });
 
     // Add tools
