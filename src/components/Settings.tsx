@@ -216,8 +216,14 @@ const SettingsComponent: React.FC<{
       background: 'transparent',
       marginTop: '10px',
       cursor: 'pointer',
-      border: '1px solid gray',
+      border: '1px solid #b2b1b1',
       padding: '5px',
+    } as React.CSSProperties,
+    settingBtn: {
+      border: 'none',
+      backgroundColor: isNightMode
+        ? 'rgba(0, 0, 0, 0.8)'
+        : 'rgba(0, 0, 0, 0.1)',
     } as React.CSSProperties,
   };
 
@@ -422,7 +428,7 @@ const SettingsComponent: React.FC<{
             <Button
               label={'Clone Profile'}
               icon={Plus}
-              style={styles.export_settings}
+              style={{ ...styles.export_settings, ...styles.settingBtn }}
               buttonStyle={'regular'}
               onClick={() => {
                 profiles.clone();
@@ -435,7 +441,7 @@ const SettingsComponent: React.FC<{
             <Button
               label={'Delete Profile'}
               icon={Trash}
-              style={styles.export_settings}
+              style={{ ...styles.export_settings, ...styles.settingBtn }}
               buttonStyle={'regular'}
               onClick={() => {
                 profiles.delete(profiles.currentProfile);
@@ -448,7 +454,7 @@ const SettingsComponent: React.FC<{
             <Button
               label={'Import Profiles'}
               icon={Upload}
-              style={styles.export_settings}
+              style={{ ...styles.export_settings, ...styles.settingBtn }}
               buttonStyle={'regular'}
               onClick={() => {
                 if (fileInputRef.current) {
@@ -469,7 +475,7 @@ const SettingsComponent: React.FC<{
             <Button
               label={'Export Profiles'}
               icon={Download}
-              style={styles.export_settings}
+              style={{ ...styles.export_settings, ...styles.settingBtn }}
               buttonStyle={'regular'}
               onClick={handleExport}
             />
