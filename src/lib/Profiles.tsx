@@ -264,9 +264,10 @@ export class Profiles {
 
   getProfileNamesAsDropdown() {
     return this.profiles.map((profile) => ({
-      label: profile.name,
-      value: profile.name,
-    }));
+        label: profile.name,
+        value: profile.id,
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label));
   }
 
   find(id: string) {
