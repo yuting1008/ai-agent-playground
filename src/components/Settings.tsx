@@ -253,14 +253,13 @@ const SettingsComponent: React.FC<{
 
             <Dropdown
               options={profiles.getProfileNamesAsDropdown()}
-              selectedValue={profiles.currentProfile?.name || ''}
-              onChange={(e) => {
-                profiles.profiles.forEach((p) => {
-                  if (p.name === e) {
-                    profiles.switch(p);
-                    setProfiles(new Profiles());
-                  }
-                });
+              selectedValue={profiles.currentProfile?.id || ''}
+              onChange={(profile_id:string) => {
+                const p = profiles.find(profile_id);
+                if (p) {
+                  profiles.switch(p);
+                  setProfiles(new Profiles());
+                }
               }}
             />
           </div>
