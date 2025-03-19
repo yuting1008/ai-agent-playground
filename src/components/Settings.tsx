@@ -974,7 +974,10 @@ const SettingsComponent: React.FC<{
           Prompt
         </div>
         <textarea
-          style={styles.settingInput}
+          style={{
+            ...styles.settingInput,
+            height: '250px',
+          }}
           value={profiles.currentProfile?.prompt || ''}
           placeholder={''}
           hidden={profiles.currentProfile?.promptUrl !== ''}
@@ -1038,7 +1041,10 @@ const SettingsComponent: React.FC<{
           Functions
         </div>
         <textarea
-          style={styles.settingInput}
+          style={{
+            ...styles.settingInput,
+            height: '250px',
+          }}
           value={format_functions(profiles.currentProfile?.functions || '')}
           placeholder={''}
           hidden={profiles.currentProfile?.functionsUrl !== ''}
