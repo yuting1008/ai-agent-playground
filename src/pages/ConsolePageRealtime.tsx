@@ -76,16 +76,34 @@ export function ConsolePageRealtime() {
   );
 
   useEffect(() => {
-    console.log('llmInstructions updated');
-    realtimeClientRef.current.updateSession({ instructions: llmInstructions });
-
     if (realtimeClientRef?.current.isConnected()) {
       const res = realtimeClientRef.current.updateSession({
         instructions: llmInstructions,
       });
       console.log('realtimeClientRef.current instructions updated', res);
+    } else {
+      console.log(
+        'realtimeClientRef.current is not connected, skip update instructions',
+      );
     }
   }, [llmInstructions]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (realtimeClientRef.current.isConnected()) {
+        const currentTime = new Date().toLocaleString();
+        realtimeClientRef.current.updateSession({
+          instructions: llmInstructions + `\n\n当前时间：${currentTime}`,
+        });
+        console.log(
+          'realtimeClient is connected, updated time in instructions ',
+          currentTime,
+        );
+      }
+    }, 5000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     console.log('appKey updated, reset realtimeClientRef', appKey);

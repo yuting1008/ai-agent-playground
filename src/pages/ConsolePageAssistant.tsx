@@ -72,14 +72,30 @@ export function ConsolePageAssistant() {
 
   useEffect(() => {
     (async () => {
-      console.log('llmInstructions updated');
       if (assistantRef?.current?.id) {
+        console.log('llmInstructions updated');
         getOpenAIClient().beta.assistants.update(assistantRef?.current?.id, {
           instructions: llmInstructions,
         });
       }
     })();
   }, [llmInstructions, assistantRef]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      (async () => {
+        if (assistantRef?.current?.id) {
+          const currentTime = new Date().toLocaleString();
+          getOpenAIClient().beta.assistants.update(assistantRef?.current?.id, {
+            instructions: llmInstructions + `\n\n当前时间：${currentTime}`,
+          });
+          console.log('llmInstructions updated', currentTime);
+        }
+      })();
+    }, 5000);
+
+    return () => clearInterval(timer);
+  }, [assistantRef]);
 
   const cleanupAssistants = async () => {
     const assistantsPageList: Assistant[] = [];
@@ -203,7 +219,9 @@ export function ConsolePageAssistant() {
   };
 
   const stopCurrentStreamJob = async () => {
-    if (!threadJobRef.current) return;
+    if (!threadJobRef.current) {
+      return;
+    }
 
     console.log('stopCurrentStreamJob:', threadJobRef.current);
 
@@ -258,14 +276,20 @@ export function ConsolePageAssistant() {
 
   // toolCallCreated - log new tool call
   const toolAssistantCallCreated = (toolCall: any) => {
-    if (toolCall.type != 'code_interpreter') return;
+    if (toolCall.type != 'code_interpreter') {
+      return;
+    }
     appendAssistantMessage('code', '');
   };
 
   // toolCallDelta - log delta and snapshot for the tool call
   const toolAssistantCallDelta = (delta: any) => {
-    if (delta.type != 'code_interpreter') return;
-    if (!delta.code_interpreter.input) return;
+    if (delta.type != 'code_interpreter') {
+      return;
+    }
+    if (!delta.code_interpreter.input) {
+      return;
+    }
     appendAssistantToLastMessage(delta.code_interpreter.input);
   };
 
