@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Profiles } from '../lib/Profiles';
 
 const TodoComponent = () => {

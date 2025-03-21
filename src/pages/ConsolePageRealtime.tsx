@@ -6,7 +6,6 @@ import {
 } from '@theodoreniu/realtime-api-beta/dist/lib/client.js';
 import {
   AVATAR_READY,
-  clientHiChinese,
   clientHiEnglish,
   CONNECT_CONNECTED,
   CONNECT_CONNECTING,
@@ -100,10 +99,10 @@ export function ConsolePageRealtime() {
           currentTime,
         );
       }
-    }, 5000);
+    }, 10000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [llmInstructions]);
 
   useEffect(() => {
     console.log('appKey updated, reset realtimeClientRef', appKey);

@@ -92,10 +92,10 @@ export function ConsolePageAssistant() {
           console.log('llmInstructions updated', currentTime);
         }
       })();
-    }, 5000);
+    }, 10000);
 
     return () => clearInterval(timer);
-  }, [assistantRef]);
+  }, [assistantRef, llmInstructions]);
 
   const cleanupAssistants = async () => {
     const assistantsPageList: Assistant[] = [];

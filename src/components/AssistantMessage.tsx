@@ -1,5 +1,4 @@
 import Markdown from 'react-markdown';
-import { ASSISTANT_TYPE_DEEPSEEK } from '../lib/const';
 import MessageLoading from './MessageLoading';
 import { Profiles } from '../lib/Profiles';
 type AssistantMessageProps = {
