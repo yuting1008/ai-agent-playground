@@ -111,14 +111,14 @@ const Avatar: React.FC = () => {
         new SpeechSDK.Coordinate(600, 0),
         new SpeechSDK.Coordinate(1360, 520),
       );
-      console.log('videoFormat: ' + videoFormat);
+      console.log('videoFormat: ' + JSON.stringify(videoFormat));
 
       const avatarConfig = new SpeechSDK.AvatarConfig(
         'harry',
         'business',
         videoFormat,
       );
-      console.log('avatarConfig: ' + avatarConfig);
+      console.log('avatarConfig: ' + JSON.stringify(avatarConfig));
       avatarConfig.customized = false;
       avatarConfig.backgroundImage = new URL(
         'https://playground.azuretsp.com/images/avatar_bg.jpg',
@@ -137,7 +137,7 @@ const Avatar: React.FC = () => {
       );
 
       const responseData = await response.json();
-      console.log('responseData: ' + responseData);
+      console.log('responseData: ' + JSON.stringify(responseData));
 
       avatarSynthesizerRef.current = new SpeechSDK.AvatarSynthesizer(
         speechSynthesisConfig,
@@ -157,7 +157,7 @@ const Avatar: React.FC = () => {
       console.log(error);
       alert(
         `Avatar session failed to start. Please check your configuration or network.\n` +
-          error,
+        error,
       );
       setAvatarStatus(AVATAR_OFF);
     }
