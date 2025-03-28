@@ -129,6 +129,8 @@ export class Profiles {
       p.isAssistant = p.assistantType === ASSISTANT_TYPE_ASSISTANT;
       p.isRealtime = p.assistantType === ASSISTANT_TYPE_REALTIME;
       p.isDeepSeek = p.assistantType === ASSISTANT_TYPE_DEEPSEEK;
+      p.buildInPrompt = true;
+      p.buildInFunctions = true;
 
       p.supportedAssistantType =
         supportedAssistantTypes.find((type) => type.value === p.assistantType)
@@ -263,7 +265,8 @@ export class Profiles {
   }
 
   getProfileNamesAsDropdown() {
-    return this.profiles.map((profile) => ({
+    return this.profiles
+      .map((profile) => ({
         label: profile.name,
         value: profile.id,
       }))
