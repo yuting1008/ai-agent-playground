@@ -697,7 +697,7 @@ const SettingsComponent: React.FC<{
           type={'text'}
           style={styles.settingInput}
           value={profiles.currentProfile?.cogSvcRegion || ''}
-          placeholder={'westus2'}
+          placeholder={'southeastasia'}
           onChange={(e) => {
             profiles.currentProfile!.cogSvcRegion = e.target.value;
             profiles.save();
