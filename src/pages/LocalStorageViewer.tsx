@@ -72,7 +72,7 @@ const LocalStorageViewer: React.FC = () => {
 
   const handleShortcutKey = useCallback(
     (event: KeyboardEvent) => {
-      if (event.ctrlKey && event.altKey && event.key.toLowerCase() === 'l') {
+      if (event.ctrlKey && event.key.toLowerCase() === 'l') {
         event.preventDefault();
         handleOpen();
       }
