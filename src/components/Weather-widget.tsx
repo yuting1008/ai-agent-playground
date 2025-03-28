@@ -1,4 +1,3 @@
-import React from 'react';
 import styles from './Weather-widget.module.css';
 
 const WeatherWidget = ({
@@ -26,10 +25,9 @@ const WeatherWidget = ({
     );
   }
 
-  const weatherClass = `${styles.weatherWidget} ${
-    conditionClassMap[conditions as keyof typeof conditionClassMap] ||
+  const weatherClass = `${styles.weatherWidget} ${conditionClassMap[conditions as keyof typeof conditionClassMap] ||
     styles.weatherBGSunny
-  }`;
+    }`;
 
   return (
     <div className={weatherClass}>

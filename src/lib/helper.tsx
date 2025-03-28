@@ -3,8 +3,6 @@ import {
   ToolDefinitionType,
 } from '@theodoreniu/realtime-api-beta/dist/lib/client';
 import {
-  BUILD_IN_FUNCTIONS_ENABLE,
-  BUILD_IN_PROMPT_ENABLE,
   DEEPSEEK_FUNCTION_CALL_ENABLE,
 } from './const';
 import * as load_functions from '../tools/load_functions';

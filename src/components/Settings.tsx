@@ -254,7 +254,7 @@ const SettingsComponent: React.FC<{
             <Dropdown
               options={profiles.getProfileNamesAsDropdown()}
               selectedValue={profiles.currentProfile?.id || ''}
-              onChange={(profile_id:string) => {
+              onChange={(profile_id: string) => {
                 const p = profiles.find(profile_id);
                 if (p) {
                   profiles.switch(p);
@@ -697,7 +697,7 @@ const SettingsComponent: React.FC<{
           type={'text'}
           style={styles.settingInput}
           value={profiles.currentProfile?.cogSvcRegion || ''}
-          placeholder={'westus2'}
+          placeholder={'southeastasia'}
           onChange={(e) => {
             profiles.currentProfile!.cogSvcRegion = e.target.value;
             profiles.save();

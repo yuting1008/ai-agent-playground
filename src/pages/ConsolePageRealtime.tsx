@@ -6,7 +6,6 @@ import {
 } from '@theodoreniu/realtime-api-beta/dist/lib/client.js';
 import {
   AVATAR_READY,
-  clientHiChinese,
   clientHiEnglish,
   CONNECT_CONNECTED,
   CONNECT_CONNECTING,
@@ -76,15 +75,33 @@ export function ConsolePageRealtime() {
   );
 
   useEffect(() => {
-    console.log('llmInstructions updated');
-    realtimeClientRef.current.updateSession({ instructions: llmInstructions });
-
     if (realtimeClientRef?.current.isConnected()) {
       const res = realtimeClientRef.current.updateSession({
         instructions: llmInstructions,
       });
       console.log('realtimeClientRef.current instructions updated', res);
+    } else {
+      console.log(
+        'realtimeClientRef.current is not connected, skip update instructions',
+      );
     }
+  }, [llmInstructions]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (realtimeClientRef.current.isConnected()) {
+        const currentTime = new Date().toLocaleString();
+        realtimeClientRef.current.updateSession({
+          instructions: llmInstructions + `\n\n当前时间：${currentTime}`,
+        });
+        console.log(
+          'realtimeClient is connected, updated time in instructions ',
+          currentTime,
+        );
+      }
+    }, 10000);
+
+    return () => clearInterval(timer);
   }, [llmInstructions]);
 
   useEffect(() => {
