@@ -24,7 +24,7 @@ import { InputBarAgent } from '../components/InputBarAgent';
 import { Run } from 'openai/resources/beta/threads/runs/runs';
 import BuiltFunctionDisable from '../components/BuiltFunctionDisable';
 import { Profiles } from '../lib/Profiles';
-import axios from 'axios';
+import { getAgentMessages } from '../lib/agentApi';
 
 export function ConsolePageAgent() {
   const {
@@ -88,45 +88,8 @@ export function ConsolePageAgent() {
     return () => clearInterval(timer);
   }, []);
 
-  async function getMessages() {
-    const agentApiKey = profiles.currentProfile?.agentApiKey;
-    if (!agentApiKey) {
-      alert('Agent API key not found');
-      return [];
-    }
-
-    const agentApiUrl = profiles.currentProfile?.agentApiUrl;
-    if (!agentApiUrl) {
-      alert('agentApiUrl not found');
-      return [];
-    }
-
-    const sessionId = '26ba0c52725340d5b2aa15594d0ebfcf';
-
-    try {
-      const response = await axios.get(
-        `${agentApiUrl}/api/sessions/${sessionId}/messages`,
-        {
-          headers: {
-            accept: 'application/json',
-            'api-key': agentApiKey,
-          },
-        },
-      );
-      console.log(response.data);
-      return response.data?.messages || [];
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.error('Axios error:', error.response?.data || error.message);
-      } else {
-        console.error('Unexpected error:', error);
-      }
-      return [];
-    }
-  }
-
   const setupSession = async () => {
-    const messages: any = await getMessages();
+    const messages: any = await getAgentMessages(profiles);
     setAgentMessages(messages);
   };
 
