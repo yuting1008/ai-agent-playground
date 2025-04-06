@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
   CONNECT_CONNECTED,
@@ -24,7 +24,13 @@ import { InputBarAgent } from '../components/InputBarAgent';
 import { Run } from 'openai/resources/beta/threads/runs/runs';
 import BuiltFunctionDisable from '../components/BuiltFunctionDisable';
 import { Profiles } from '../lib/Profiles';
-import { getAgentMessages } from '../lib/agentApi';
+import {
+  getAgentMessages,
+  clearAgentMessages,
+  getAgentSessions,
+  createAgentSession,
+  sendAgentMessage,
+} from '../lib/agentApi';
 
 export function ConsolePageAgent() {
   const {
@@ -49,6 +55,12 @@ export function ConsolePageAgent() {
   const [agentMessages, setAgentMessages] = useState<any[]>([]);
 
   const [agentRunning, setAgentRunning] = useState(false);
+
+  const [sessionId, setSessionId] = useState<string>('');
+  const sessionIdRef = useRef<string>(sessionId);
+  useEffect(() => {
+    sessionIdRef.current = sessionId;
+  }, [sessionId]);
 
   const [profiles] = useState<Profiles>(new Profiles());
 
@@ -83,14 +95,35 @@ export function ConsolePageAgent() {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setupSession();
-    }, 1000);
+      listMessages();
+    }, 500);
     return () => clearInterval(timer);
   }, [agentMessages]);
 
   const setupSession = async () => {
-    const messages: any = await getAgentMessages(profiles);
+    const sessions: any = await getAgentSessions(profiles);
+
+    if (sessions.length === 0) {
+      setSessionId(await createAgentSession(profiles));
+    } else {
+      setSessionId(sessions[0].id);
+    }
+  };
+
+  const listMessages = async () => {
+    if (!sessionIdRef.current) {
+      return;
+    }
+    const messages: any = await getAgentMessages(
+      profiles,
+      sessionIdRef.current,
+    );
     setAgentMessages(messages);
+  };
+
+  const clearMessages = async () => {
+    await clearAgentMessages(profiles, sessionIdRef.current);
+    setAgentMessages([]);
   };
 
   const functionCallHandler = async (call: any) => {
@@ -322,50 +355,15 @@ export function ConsolePageAgent() {
     setOutputTokens((prev) => prev + e.completion_tokens);
   };
 
-  const sendAssistantMessage = async (text: string) => {
-    if (!threadRef.current?.id) {
-      console.error('Thread not found');
+  const sendMessage = async (text: string) => {
+    if (!sessionIdRef.current) {
+      console.error('Session not found');
       return;
-    }
-
-    if (!assistantRef?.current?.id) {
-      console.error('Assistant not found');
-      return;
-    }
-
-    // wait to see if the thread is already running
-    const waitSeconds = 3 * 1000;
-    if (threadJobRef.current) {
-      await new Promise((resolve) => setTimeout(resolve, waitSeconds));
-      if (threadJobRef.current) {
-        console.error('Thread is already running');
-        return;
-      }
     }
 
     // may need to add a check to see if the thread is already created
     try {
-      handleAssistantTextCreated();
-      await getOpenAIClient().beta.threads.messages.create(
-        threadRef.current?.id,
-        {
-          role: 'user',
-          content: text,
-        },
-      );
-
-      const stream = getOpenAIClient().beta.threads.runs.stream(
-        threadRef.current?.id,
-        {
-          assistant_id: assistantRef?.current?.id,
-        },
-      );
-
-      const new_stream = AssistantStream.fromReadableStream(
-        stream.toReadableStream(),
-      );
-
-      handleAssistantReadableStream(new_stream);
+      await sendAgentMessage(profiles, sessionIdRef.current, text);
     } catch (error) {
       console.error('sendAssistantMessage error', JSON.stringify(error));
     }
@@ -374,12 +372,10 @@ export function ConsolePageAgent() {
   const connectConversation = useCallback(async () => {
     try {
       setConnectStatus(CONNECT_CONNECTING);
-      // setConnectMessage('Collecting Assistants...');
-      // await cleanupAssistants();
-      // setConnectMessage('Collecting Vector Stores...');
-      // await cleanupVectorStores();
-      setConnectMessage('Creating Assistant...');
+      setConnectMessage('Creating Session...');
       await setupSession();
+      setConnectMessage('Listing Messages...');
+      await listMessages();
       setConnectStatus(CONNECT_CONNECTED);
       setConnectMessage('');
     } catch (error: any) {
@@ -407,10 +403,12 @@ export function ConsolePageAgent() {
 
           <InputBarAgent
             setMessagesAssistant={setAgentMessages}
-            setAssistantRunning={setAgentRunning}
-            sendAssistantMessage={sendAssistantMessage}
+            setAgentRunning={setAgentRunning}
+            sendAgentMessage={sendMessage}
             stopCurrentStreamJob={stopCurrentStreamJob}
-            assistantRunning={agentRunning}
+            agentRunning={agentRunning}
+            messages={agentMessages}
+            clearMessages={clearMessages}
           />
         </div>
       </div>

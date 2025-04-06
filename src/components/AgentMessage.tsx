@@ -103,8 +103,23 @@ const AgentCodeMessage = ({ text }: { text: string }) => {
   );
 };
 
+export const AgentLoadingMessage = () => {
+  return (
+    <div className={'conversation-item assistant'}>
+      <div className={`speaker assistant`}></div>
+      <div className={`speaker-content assistant`}>
+        <MessageLoading messageId="msg_loading" />
+      </div>
+    </div>
+  );
+};
+
 export default function AgentMessage({ msg }: AgentMessageProps) {
   let content = JSON.stringify(msg, null, 2);
+
+  if (!msg?.content?.role) {
+    return <AgentUnknownMessage text={content} />;
+  }
 
   switch (msg.content.role) {
     case 'user':

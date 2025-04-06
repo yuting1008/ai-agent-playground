@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import AgentMessage from './AgentMessage';
+import AgentMessage, { AgentLoadingMessage } from './AgentMessage';
 import { CONNECT_CONNECTED } from '../lib/const';
+import { lastAgentMessageIsUserMessage } from '../lib/helper';
+import MessageLoading from './MessageLoading';
 
 export default function AgentMessages({
   connectStatus,
@@ -35,6 +37,9 @@ export default function AgentMessages({
         {messages.map((msg, index) => (
           <AgentMessage key={index} msg={msg} />
         ))}
+
+        {lastAgentMessageIsUserMessage(messages) && <AgentLoadingMessage />}
+
         <div ref={messagesEndAgentRef} />
       </div>
     </>

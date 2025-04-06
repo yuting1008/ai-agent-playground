@@ -2,9 +2,7 @@ import {
   ItemType,
   ToolDefinitionType,
 } from '@theodoreniu/realtime-api-beta/dist/lib/client';
-import {
-  DEEPSEEK_FUNCTION_CALL_ENABLE,
-} from './const';
+import { DEEPSEEK_FUNCTION_CALL_ENABLE } from './const';
 import * as load_functions from '../tools/load_functions';
 import { Profiles } from './Profiles';
 
@@ -41,6 +39,16 @@ export function lastMessageIsUserMessage(items: ItemType[]) {
   if (items.length > 0) {
     const lastItem: ItemType = items[items.length - 1];
     if (lastItem?.role === 'user' && lastItem?.type === 'message') {
+      return true;
+    }
+  }
+  return false;
+}
+
+export function lastAgentMessageIsUserMessage(items: any[]) {
+  if (items.length > 0) {
+    const lastItem: any = items[items.length - 1];
+    if (lastItem?.content?.role === 'user') {
       return true;
     }
   }
