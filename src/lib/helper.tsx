@@ -45,10 +45,10 @@ export function lastMessageIsUserMessage(items: ItemType[]) {
   return false;
 }
 
-export function lastAgentMessageIsUserMessage(items: any[]) {
+export function agentMessageNeedLoading(items: any[]) {
   if (items.length > 0) {
     const lastItem: any = items[items.length - 1];
-    if (lastItem?.content?.role === 'user') {
+    if (lastItem?.content?.role !== 'assistant') {
       return true;
     }
   }
