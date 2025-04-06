@@ -1,4 +1,4 @@
-import { Clock, Mic, MicOff, Send, StopCircle } from 'react-feather';
+import { Clock, Mic, MicOff, Send, StopCircle, Trash } from 'react-feather';
 
 import { useContexts } from '../providers/AppProvider';
 import { useEffect, useRef, useState } from 'react';
@@ -9,16 +9,20 @@ import { Profiles } from '../lib/Profiles';
 
 export function InputBarAgent({
   setMessagesAssistant,
-  setAssistantRunning,
-  sendAssistantMessage,
+  setAgentRunning: setAgentRunning,
+  sendAgentMessage: sendAgentMessage,
   stopCurrentStreamJob,
-  assistantRunning,
+  agentRunning: agentRunning,
+  clearMessages,
+  messages,
 }: {
   setMessagesAssistant: (messages: any) => void;
-  setAssistantRunning: (assistantRunning: boolean) => void;
-  sendAssistantMessage: (message: string) => void;
+  setAgentRunning: (agentRunning: boolean) => void;
+  sendAgentMessage: (message: string) => void;
   stopCurrentStreamJob: () => void;
-  assistantRunning: boolean;
+  agentRunning: boolean;
+  clearMessages: () => void;
+  messages: any[];
 }) {
   const {
     setInputValue,
@@ -26,6 +30,7 @@ export function InputBarAgent({
     setResponseBuffer,
     inputValue,
     connectStatus,
+    isNightMode,
   } = useContexts();
 
   const profiles = new Profiles();
@@ -169,84 +174,138 @@ export function InputBarAgent({
 
     resetTokenLatency();
 
-    await stopCurrentStreamJob();
     setIsAvatarSpeaking(false);
-    setAssistantRunning(true);
+    setAgentRunning(true);
     setMessagesAssistant((prevMessages: any) => [
       ...prevMessages,
-      { role: 'user', text: inputValue },
+      {
+        message_index: messages.length + 1,
+        created_at: new Date().getTime(),
+        content: { role: 'user', text: inputValue },
+        id: '564c191361ce4621ba0d7bb282801e54',
+        block_session: false,
+        status: 0,
+      },
     ]);
-    sendAssistantMessage(inputValue);
+    sendAgentMessage(inputValue);
     setInputValue('');
+    setAgentRunning(false);
   };
+
+  const handleInputButtonClick = (inputValue: string) => {
+    sendText(inputValue);
+  };
+
+  const styles = {
+    input_button_group: {
+      display: 'flex',
+      gap: '10px',
+      margin: '10px',
+      padding: '10px',
+    },
+    input_button: {
+      backgroundColor: 'transparent',
+      border: isNightMode ? '1px solid #b3b0b0' : '1px solid #6d6a6a',
+      color: isNightMode ? '#b3b0b0' : '#6d6a6a',
+      padding: '5px',
+      borderRadius: '3px',
+      cursor: 'pointer',
+    },
+  };
+
+  const button_texts = [
+    'what is the weather in tokyo?',
+    'what is life',
+    'who was the first president of the united states?',
+    'What is the age of the user?',
+  ];
 
   return (
     <>
       {connectStatus === CONNECT_CONNECTED && (
-        <div className="text-input">
-          <input
-            type="text"
-            placeholder={
-              assistantRunning
-                ? 'Waiting Response...'
-                : 'Type your message here...'
-            }
-            value={inputValue}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                sendText(inputValue);
+        <div>
+          <div style={styles.input_button_group}>
+            {button_texts.map((text, index) => (
+              <button
+                style={styles.input_button}
+                onClick={() => handleInputButtonClick(text)}
+              >
+                {text}
+              </button>
+            ))}
+          </div>
+          <div className="text-input">
+            <input
+              type="text"
+              placeholder={
+                agentRunning
+                  ? 'Waiting Response...'
+                  : 'Type your message here...'
               }
-              if (e.key === 'Escape') {
-                setInputValue('');
-              }
-            }}
-            onChange={(e) => setInputValue(e.target.value)}
-            disabled={assistantRunning}
-          />
+              value={inputValue}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  sendText(inputValue);
+                }
+                if (e.key === 'Escape') {
+                  setInputValue('');
+                }
+              }}
+              onChange={(e) => setInputValue(e.target.value)}
+              disabled={agentRunning}
+            />
 
-          <button
-            onClick={() => sendText(inputValue)}
-            style={{ display: inputValue ? '' : 'none' }}
-            disabled={!inputValue}
-          >
-            <Send />
-          </button>
+            <button
+              onClick={() => sendText(inputValue)}
+              style={{ display: inputValue ? '' : 'none' }}
+              disabled={!inputValue}
+            >
+              <Send />
+            </button>
 
-          <button
-            onClick={() => {
-              setAssistantRunning(false);
-              (async () => {
-                await stopCurrentStreamJob();
-              })();
-            }}
-            style={{
-              padding: '5px 5px',
-              fontSize: '12px',
-              border: 'none',
-              cursor: 'pointer',
-              borderRadius: '5px',
-              display: assistantRunning ? '' : 'none',
-            }}
-          >
-            <StopCircle />
-          </button>
+            <button
+              onClick={clearMessages}
+              style={{ display: messages.length > 0 ? '' : 'none' }}
+            >
+              <Trash />
+            </button>
 
-          <button
-            onClick={sttRecognizer ? sttStopRecognition : sttStartRecognition}
-            className={`mic-button ${isRecognizing ? 'active' : ''}`}
-            style={{
-              color: sttRecognizer ? '#ffffff' : '',
-              backgroundColor: sttRecognizer ? '#ff4d4f' : '',
-            }}
-          >
-            {sttRecognizer ? (
-              <Mic />
-            ) : sttRecognizerConnecting ? (
-              <Clock />
-            ) : (
-              <MicOff />
-            )}
-          </button>
+            <button
+              onClick={() => {
+                setAgentRunning(false);
+                (async () => {
+                  await stopCurrentStreamJob();
+                })();
+              }}
+              style={{
+                padding: '5px 5px',
+                fontSize: '12px',
+                border: 'none',
+                cursor: 'pointer',
+                borderRadius: '5px',
+                display: agentRunning ? '' : 'none',
+              }}
+            >
+              <StopCircle />
+            </button>
+
+            <button
+              onClick={sttRecognizer ? sttStopRecognition : sttStartRecognition}
+              className={`mic-button ${isRecognizing ? 'active' : ''}`}
+              style={{
+                color: sttRecognizer ? '#ffffff' : '',
+                backgroundColor: sttRecognizer ? '#ff4d4f' : '',
+              }}
+            >
+              {sttRecognizer ? (
+                <Mic />
+              ) : sttRecognizerConnecting ? (
+                <Clock />
+              ) : (
+                <MicOff />
+              )}
+            </button>
+          </div>
         </div>
       )}
     </>
