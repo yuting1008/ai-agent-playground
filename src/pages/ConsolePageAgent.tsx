@@ -93,7 +93,7 @@ export function ConsolePageAgent() {
     return () => clearInterval(timer);
   }, [assistantRef, llmInstructions]);
 
-  const listMessages = async () => {
+  const listMessages = useCallback(async () => {
     if (!sessionIdRef.current) {
       return;
     }
@@ -102,7 +102,7 @@ export function ConsolePageAgent() {
       sessionIdRef.current,
     );
     setAgentMessages(messages);
-  };
+  }, [profiles]);
 
   useEffect(() => {
     const timer = setInterval(() => {
