@@ -23,7 +23,7 @@ export default function AgentMessages({
       assistantScrollToBottom();
     }
     setOldMessages(messages);
-  }, [messages]);
+  }, [messages, oldMessages]);
 
   if (connectStatus !== CONNECT_CONNECTED) {
     return null;
