@@ -2,18 +2,31 @@ import axios from 'axios';
 
 import { Profiles } from './Profiles';
 
-export async function createAgentSession(profiles: Profiles) {
-  const agentApiKey = profiles.currentProfile?.agentApiKey;
-  if (!agentApiKey) {
-    alert('Agent API key not found');
-    return [];
-  }
-
+export async function getAgentSessions(profiles: Profiles) {
   const agentApiUrl = profiles.currentProfile?.agentApiUrl;
   if (!agentApiUrl) {
-    alert('agentApiUrl not found');
-    return [];
+    throw new Error('agentApiUrl not found');
   }
+
+  const agentApiKey = profiles.currentProfile?.agentApiKey;
+  if (!agentApiKey) {
+    throw new Error('agentApiKey not found');
+  }
+
+  const response = await axios.get(`${agentApiUrl}/api/sessions`, {
+    headers: {
+      accept: 'application/json',
+      'api-key': agentApiKey,
+    },
+    timeout: 10000,
+  });
+
+  return response.data?.data || [];
+}
+
+export async function createAgentSession(profiles: Profiles) {
+  const agentApiKey = profiles.currentProfile?.agentApiKey;
+  const agentApiUrl = profiles.currentProfile?.agentApiUrl;
 
   try {
     const response = await axios.post(
@@ -27,7 +40,7 @@ export async function createAgentSession(profiles: Profiles) {
         timeout: 10000,
       },
     );
-    console.log(response.data);
+
     return response.data?.id || '';
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -39,51 +52,9 @@ export async function createAgentSession(profiles: Profiles) {
   }
 }
 
-export async function getAgentSessions(profiles: Profiles) {
-  const agentApiKey = profiles.currentProfile?.agentApiKey;
-  if (!agentApiKey) {
-    alert('Agent API key not found');
-    return [];
-  }
-
-  const agentApiUrl = profiles.currentProfile?.agentApiUrl;
-  if (!agentApiUrl) {
-    alert('agentApiUrl not found');
-    return [];
-  }
-
-  try {
-    const response = await axios.get(`${agentApiUrl}/api/sessions`, {
-      headers: {
-        accept: 'application/json',
-        'api-key': agentApiKey,
-      },
-      timeout: 10000,
-    });
-    console.log(response.data);
-    return response.data?.data || [];
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error('Axios error:', error.response?.data || error.message);
-    } else {
-      console.error('Unexpected error:', error);
-    }
-    return [];
-  }
-}
-
 export async function getAgentMessages(profiles: Profiles, sessionId: string) {
   const agentApiKey = profiles.currentProfile?.agentApiKey;
-  if (!agentApiKey) {
-    alert('Agent API key not found');
-    return [];
-  }
-
   const agentApiUrl = profiles.currentProfile?.agentApiUrl;
-  if (!agentApiUrl) {
-    alert('agentApiUrl not found');
-    return [];
-  }
 
   try {
     const response = await axios.get(
@@ -113,16 +84,7 @@ export async function clearAgentMessages(
   sessionId: string,
 ) {
   const agentApiKey = profiles.currentProfile?.agentApiKey;
-  if (!agentApiKey) {
-    alert('Agent API key not found');
-    return [];
-  }
-
   const agentApiUrl = profiles.currentProfile?.agentApiUrl;
-  if (!agentApiUrl) {
-    alert('agentApiUrl not found');
-    return [];
-  }
 
   try {
     const response = await axios.delete(
@@ -135,7 +97,7 @@ export async function clearAgentMessages(
         timeout: 10000,
       },
     );
-    console.log(response.data);
+
     return response.data || [];
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -153,16 +115,7 @@ export async function sendAgentMessage(
   message: string,
 ) {
   const agentApiKey = profiles.currentProfile?.agentApiKey;
-  if (!agentApiKey) {
-    alert('Agent API key not found');
-    return [];
-  }
-
   const agentApiUrl = profiles.currentProfile?.agentApiUrl;
-  if (!agentApiUrl) {
-    alert('agentApiUrl not found');
-    return [];
-  }
 
   try {
     const response = await axios.post(

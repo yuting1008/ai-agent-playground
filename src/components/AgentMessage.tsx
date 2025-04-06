@@ -65,7 +65,10 @@ const AgentUnknownMessage = ({ text }: { text: string }) => {
   return (
     <div className={'conversation-item assistant'}>
       <div className={`speaker assistant`}></div>
-      <div className={`speaker-content assistant`} style={{ color: 'red' }}>
+      <div
+        className={`speaker-content assistant`}
+        style={{ background: '#2782eb' }}
+      >
         {text && <Markdown>{text}</Markdown>}
         {!text && <MessageLoading messageId="msg_loading" />}
       </div>

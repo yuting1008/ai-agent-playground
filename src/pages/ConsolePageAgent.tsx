@@ -32,6 +32,8 @@ import {
   sendAgentMessage,
 } from '../lib/agentApi';
 
+const REFRESH_MESSAGE_INTERVAL = 300;
+
 export function ConsolePageAgent() {
   const {
     assistantRef,
@@ -107,7 +109,7 @@ export function ConsolePageAgent() {
   useEffect(() => {
     const timer = setInterval(() => {
       listMessages();
-    }, 500);
+    }, REFRESH_MESSAGE_INTERVAL);
     return () => clearInterval(timer);
   }, [agentMessages, listMessages]);
 
@@ -380,7 +382,8 @@ export function ConsolePageAgent() {
       setConnectMessage('');
     } catch (error: any) {
       setConnectStatus(CONNECT_DISCONNECTED);
-      setConnectMessage(error.message);
+      const agentApiUrl = profiles.currentProfile?.agentApiUrl;
+      setConnectMessage(`${error.message} with ${agentApiUrl}`);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

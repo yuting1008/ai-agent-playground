@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { X } from 'react-feather';
 import { Activity } from 'react-feather';
 import { useContexts } from '../../providers/AppProvider';
-import { ASSISTANT_TYPE_REALTIME, CONNECT_CONNECTED } from '../../lib/const';
+import { CONNECT_CONNECTED } from '../../lib/const';
 import { avgLatency, calculatePercentiles } from '../../lib/helper';
 import { TableSheet } from '../../types/Table';
 import WithFade from '../WithFade';

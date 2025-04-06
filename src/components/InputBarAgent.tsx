@@ -6,6 +6,7 @@ import * as SpeechSDK from 'microsoft-cognitiveservices-speech-sdk';
 import './InputBar.scss';
 import { CONNECT_CONNECTED } from '../lib/const';
 import { Profiles } from '../lib/Profiles';
+import { RecommandText } from './RecommandText';
 
 export function InputBarAgent({
   setMessagesAssistant,
@@ -30,7 +31,6 @@ export function InputBarAgent({
     setResponseBuffer,
     inputValue,
     connectStatus,
-    isNightMode,
   } = useContexts();
 
   const profiles = new Profiles();
@@ -192,48 +192,19 @@ export function InputBarAgent({
     setAgentRunning(false);
   };
 
-  const handleInputButtonClick = (inputValue: string) => {
-    sendText(inputValue);
-  };
-
-  const styles = {
-    input_button_group: {
-      display: 'flex',
-      gap: '10px',
-      margin: '10px',
-      padding: '10px',
-    },
-    input_button: {
-      backgroundColor: 'transparent',
-      border: isNightMode ? '1px solid #b3b0b0' : '1px solid #6d6a6a',
-      color: isNightMode ? '#b3b0b0' : '#6d6a6a',
-      padding: '5px',
-      borderRadius: '3px',
-      cursor: 'pointer',
-    },
-  };
-
-  const button_texts = [
-    'what is the weather in tokyo?',
-    'what is life',
-    'who was the first president of the united states?',
-    'What is the age of the user?',
-  ];
-
   return (
     <>
       {connectStatus === CONNECT_CONNECTED && (
         <div>
-          <div style={styles.input_button_group}>
-            {button_texts.map((text, index) => (
-              <button
-                style={styles.input_button}
-                onClick={() => handleInputButtonClick(text)}
-              >
-                {text}
-              </button>
-            ))}
-          </div>
+          <RecommandText
+            handleInputButtonClick={sendText}
+            messages={[
+              'what is the weather in tokyo?',
+              'what is life',
+              'who was the first president of the united states?',
+              'What is the age of the user?',
+            ]}
+          />
           <div className="text-input">
             <input
               type="text"
