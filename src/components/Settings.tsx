@@ -7,6 +7,7 @@ import { GRAPHRAG_ABOUT } from '../tools/azure_docs';
 import {
   ALLOW_FUNCTIONS_CHARACTERS,
   ALLOW_PROMPT_CHARACTERS,
+  ASSISTANT_TYPE_AGENT_AI,
   ASSISTANT_TYPE_ASSISTANT,
   ASSISTANT_TYPE_DEEPSEEK,
   ASSISTANT_TYPE_REALTIME,
@@ -32,6 +33,7 @@ const COMPLETION = 'Completion';
 const DEEPSEEK = 'DeepSeek';
 const TOKENS = 'Third API';
 const FUNCTIONS = 'Functions';
+const AGENT_AI = 'Agent API';
 const PROMPT = 'Prompt';
 const BING = 'Bing';
 
@@ -51,6 +53,7 @@ const temperatureOptions = [
 
 export const supportedAssistantTypes = [
   { value: ASSISTANT_TYPE_REALTIME, label: 'Realtime' },
+  { value: ASSISTANT_TYPE_AGENT_AI, label: 'Agent API' },
   { value: ASSISTANT_TYPE_ASSISTANT, label: 'STT -> Assistant -> TTS' },
   { value: ASSISTANT_TYPE_DEEPSEEK, label: 'STT -> DeepSeek -> TTS' },
 ];
@@ -100,7 +103,7 @@ const SettingsComponent: React.FC<{
       padding: '20px',
       borderRadius: '8px',
       color: isNightMode ? '#dddddf' : '#3e3e47',
-      width: '805px',
+      width: '870px',
       maxHeight: '90%',
       overflowY: 'auto',
     } as React.CSSProperties,
@@ -1065,6 +1068,57 @@ const SettingsComponent: React.FC<{
     );
   };
 
+  // Agent AI Settings Tab
+  const AgentAI = () => {
+    const [profiles, setProfiles] = useState(new Profiles());
+
+    return (
+      <div>
+        <div style={styles.settingLabel}>Agent API URL</div>
+        <input
+          type="text"
+          style={styles.settingInput}
+          value={profiles.currentProfile?.agentApiUrl || ''}
+          placeholder={''}
+          onChange={(e) => {
+            profiles.currentProfile!.agentApiUrl = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
+            if (e.target.value === '') {
+              profiles.currentProfile!.agentApiUrl = '';
+              profiles.save();
+              setProfiles(new Profiles());
+            }
+          }}
+        />
+
+        <div style={styles.settingLabel}>
+          Key
+          <span style={styles.settingLabelShow} onClick={toggleVisibility}>
+            {isVisible ? <FaRegEye /> : <FaRegEyeSlash />}
+          </span>
+        </div>
+        <input
+          type={isVisible ? 'text' : 'password'}
+          style={styles.settingInput}
+          value={profiles.currentProfile?.agentApiKey || ''}
+          placeholder={''}
+          onChange={(e) => {
+            profiles.currentProfile!.agentApiKey = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
+          }}
+        />
+
+        <div style={styles.settingLabel}>
+          Remaining Characters:{' '}
+          {ALLOW_FUNCTIONS_CHARACTERS -
+            (profiles.currentProfile?.agentApiUrl?.length || 0)}
+        </div>
+      </div>
+    );
+  };
+
   // Tokens Settings Tab
   const Tokens = () => {
     const [profiles, setProfiles] = useState(new Profiles());
@@ -1270,6 +1324,8 @@ const SettingsComponent: React.FC<{
         return <Bing />;
       case FUNCTIONS:
         return <Functions />;
+      case AGENT_AI:
+        return <AgentAI />;
       default:
         return <DefaultSettings />;
     }
@@ -1357,6 +1413,15 @@ const SettingsComponent: React.FC<{
                   onClick={() => setActiveTab(FUNCTIONS)}
                 >
                   {FUNCTIONS}
+                </button>
+                <button
+                  style={{
+                    ...styles.settingsTabButton,
+                    ...(activeTab === AGENT_AI ? styles.tabActive : {}),
+                  }}
+                  onClick={() => setActiveTab(AGENT_AI)}
+                >
+                  {AGENT_AI}
                 </button>
                 <button
                   style={{

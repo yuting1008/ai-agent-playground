@@ -4,9 +4,10 @@ import { useContexts } from '../providers/AppProvider';
 import { useEffect, useRef, useState } from 'react';
 import * as SpeechSDK from 'microsoft-cognitiveservices-speech-sdk';
 import './InputBar.scss';
-import { clientHiEnglish, CONNECT_CONNECTED } from '../lib/const';
+import { CONNECT_CONNECTED } from '../lib/const';
 import { Profiles } from '../lib/Profiles';
-export function InputBarAssistant({
+
+export function InputBarAgent({
   setMessagesAssistant,
   setAssistantRunning,
   sendAssistantMessage,
@@ -178,14 +179,6 @@ export function InputBarAssistant({
     sendAssistantMessage(inputValue);
     setInputValue('');
   };
-
-  useEffect(() => {
-    if (connectStatus === CONNECT_CONNECTED) {
-      const hi = clientHiEnglish;
-      sendText(hi);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [connectStatus]);
 
   return (
     <>

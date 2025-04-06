@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import {
   APP_AGENT,
+  ASSISTANT_TYPE_AGENT_AI,
   ASSISTANT_TYPE_ASSISTANT,
   ASSISTANT_TYPE_DEEPSEEK,
   ASSISTANT_TYPE_DEFAULT,
@@ -44,6 +45,8 @@ class Profile {
   public deepSeekApiKey: string = '';
   public promptUrl: string = '';
   public functionsUrl: string = '';
+  public agentApiUrl: string = '';
+  public agentApiKey: string = '';
   public functions: string = '';
   public feishuHook: string = '';
   public quoteToken: string = '';
@@ -57,6 +60,7 @@ class Profile {
   public isAssistant: boolean = this.assistantType === ASSISTANT_TYPE_ASSISTANT;
   public isRealtime: boolean = this.assistantType === ASSISTANT_TYPE_REALTIME;
   public isDeepSeek: boolean = this.assistantType === ASSISTANT_TYPE_DEEPSEEK;
+  public isAgentAI: boolean = this.assistantType === ASSISTANT_TYPE_AGENT_AI;
 
   setProperty<K extends keyof Profile>(key: K, value: Profile[K]) {
     Object.assign(this, { [key]: value });
@@ -129,6 +133,8 @@ export class Profiles {
       p.isAssistant = p.assistantType === ASSISTANT_TYPE_ASSISTANT;
       p.isRealtime = p.assistantType === ASSISTANT_TYPE_REALTIME;
       p.isDeepSeek = p.assistantType === ASSISTANT_TYPE_DEEPSEEK;
+      p.isAgentAI = p.assistantType === ASSISTANT_TYPE_AGENT_AI;
+
       p.buildInPrompt = true;
       p.buildInFunctions = true;
 
