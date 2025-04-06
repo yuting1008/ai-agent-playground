@@ -86,7 +86,7 @@ export function ConsolePageAgent() {
       setupSession();
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [agentMessages]);
 
   const setupSession = async () => {
     const messages: any = await getAgentMessages(profiles);

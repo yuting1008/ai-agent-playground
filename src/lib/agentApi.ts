@@ -25,6 +25,7 @@ export async function getAgentMessages(profiles: Profiles) {
           accept: 'application/json',
           'api-key': agentApiKey,
         },
+        timeout: 10000,
       },
     );
     console.log(response.data);
