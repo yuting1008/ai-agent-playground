@@ -450,6 +450,13 @@
         width: 100%;
       }
 
+      &:hover {
+        background-color: rgb(255, 255, 255, 0.6) !important;
+        transition:
+          transform 0.3s ease-in-out,
+          background-color 0.3s ease-in-out;
+      }
+
       &.user {
         background-color: #80cc29;
         color: #1e1d1d;
@@ -658,7 +665,6 @@ body.night-mode {
 }
 
 .text-input {
-  background-color: #b3b1b1;
   width: 100%;
   padding: 15px 18px;
   padding-top: 0;
@@ -675,7 +681,7 @@ body.night-mode {
     border-radius: 4px;
     padding: 12px;
     outline: none;
-    background-color: rgba(38, 38, 38, 0.1);
+    background-color: rgba(255, 255, 255, 0.4);
   }
 
   button {
@@ -700,8 +706,43 @@ body.night-mode {
   .modal {
     background-color: #181818;
   }
+  
+  .conversation-item  {
+    .speaker-content {
+
+      &:hover {
+        background-color: #090909 !important;
+      }
+
+      &.user {
+        background-color: #386306;
+        color: #ffffff;
+      }
+  
+      &.user::after {
+        border-left: 8px solid #386306;
+        color: #ffffff;
+      }
+  
+      &.assistant {
+        background-color: #090909;
+        color: #ffffff;
+      }
+  
+      &.assistant::before {
+        background-color: #090909;
+        color: #ffffff;
+      }
+    }
+
+  }
+ 
 
   .text-input {
+    input {
+      background-color: rgba(0, 0, 0, 0.3);
+    }
+
     button {
       color: #d0d0d0;
 

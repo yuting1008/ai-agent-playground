@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import AgentMessage, { AgentLoadingMessage } from './AgentMessage';
 import { CONNECT_CONNECTED } from '../lib/const';
 import { lastAgentMessageIsUserMessage } from '../lib/helper';
-import MessageLoading from './MessageLoading';
 
 export default function AgentMessages({
   connectStatus,

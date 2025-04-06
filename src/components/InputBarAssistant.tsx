@@ -6,6 +6,7 @@ import * as SpeechSDK from 'microsoft-cognitiveservices-speech-sdk';
 import './InputBar.scss';
 import { clientHiEnglish, CONNECT_CONNECTED } from '../lib/const';
 import { Profiles } from '../lib/Profiles';
+import { RecommandText } from './RecommandText';
 export function InputBarAssistant({
   setMessagesAssistant,
   setAssistantRunning,
@@ -190,70 +191,81 @@ export function InputBarAssistant({
   return (
     <>
       {connectStatus === CONNECT_CONNECTED && (
-        <div className="text-input">
-          <input
-            type="text"
-            placeholder={
-              assistantRunning
-                ? 'Waiting Response...'
-                : 'Type your message here...'
-            }
-            value={inputValue}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                sendText(inputValue);
-              }
-              if (e.key === 'Escape') {
-                setInputValue('');
-              }
-            }}
-            onChange={(e) => setInputValue(e.target.value)}
-            disabled={assistantRunning}
+        <div>
+          <RecommandText
+            handleInputButtonClick={sendText}
+            messages={[
+              'what is the weather in tokyo?',
+              'what is life',
+              'who was the first president of the united states?',
+              'What is the age of the user?',
+            ]}
           />
+          <div className="text-input">
+            <input
+              type="text"
+              placeholder={
+                assistantRunning
+                  ? 'Waiting Response...'
+                  : 'Type your message here...'
+              }
+              value={inputValue}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  sendText(inputValue);
+                }
+                if (e.key === 'Escape') {
+                  setInputValue('');
+                }
+              }}
+              onChange={(e) => setInputValue(e.target.value)}
+              disabled={assistantRunning}
+            />
 
-          <button
-            onClick={() => sendText(inputValue)}
-            style={{ display: inputValue ? '' : 'none' }}
-            disabled={!inputValue}
-          >
-            <Send />
-          </button>
+            <button
+              onClick={() => sendText(inputValue)}
+              style={{ display: inputValue ? '' : 'none' }}
+              disabled={!inputValue}
+            >
+              <Send />
+            </button>
 
-          <button
-            onClick={() => {
-              setAssistantRunning(false);
-              (async () => {
-                await stopCurrentStreamJob();
-              })();
-            }}
-            style={{
-              padding: '5px 5px',
-              fontSize: '12px',
-              border: 'none',
-              cursor: 'pointer',
-              borderRadius: '5px',
-              display: assistantRunning ? '' : 'none',
-            }}
-          >
-            <StopCircle />
-          </button>
+            <button
+              onClick={() => {
+                setAssistantRunning(false);
+                (async () => {
+                  await stopCurrentStreamJob();
+                })();
+              }}
+              style={{
+                padding: '5px 5px',
+                fontSize: '12px',
+                border: 'none',
+                cursor: 'pointer',
+                borderRadius: '5px',
+                display: assistantRunning ? '' : 'none',
+              }}
+            >
+              <StopCircle />
+            </button>
 
-          <button
-            onClick={sttRecognizer ? sttStopRecognition : sttStartRecognition}
-            className={`mic-button ${isRecognizing ? 'active' : ''}`}
-            style={{
-              color: sttRecognizer ? '#ffffff' : '',
-              backgroundColor: sttRecognizer ? '#ff4d4f' : '',
-            }}
-          >
-            {sttRecognizer ? (
-              <Mic />
-            ) : sttRecognizerConnecting ? (
-              <Clock />
-            ) : (
-              <MicOff />
-            )}
-          </button>
+            <button
+              onClick={sttRecognizer ? sttStopRecognition : sttStartRecognition}
+              className={`mic-button ${isRecognizing ? 'active' : ''}`}
+              style={{
+                color: sttRecognizer ? '#ffffff' : '',
+                backgroundColor: sttRecognizer ? '#ff4d4f' : '',
+              }}
+            >
+              {sttRecognizer ? (
+                <Mic />
+              ) : sttRecognizerConnecting ? (
+                <Clock />
+              ) : (
+                <MicOff />
+              )}
+            </button>
+          </div>
         </div>
       )}
     </>

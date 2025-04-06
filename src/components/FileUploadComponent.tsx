@@ -7,6 +7,7 @@ import { useContexts } from '../providers/AppProvider';
 import { RealtimeClient } from '@theodoreniu/realtime-api-beta';
 import { image_vision } from '../lib/openai';
 import { Profiles } from '../lib/Profiles';
+
 const FileUploadComponent: React.FC<{
   connectStatus: string;
   realtimeClient: RealtimeClient;
