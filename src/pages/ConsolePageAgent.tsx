@@ -93,23 +93,6 @@ export function ConsolePageAgent() {
     return () => clearInterval(timer);
   }, [assistantRef, llmInstructions]);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      listMessages();
-    }, 500);
-    return () => clearInterval(timer);
-  }, [agentMessages]);
-
-  const setupSession = async () => {
-    const sessions: any = await getAgentSessions(profiles);
-
-    if (sessions.length === 0) {
-      setSessionId(await createAgentSession(profiles));
-    } else {
-      setSessionId(sessions[0].id);
-    }
-  };
-
   const listMessages = async () => {
     if (!sessionIdRef.current) {
       return;
@@ -119,6 +102,23 @@ export function ConsolePageAgent() {
       sessionIdRef.current,
     );
     setAgentMessages(messages);
+  };
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      listMessages();
+    }, 500);
+    return () => clearInterval(timer);
+  }, [agentMessages, listMessages]);
+
+  const setupSession = async () => {
+    const sessions: any = await getAgentSessions(profiles);
+
+    if (sessions.length === 0) {
+      setSessionId(await createAgentSession(profiles));
+    } else {
+      setSessionId(sessions[0].id);
+    }
   };
 
   const clearMessages = async () => {
