@@ -17,6 +17,7 @@ import { useEffect, useState } from 'react';
 import AppMessage from '../components/AppMessage';
 import { Profiles } from '../lib/Profiles';
 import defaultIcon from '../static/logomark.svg';
+import { ConsolePageAgent } from './ConsolePageAgent';
 
 export function ConsolePage() {
   const { isDebugMode, setIsDebugMode, isNightMode } = useContexts();
@@ -119,6 +120,7 @@ export function ConsolePage() {
         {profiles.currentProfile?.isRealtime && <ConsolePageRealtime />}
         {profiles.currentProfile?.isAssistant && <ConsolePageAssistant />}
         {profiles.currentProfile?.isDeepSeek && <ConsolePageDeepSeek />}
+        {profiles.currentProfile?.isAgentAI && <ConsolePageAgent />}
       </div>
     </div>
   );
