@@ -5,7 +5,7 @@ import {
 import { DEEPSEEK_FUNCTION_CALL_ENABLE } from './const';
 import * as load_functions from '../tools/load_functions';
 import { Profiles } from './Profiles';
-import { AgentMessage } from '../components/AgentMessage';
+import { AgentMessageType } from '../types/AgentMessageType';
 
 export const delayFunction = function delay(ms: number) {
   return new Promise((resolve) => {
@@ -46,20 +46,23 @@ export function lastMessageIsUserMessage(items: ItemType[]) {
   return false;
 }
 
-export function agentMessageNeedLoading(items: AgentMessage[]) {
+export function agentMessageNeedLoading(items: AgentMessageType[]) {
   if (items.length > 0) {
-    const lastItem: AgentMessage = items[items.length - 1];
-    if (lastItem?.content?.role !== 'assistant') {
+    const lastItem: AgentMessageType = items[items.length - 1];
+    if (lastItem?.content?.role !== 'assistant' && !lastItem?.need_approve) {
       return true;
     }
   }
   return false;
 }
 
-export function agentMessageNeedWaitClient(items: AgentMessage[]) {
+export function agentMessageNeedWaitClient(items: AgentMessageType[]) {
   if (items.length > 0) {
-    const lastItem: AgentMessage = items[items.length - 1];
+    const lastItem: AgentMessageType = items[items.length - 1];
     if (lastItem?.block_session) {
+      if (lastItem?.need_approve) {
+        return false;
+      }
       return true;
     }
   }

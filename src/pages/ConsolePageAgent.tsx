@@ -35,9 +35,14 @@ import {
   updateSessionStates,
   getSessionStates,
 } from '../lib/agentApi';
-import { AgentMessage, LlmMessage } from '../components/AgentMessage';
+import { AgentMessageType } from '../types/AgentMessageType';
+import { LlmMessage } from '../components/AgentMessage';
+import {
+  agentMessageNeedLoading,
+  agentMessageNeedWaitClient,
+} from '../lib/helper';
 
-const REFRESH_MESSAGE_INTERVAL = 1000;
+const REFRESH_MESSAGE_INTERVAL = 100;
 
 export function ConsolePageAgent() {
   const {
@@ -60,9 +65,17 @@ export function ConsolePageAgent() {
     camera_on_handler,
   } = useContexts();
 
-  const [agentMessages, setAgentMessages] = useState<AgentMessage[]>([]);
-
+  const [agentMessages, setAgentMessages] = useState<AgentMessageType[]>([]);
   const [agentRunning, setAgentRunning] = useState(false);
+
+  useEffect(() => {
+    const lastItem: AgentMessageType = agentMessages[agentMessages.length - 1];
+    if (lastItem?.block_session || lastItem?.need_approve) {
+      setAgentRunning(true);
+    } else {
+      setAgentRunning(false);
+    }
+  }, [agentMessages]);
 
   const [sessionStates, setSessionStates] = useState<any>({});
   const sessionStatesRef = useRef<any>({});
@@ -79,7 +92,6 @@ export function ConsolePageAgent() {
       // get session states
       (async () => {
         const states = await getSessionStates(profiles, sessionIdRef.current);
-        console.log('states', states);
         setSessionStates(states);
       })();
     }
@@ -146,6 +158,23 @@ export function ConsolePageAgent() {
     }
 
     const call_id = msg.call_id || '';
+
+    if (lastMessage?.need_approve && lastMessage?.approve_status === 0) {
+      return;
+    }
+
+    if (lastMessage?.need_approve && lastMessage?.approve_status === 2) {
+      await sendAgentClientToolResponseMessage(
+        profiles,
+        sessionIdRef.current,
+        call_id,
+        JSON.stringify({
+          result: false,
+          message: 'Tool Rejected by user',
+        }),
+      );
+      return;
+    }
 
     if (msg?.name === 'camera_on_or_off') {
       const res = await camera_on_handler({ ...msg?.arguments });
@@ -232,11 +261,6 @@ export function ConsolePageAgent() {
     }
 
     setThreadJob(null);
-  };
-
-  // textCreated - create new assistant message
-  const handleAssistantTextCreated = () => {
-    appendAssistantMessage('assistant', '');
   };
 
   // textDelta - append text to last assistant message
@@ -418,6 +442,7 @@ export function ConsolePageAgent() {
   };
 
   const sendMessage = async (text: string) => {
+    setAgentRunning(true);
     if (!sessionIdRef.current) {
       console.error('Session not found');
       return;
@@ -433,6 +458,8 @@ export function ConsolePageAgent() {
     } catch (error) {
       console.error('sendAssistantMessage error', JSON.stringify(error));
     }
+
+    setAgentRunning(false);
   };
 
   const connectConversation = useCallback(async () => {

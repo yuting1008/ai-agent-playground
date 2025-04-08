@@ -8,13 +8,14 @@ import {
   agentMessageNeedLoading,
   agentMessageNeedWaitClient,
 } from '../lib/helper';
+import { AgentMessageType } from '../types/AgentMessageType';
 
 export default function AgentMessages({
   connectStatus,
   messages: messages,
 }: {
   connectStatus: string;
-  messages: any[];
+  messages: AgentMessageType[];
 }) {
   // automatically scroll to bottom of chat
   const messagesEndAgentRef = useRef<HTMLDivElement | null>(null);
@@ -22,7 +23,7 @@ export default function AgentMessages({
     messagesEndAgentRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const [oldMessages, setOldMessages] = useState<any[]>([]);
+  const [oldMessages, setOldMessages] = useState<AgentMessageType[]>([]);
 
   useEffect(() => {
     // assistantScrollToBottom if messages is updated

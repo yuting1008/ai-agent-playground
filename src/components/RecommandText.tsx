@@ -36,6 +36,7 @@ export function RecommandText({
         <button
           style={styles.input_button}
           onClick={() => handleInputButtonClick(text)}
+          key={text}
         >
           {text}
         </button>

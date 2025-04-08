@@ -3,6 +3,11 @@ import MessageLoading from './MessageLoading';
 
 import { useContexts } from '../providers/AppProvider';
 import ClickToJson from './ClickToJson';
+import { approveMessage, rejectMessage } from '../lib/agentApi';
+import { AgentMessageType } from '../types/AgentMessageType';
+import Box from '@mui/material/Box';
+import LinearProgress from '@mui/material/LinearProgress';
+import { useState } from 'react';
 
 type LlmMessageContent = {
   annotations: string[];
@@ -10,32 +15,58 @@ type LlmMessageContent = {
   type: string;
 };
 
+type ToolCall = {
+  call_id: string;
+  type: string;
+  name: string;
+  id: string;
+  arguments: object;
+};
+
 export type LlmMessage = {
   arguments?: object;
   call_id?: string;
-  content?: object | LlmMessageContent[];
+  content?: any | LlmMessageContent[];
   id: string;
   name?: string;
-  output?: string;
+  output?: any;
   role?: string;
   status?: number;
   type?: string;
-};
-
-export type AgentMessage = {
-  block_session?: boolean;
-  content: LlmMessage;
-  created_at: string;
-  id: string;
-  message_index: number;
-  role: string;
-  session_id: string;
-  status: number;
-  user_id: number;
+  message?: string;
+  tool_call?: ToolCall;
 };
 
 type AgentMessageProps = {
-  msg: AgentMessage;
+  msg: AgentMessageType;
+};
+
+const styles = {
+  button_approve: {
+    backgroundColor: 'green',
+    color: 'white',
+    marginRight: '10px',
+    padding: '5px 10px',
+    borderRadius: '5px',
+    border: 'none',
+  },
+  button_reject: {
+    backgroundColor: 'red',
+    color: 'white',
+    marginRight: '10px',
+    padding: '5px 10px',
+    borderRadius: '5px',
+    border: 'none',
+  },
+  message_type: {
+    fontSize: '12px',
+    color: 'white',
+    backgroundColor: 'green',
+    padding: '2px 5px',
+    borderRadius: '3px',
+    display: 'inline-block',
+    marginBottom: '5px',
+  },
 };
 
 const AgentUserMessage = ({ msg }: AgentMessageProps) => {
@@ -43,7 +74,56 @@ const AgentUserMessage = ({ msg }: AgentMessageProps) => {
     <div className={'conversation-item user'}>
       <div className={`speaker user`}></div>
       <div className={`speaker-content user`}>
-        {msg?.content?.content?.toString() || JSON.stringify(msg)}{' '}
+        <div style={styles.message_type}>AgentUserMessage</div>
+        <div>{msg?.content?.content?.toString() || JSON.stringify(msg)} </div>
+        <ClickToJson msg={msg} />
+      </div>
+    </div>
+  );
+};
+
+const AgentApproveMessage = ({ msg }: AgentMessageProps) => {
+  const [approveing, setApproveing] = useState<boolean>(false);
+
+  return (
+    <div className={'conversation-item assistant'}>
+      <div className={`speaker assistant`}></div>
+      <div className={`speaker-content assistant`}>
+        <div style={styles.message_type}>AgentApproveMessage</div>
+        <h4>Please approve the tool call</h4>
+        <p>Name: {msg?.content?.name}</p>
+        <p>Status: {msg?.approve_status}</p>
+        {msg?.content?.arguments && (
+          <p>Arguments: {JSON.stringify(msg?.content?.arguments)}</p>
+        )}
+        <button
+          style={{
+            ...styles.button_approve,
+            display: msg?.approve_status === 0 ? 'block-inline' : 'none',
+          }}
+          onClick={async () => {
+            setApproveing(true);
+            await approveMessage(msg.session_id, msg.id);
+            setApproveing(false);
+          }}
+          disabled={msg?.approve_status !== 0 || approveing}
+        >
+          {approveing ? 'Approving...' : 'Approve'}
+        </button>
+        <button
+          style={{
+            ...styles.button_reject,
+            display: msg?.approve_status === 0 ? 'block-inline' : 'none',
+          }}
+          onClick={async () => {
+            setApproveing(true);
+            await rejectMessage(msg.session_id, msg.id);
+            setApproveing(false);
+          }}
+          disabled={msg?.approve_status !== 0 || approveing}
+        >
+          {approveing ? 'Rejecting...' : 'Reject'}
+        </button>
         <ClickToJson msg={msg} />
       </div>
     </div>
@@ -57,6 +137,7 @@ const AgentUserOtherMessage = ({ msg }: AgentMessageProps) => {
     <div className={'conversation-item user'}>
       <div className={`speaker user`}></div>
       <div className={`speaker-content user`}>
+        <div style={styles.message_type}>AgentUserOtherMessage</div>
         {text} <ClickToJson msg={msg} />
       </div>
     </div>
@@ -70,6 +151,7 @@ const AgentAssistantOtherMessage = ({ msg }: AgentMessageProps) => {
     <div className={'conversation-item assistant'}>
       <div className={`speaker assistant`}></div>
       <div className={`speaker-content assistant`}>
+        <div style={styles.message_type}>AgentAssistantOtherMessage</div>
         {text && <Markdown>{text}</Markdown>}
         {!text && <MessageLoading messageId="msg_loading" />}
       </div>
@@ -92,9 +174,26 @@ const AgentUnknownMessage = ({ msg }: AgentMessageProps) => {
           color: isNightMode ? 'white' : 'black',
         }}
       >
+        <div style={styles.message_type}>AgentUnknownMessage</div>
         {text && <Markdown>{text}</Markdown>}
         {!text && <MessageLoading messageId="msg_loading" />}
+        <ClickToJson msg={msg} />
+      </div>
+    </div>
+  );
+};
 
+const AgentAssistantProgressMessage = ({ msg }: AgentMessageProps) => {
+  const progress = msg?.content?.output?.progress;
+  return (
+    <div className={'conversation-item assistant'}>
+      <div className={`speaker assistant`}></div>
+      <div className={`speaker-content assistant`}>
+        <div style={styles.message_type}>AgentAssistantProgressMessage</div>
+        <p>Progress: {progress}</p>
+        <Box sx={{ width: '300px', margin: '10px 0px' }}>
+          <LinearProgress variant="buffer" value={progress} valueBuffer={1} />
+        </Box>
         <ClickToJson msg={msg} />
       </div>
     </div>
@@ -108,10 +207,19 @@ const AgentAssistantMessage = ({ msg }: AgentMessageProps) => {
     text = msg?.content?.content?.[0]?.text;
   }
 
+  if (msg?.need_approve) {
+    return <AgentApproveMessage msg={msg} />;
+  }
+
+  if (msg?.content?.output?.progress) {
+    return <AgentAssistantProgressMessage msg={msg} />;
+  }
+
   return (
     <div className={'conversation-item assistant'}>
       <div className={`speaker assistant`}></div>
       <div className={`speaker-content assistant`}>
+        <div style={styles.message_type}>AgentAssistantMessage</div>
         {text && <Markdown>{text}</Markdown>}
         {!text && <MessageLoading messageId="msg_loading" />}
         <ClickToJson msg={msg} />
@@ -127,6 +235,7 @@ const AgentCodeMessage = ({ msg }: AgentMessageProps) => {
     <div className={'conversation-item assistant'}>
       <div className={`speaker assistant`}></div>
       <div className={`speaker-content assistant`}>
+        <div style={styles.message_type}>AgentCodeMessage</div>
         {text.split('\n').map((line: string, index: number) => (
           <div key={index}>
             <span>{`${index + 1}. `}</span>
@@ -143,6 +252,7 @@ export const AgentLoadingMessage = () => {
     <div className={'conversation-item assistant'}>
       <div className={`speaker assistant`}></div>
       <div className={`speaker-content assistant`}>
+        <div style={styles.message_type}>AgentLoadingMessage</div>
         <MessageLoading messageId="msg_loading" />
       </div>
     </div>
@@ -154,6 +264,7 @@ export const AgentWaitClientMessage = () => {
     <div className={'conversation-item assistant'}>
       <div className={`speaker assistant`}></div>
       <div className={`speaker-content assistant`}>
+        <div style={styles.message_type}>AgentWaitClientMessage</div>
         <MessageLoading messageId="msg_loading" text="Waiting for client..." />
       </div>
     </div>

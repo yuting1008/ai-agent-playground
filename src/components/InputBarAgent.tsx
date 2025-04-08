@@ -7,6 +7,7 @@ import './InputBar.scss';
 import { CONNECT_CONNECTED } from '../lib/const';
 import { Profiles } from '../lib/Profiles';
 import { RecommandText } from './RecommandText';
+import { AgentMessageType } from '../types/AgentMessageType';
 
 export function InputBarAgent({
   setMessagesAssistant,
@@ -176,17 +177,20 @@ export function InputBarAgent({
 
     setIsAvatarSpeaking(false);
     setAgentRunning(true);
-    setMessagesAssistant((prevMessages: any) => [
-      ...prevMessages,
-      {
-        message_index: messages.length + 1,
-        created_at: new Date().getTime(),
-        content: { role: 'user', text: inputValue },
-        id: '564c191361ce4621ba0d7bb282801e54',
-        block_session: false,
-        status: 0,
-      },
-    ]);
+
+    const msg: AgentMessageType = {
+      message_index: messages.length + 1,
+      created_at: new Date().toISOString(),
+      content: { role: 'user', content: inputValue },
+      id: '564c191361ce4621ba0d7bb282801e54',
+      block_session: false,
+      status: 0,
+      role: 'user',
+      session_id: '564c191361ce4621ba0d7bb282801e54',
+      user_id: 1,
+    };
+
+    setMessagesAssistant((prevMessages: any) => [...prevMessages, msg]);
     sendAgentMessage(inputValue);
     setInputValue('');
     setAgentRunning(false);
@@ -196,17 +200,20 @@ export function InputBarAgent({
     <>
       {connectStatus === CONNECT_CONNECTED && (
         <div>
-          <RecommandText
-            handleInputButtonClick={sendText}
-            messages={[
-              'what is the weather in tokyo?',
-              'what is life',
-              'who was the first president of the united states?',
-              'What is the age of the user?',
-              'Check all my devices',
-              'open camera',
-            ]}
-          />
+          {!agentRunning && (
+            <RecommandText
+              handleInputButtonClick={sendText}
+              messages={[
+                'what is the weather in tokyo?',
+                'what is life',
+                'who was the first president of the united states?',
+                'What is the age of the user?',
+                'Check all my devices',
+                'open camera',
+              ]}
+            />
+          )}
+
           <div className="text-input">
             <input
               type="text"
