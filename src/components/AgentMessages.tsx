@@ -1,7 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
-import AgentMessage, { AgentLoadingMessage } from './AgentMessage';
+import AgentMessage, {
+  AgentLoadingMessage,
+  AgentWaitClientMessage,
+} from './AgentMessage';
 import { CONNECT_CONNECTED } from '../lib/const';
-import { agentMessageNeedLoading } from '../lib/helper';
+import {
+  agentMessageNeedLoading,
+  agentMessageNeedWaitClient,
+} from '../lib/helper';
 
 export default function AgentMessages({
   connectStatus,
@@ -37,7 +43,10 @@ export default function AgentMessages({
           <AgentMessage key={index} msg={msg} />
         ))}
 
-        {agentMessageNeedLoading(messages) && <AgentLoadingMessage />}
+        {agentMessageNeedWaitClient(messages) && <AgentWaitClientMessage />}
+
+        {!agentMessageNeedWaitClient(messages) &&
+          agentMessageNeedLoading(messages) && <AgentLoadingMessage />}
 
         <div ref={messagesEndAgentRef} />
       </div>

@@ -109,10 +109,15 @@ export async function clearAgentMessages(
   }
 }
 
+export type InputMessage = {
+  role: string;
+  content: string;
+};
+
 export async function sendAgentMessage(
   profiles: Profiles,
   sessionId: string,
-  message: string,
+  message: InputMessage,
 ) {
   const agentApiKey = profiles.currentProfile?.agentApiKey;
   const agentApiUrl = profiles.currentProfile?.agentApiUrl;
@@ -141,5 +146,109 @@ export async function sendAgentMessage(
       console.error('Unexpected error:', error);
     }
     return [];
+  }
+}
+
+export async function sendAgentClientToolResponseMessage(
+  profiles: Profiles,
+  sessionId: string,
+  call_id: string,
+  output: any,
+) {
+  const agentApiKey = profiles.currentProfile?.agentApiKey;
+  const agentApiUrl = profiles.currentProfile?.agentApiUrl;
+
+  try {
+    const response = await axios.post(
+      `${agentApiUrl}/api/sessions/${sessionId}/tools`,
+      {
+        session_id: sessionId,
+        message: {
+          call_id: call_id,
+          output: JSON.stringify(output),
+          type: 'function_call_output',
+        },
+      },
+      {
+        headers: {
+          accept: 'application/json',
+          'api-key': agentApiKey,
+        },
+        timeout: 100000,
+      },
+    );
+
+    return response.data?.message || [];
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('Axios error:', error.response?.data || error.message);
+    } else {
+      console.error('Unexpected error:', error);
+    }
+    return [];
+  }
+}
+
+export async function getSessionStates(profiles: Profiles, sessionId: string) {
+  const agentApiKey = profiles.currentProfile?.agentApiKey;
+  const agentApiUrl = profiles.currentProfile?.agentApiUrl;
+
+  try {
+    const response = await axios.get(
+      `${agentApiUrl}/api/sessions/${sessionId}/states`,
+      {
+        headers: {
+          accept: 'application/json',
+          'api-key': agentApiKey,
+        },
+        timeout: 100000,
+      },
+    );
+
+    return response.data?.states || {};
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('Axios error:', error.response?.data || error.message);
+    } else {
+      console.error('Unexpected error:', error);
+    }
+    return {};
+  }
+}
+
+export async function updateSessionStates(
+  profiles: Profiles,
+  sessionId: string,
+  key: string,
+  value: any,
+) {
+  const agentApiKey = profiles.currentProfile?.agentApiKey;
+  const agentApiUrl = profiles.currentProfile?.agentApiUrl;
+
+  try {
+    const response = await axios.post(
+      `${agentApiUrl}/api/sessions/${sessionId}/states`,
+      {
+        session_id: sessionId,
+        key: key,
+        value: value,
+      },
+      {
+        headers: {
+          accept: 'application/json',
+          'api-key': agentApiKey,
+        },
+        timeout: 100000,
+      },
+    );
+
+    return response.data?.message || '';
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('Axios error:', error.response?.data || error.message);
+    } else {
+      console.error('Unexpected error:', error);
+    }
+    return '';
   }
 }

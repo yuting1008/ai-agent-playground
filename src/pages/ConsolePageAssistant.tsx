@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import {
-  APP_AGENT,
   APP_AGENT_VECTOR_STORE,
+  APP_AGENT,
   CONNECT_CONNECTED,
   CONNECT_CONNECTING,
   CONNECT_DISCONNECTED,
@@ -41,24 +41,24 @@ import { Profiles } from '../lib/Profiles';
 export function ConsolePageAssistant() {
   const {
     assistantRef,
-    setAssistant,
-    setVectorStore,
-    setLoading,
-    threadRef,
-    threadJobRef,
-    setThreadJob,
-    setThread,
-    setResponseBuffer,
-    recordTokenLatency,
-    connectStatus,
-    setConnectStatus,
     connectMessage,
-    setConnectMessage,
+    connectStatus,
     isDebugModeRef,
-    setInputTokens,
-    setOutputTokens,
     loadFunctionsTools,
+    recordTokenLatency,
+    setAssistant,
+    setConnectMessage,
+    setConnectStatus,
+    setInputTokens,
+    setLoading,
     setMessages,
+    setOutputTokens,
+    setResponseBuffer,
+    setThread,
+    setThreadJob,
+    setVectorStore,
+    threadJobRef,
+    threadRef,
   } = useContexts();
 
   const [messagesAssistant, setMessagesAssistant] = useState<any[]>([]);

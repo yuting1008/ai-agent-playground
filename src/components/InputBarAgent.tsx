@@ -203,6 +203,8 @@ export function InputBarAgent({
               'what is life',
               'who was the first president of the united states?',
               'What is the age of the user?',
+              'Check all my devices',
+              'open camera',
             ]}
           />
           <div className="text-input">

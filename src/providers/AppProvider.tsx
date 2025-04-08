@@ -214,6 +214,8 @@ interface AppContextType {
 
   messages: any[];
   setMessages: React.Dispatch<React.SetStateAction<any[]>>;
+
+  camera_on_handler: Function;
 }
 
 const IS_DEBUG: boolean = window.location.href.includes('localhost');
@@ -239,847 +241,848 @@ export const AppProvider: React.FC<{
   setBackground,
   loadFunctionsTools,
 }) => {
-    const isOnline = useOnlineStatus();
+  const isOnline = useOnlineStatus();
 
-    const [profiles, setProfiles] = useState<Profiles>(new Profiles());
+  const [profiles, setProfiles] = useState<Profiles>(new Profiles());
 
-    // caption string
-    const [caption, setCaption] = useState('');
-    const captionRef = useRef(caption);
-    useEffect(() => {
-      captionRef.current = caption;
-    }, [caption]);
+  // caption string
+  const [caption, setCaption] = useState('');
+  const captionRef = useRef(caption);
+  useEffect(() => {
+    captionRef.current = caption;
+  }, [caption]);
 
-    // captionQueue string[]
-    const [captionQueue, setCaptionQueue] = useState<string[]>([]);
-    const captionQueueRef = useRef<string[]>([]);
-    const updateCaptionQueue = (caption: string) => {
-      if (captionQueueRef.current.length === 0) {
-        return;
-      }
-      if (captionQueueRef.current[0] === caption) {
-        setCaptionQueue(captionQueueRef.current.slice(1));
-      }
-    };
-    const addCaptionQueue = (caption: string) => {
-      setCaptionQueue([...captionQueueRef.current, caption]);
-    };
+  // captionQueue string[]
+  const [captionQueue, setCaptionQueue] = useState<string[]>([]);
+  const captionQueueRef = useRef<string[]>([]);
+  const updateCaptionQueue = (caption: string) => {
+    if (captionQueueRef.current.length === 0) {
+      return;
+    }
+    if (captionQueueRef.current[0] === caption) {
+      setCaptionQueue(captionQueueRef.current.slice(1));
+    }
+  };
+  const addCaptionQueue = (caption: string) => {
+    setCaptionQueue([...captionQueueRef.current, caption]);
+  };
 
-    // inputTokens number
-    const [inputTokens, setInputTokens] = useState(0);
-    const inputTokensRef = useRef(inputTokens);
+  // inputTokens number
+  const [inputTokens, setInputTokens] = useState(0);
+  const inputTokensRef = useRef(inputTokens);
 
-    // inputTextTokens number
-    const [inputTextTokens, setInputTextTokens] = useState(0);
-    const inputTextTokensRef = useRef(inputTextTokens);
+  // inputTextTokens number
+  const [inputTextTokens, setInputTextTokens] = useState(0);
+  const inputTextTokensRef = useRef(inputTextTokens);
 
-    // inputAudioTokens number
-    const [inputAudioTokens, setInputAudioTokens] = useState(0);
-    const inputAudioTokensRef = useRef(inputAudioTokens);
+  // inputAudioTokens number
+  const [inputAudioTokens, setInputAudioTokens] = useState(0);
+  const inputAudioTokensRef = useRef(inputAudioTokens);
 
-    // outputTokens number
-    const [outputTokens, setOutputTokens] = useState(0);
-    const outputTokensRef = useRef(outputTokens);
+  // outputTokens number
+  const [outputTokens, setOutputTokens] = useState(0);
+  const outputTokensRef = useRef(outputTokens);
 
-    // outputTextTokens number
-    const [outputTextTokens, setOutputTextTokens] = useState(0);
-    const outputTextTokensRef = useRef(outputTextTokens);
+  // outputTextTokens number
+  const [outputTextTokens, setOutputTextTokens] = useState(0);
+  const outputTextTokensRef = useRef(outputTextTokens);
 
-    // outputAudioTokens number
-    const [outputAudioTokens, setOutputAudioTokens] = useState(0);
-    const outputAudioTokensRef = useRef(outputAudioTokens);
+  // outputAudioTokens number
+  const [outputAudioTokens, setOutputAudioTokens] = useState(0);
+  const outputAudioTokensRef = useRef(outputAudioTokens);
 
-    // cameraStatus string
-    const [cameraStatus, setCameraStatus] = useState(CAMERA_OFF);
-    const cameraStatusRef = useRef(cameraStatus);
-    useEffect(() => {
-      cameraStatusRef.current = cameraStatus;
-    }, [cameraStatus]);
+  // cameraStatus string
+  const [cameraStatus, setCameraStatus] = useState(CAMERA_OFF);
+  const cameraStatusRef = useRef(cameraStatus);
+  useEffect(() => {
+    cameraStatusRef.current = cameraStatus;
+  }, [cameraStatus]);
 
-    // connectStatus string
-    const [connectStatus, setConnectStatus] = useState(CONNECT_DISCONNECTED);
-    const connectStatusRef = useRef(connectStatus);
-    useEffect(() => {
-      connectStatusRef.current = connectStatus;
-    }, [connectStatus]);
+  // connectStatus string
+  const [connectStatus, setConnectStatus] = useState(CONNECT_DISCONNECTED);
+  const connectStatusRef = useRef(connectStatus);
+  useEffect(() => {
+    connectStatusRef.current = connectStatus;
+  }, [connectStatus]);
 
-    // avatarStatus string
-    const [avatarStatus, setAvatarStatus] = useState(AVATAR_OFF);
-    const avatarStatusRef = useRef(avatarStatus);
-    useEffect(() => {
-      avatarStatusRef.current = avatarStatus;
-    }, [avatarStatus]);
+  // avatarStatus string
+  const [avatarStatus, setAvatarStatus] = useState(AVATAR_OFF);
+  const avatarStatusRef = useRef(avatarStatus);
+  useEffect(() => {
+    avatarStatusRef.current = avatarStatus;
+  }, [avatarStatus]);
 
-    // input string
-    const [inputValue, setInputValue] = useState('');
-    const inputValueRef = useRef(inputValue);
-    useEffect(() => {
-      inputValueRef.current = inputValue;
-    }, [inputValue]);
+  // input string
+  const [inputValue, setInputValue] = useState('');
+  const inputValueRef = useRef(inputValue);
+  useEffect(() => {
+    inputValueRef.current = inputValue;
+  }, [inputValue]);
 
-    // photos
-    const [photos, setPhotos] = useState<string[]>([]);
-    const photosRef = useRef(photos);
-    useEffect(() => {
-      photosRef.current = photos;
-    }, [photos]);
+  // photos
+  const [photos, setPhotos] = useState<string[]>([]);
+  const photosRef = useRef(photos);
+  useEffect(() => {
+    photosRef.current = photos;
+  }, [photos]);
 
-    // isDebugMode boolean
-    const [isDebugMode, setIsDebugMode] = useState<boolean>(false);
-    const isDebugModeRef = useRef(isDebugMode);
-    useEffect(() => {
-      isDebugModeRef.current = isDebugMode;
-      if (isDebugMode) {
-        replaceInstructions('调试模式是关闭的', '调试模式是开启的');
-      } else {
-        replaceInstructions('调试模式是开启的', '调试模式是关闭的');
-      }
-    }, [isDebugMode]);
+  // isDebugMode boolean
+  const [isDebugMode, setIsDebugMode] = useState<boolean>(false);
+  const isDebugModeRef = useRef(isDebugMode);
+  useEffect(() => {
+    isDebugModeRef.current = isDebugMode;
+    if (isDebugMode) {
+      replaceInstructions('调试模式是关闭的', '调试模式是开启的');
+    } else {
+      replaceInstructions('调试模式是开启的', '调试模式是关闭的');
+    }
+  }, [isDebugMode]);
 
-    // debug
-    const [debug, setDebug] = useState<boolean>(IS_DEBUG);
-    const debugRef = useRef(debug);
-    useEffect(() => {
-      debugRef.current = debug;
-    }, [debug]);
+  // debug
+  const [debug, setDebug] = useState<boolean>(IS_DEBUG);
+  const debugRef = useRef(debug);
+  useEffect(() => {
+    debugRef.current = debug;
+  }, [debug]);
 
-    // loading
-    const [loading, setLoading] = useState<boolean>(false);
+  // loading
+  const [loading, setLoading] = useState<boolean>(false);
 
-    // assistant
-    const [assistant, setAssistant] = useState<Assistant | null>(null);
-    const assistantRef = useRef(assistant);
-    useEffect(() => {
-      assistantRef.current = assistant;
-    }, [assistant]);
+  // assistant
+  const [assistant, setAssistant] = useState<Assistant | null>(null);
+  const assistantRef = useRef(assistant);
+  useEffect(() => {
+    assistantRef.current = assistant;
+  }, [assistant]);
 
-    // vectorStore
-    const [vectorStore, setVectorStore] = useState<VectorStore | null>(null);
-    const vectorStoreRef = useRef(vectorStore);
-    useEffect(() => {
-      vectorStoreRef.current = vectorStore;
-    }, [vectorStore]);
+  // vectorStore
+  const [vectorStore, setVectorStore] = useState<VectorStore | null>(null);
+  const vectorStoreRef = useRef(vectorStore);
+  useEffect(() => {
+    vectorStoreRef.current = vectorStore;
+  }, [vectorStore]);
 
-    // thread
-    const [thread, setThread] = useState<any | null>(null);
-    const threadRef = useRef(thread);
-    useEffect(() => {
-      threadRef.current = thread;
-    }, [thread]);
+  // thread
+  const [thread, setThread] = useState<any | null>(null);
+  const threadRef = useRef(thread);
+  useEffect(() => {
+    threadRef.current = thread;
+  }, [thread]);
 
-    // threadJob
-    const [threadJob, setThreadJob] = useState<any | null>(null);
-    const threadJobRef = useRef(threadJob);
-    useEffect(() => {
-      threadJobRef.current = threadJob;
-    }, [threadJob]);
+  // threadJob
+  const [threadJob, setThreadJob] = useState<any | null>(null);
+  const threadJobRef = useRef(threadJob);
+  useEffect(() => {
+    threadJobRef.current = threadJob;
+  }, [threadJob]);
 
-    // connectMessage string
-    const [connectMessage, setConnectMessage] = useState(
-      'Awaiting Connection...',
+  // connectMessage string
+  const [connectMessage, setConnectMessage] = useState(
+    'Awaiting Connection...',
+  );
+
+  // needSpeechQueue string[]
+  const [needSpeechQueue, setNeedSpeechQueue] = useState<string[]>([]);
+  const needSpeechQueueRef = useRef<string[]>([]);
+  useEffect(() => {
+    needSpeechQueueRef.current = needSpeechQueue;
+  }, [needSpeechQueue]);
+
+  // responseBuffer string
+  const [responseBuffer, setResponseBuffer] = useState<string>('');
+  const responseBufferRef = useRef(responseBuffer);
+  useEffect(() => {
+    responseBufferRef.current = responseBuffer;
+
+    if (!responseBuffer) {
+      setNeedSpeechQueue([]);
+      setCaptionQueue([]);
+      setIsAvatarSpeaking(false);
+      return;
+    }
+
+    const sentences = processAndStoreSentence(
+      responseBuffer,
+      avatarStatus === AVATAR_READY,
+      speechSentencesCacheArrayRef,
     );
 
-    // needSpeechQueue string[]
-    const [needSpeechQueue, setNeedSpeechQueue] = useState<string[]>([]);
-    const needSpeechQueueRef = useRef<string[]>([]);
-    useEffect(() => {
-      needSpeechQueueRef.current = needSpeechQueue;
-    }, [needSpeechQueue]);
-
-    // responseBuffer string
-    const [responseBuffer, setResponseBuffer] = useState<string>('');
-    const responseBufferRef = useRef(responseBuffer);
-    useEffect(() => {
-      responseBufferRef.current = responseBuffer;
-
-      if (!responseBuffer) {
-        setNeedSpeechQueue([]);
-        setCaptionQueue([]);
-        setIsAvatarSpeaking(false);
-        return;
+    for (const sentence of sentences) {
+      if (!sentence.exists) {
+        console.log(`speech need speak: ${sentence.sentence}`);
+        setNeedSpeechQueue([...needSpeechQueue, sentence.sentence]);
       }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [responseBuffer]);
 
-      const sentences = processAndStoreSentence(
-        responseBuffer,
-        avatarStatus === AVATAR_READY,
-        speechSentencesCacheArrayRef,
-      );
+  // speechSentencesCacheArray array
+  const [speechSentencesCacheArray, setSpeechSentencesCacheArray] = useState<
+    string[]
+  >([]);
+  const speechSentencesCacheArrayRef = useRef(speechSentencesCacheArray);
+  useEffect(() => {
+    speechSentencesCacheArrayRef.current = speechSentencesCacheArray;
+  }, [speechSentencesCacheArray]);
 
-      for (const sentence of sentences) {
-        if (!sentence.exists) {
-          console.log(`speech need speak: ${sentence.sentence}`);
-          setNeedSpeechQueue([...needSpeechQueue, sentence.sentence]);
-        }
+  const isNightModeRef = useRef(isNightMode);
+
+  // isAvatarSpeaking boolean
+  const [isAvatarSpeaking, setIsAvatarSpeaking] = useState<boolean>(false);
+
+  // memoryKv
+  const [memoryKv, setMemoryKv] = useState<{ [key: string]: any }>({});
+  const memoryKvRef = useRef(memoryKv);
+  useEffect(() => {
+    memoryKvRef.current = memoryKv;
+  }, [memoryKv]);
+
+  // sendTime DateTime
+  const sendTimeRef = useRef(0);
+
+  // lastTokenTime DateTime
+  const lastTokenTimeRef = useRef(0);
+
+  const isFirstTokenRef = useRef<boolean>(false);
+
+  // firstTokenLatencyArray number[]
+  const [firstTokenLatencyArray, setFirstTokenLatencyArray] = useState<
+    number[]
+  >([]);
+  const firstTokenLatencyArrayRef = useRef(firstTokenLatencyArray);
+  useEffect(() => {
+    firstTokenLatencyArrayRef.current = firstTokenLatencyArray;
+  }, [firstTokenLatencyArray]);
+
+  // tokenLatencyArray number[]
+  const [tokenLatencyArray, setTokenLatencyArray] = useState<number[]>([]);
+  const tokenLatencyArrayRef = useRef(tokenLatencyArray);
+  useEffect(() => {
+    tokenLatencyArrayRef.current = tokenLatencyArray;
+  }, [tokenLatencyArray]);
+
+  const resetApp = () => {
+    setAppKey((prevKey) => prevKey + 1);
+  };
+
+  const resetTokenLatency = () => {
+    isFirstTokenRef.current = true;
+    sendTimeRef.current = Date.now();
+    lastTokenTimeRef.current = 0;
+  };
+
+  const recordTokenLatency = (delta: any) => {
+    if (isFirstTokenRef.current) {
+      isFirstTokenRef.current = false;
+      lastTokenTimeRef.current = Date.now();
+      const latency = Date.now() - sendTimeRef.current;
+      if (latency > 0) {
+        setFirstTokenLatencyArray((prevArray: number[]) => [
+          ...prevArray,
+          latency,
+        ]);
       }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [responseBuffer]);
-
-    // speechSentencesCacheArray array
-    const [speechSentencesCacheArray, setSpeechSentencesCacheArray] = useState<
-      string[]
-    >([]);
-    const speechSentencesCacheArrayRef = useRef(speechSentencesCacheArray);
-    useEffect(() => {
-      speechSentencesCacheArrayRef.current = speechSentencesCacheArray;
-    }, [speechSentencesCacheArray]);
-
-    const isNightModeRef = useRef(isNightMode);
-
-    // isAvatarSpeaking boolean
-    const [isAvatarSpeaking, setIsAvatarSpeaking] = useState<boolean>(false);
-
-    // memoryKv
-    const [memoryKv, setMemoryKv] = useState<{ [key: string]: any }>({});
-    const memoryKvRef = useRef(memoryKv);
-    useEffect(() => {
-      memoryKvRef.current = memoryKv;
-    }, [memoryKv]);
-
-    // sendTime DateTime
-    const sendTimeRef = useRef(0);
-
-    // lastTokenTime DateTime
-    const lastTokenTimeRef = useRef(0);
-
-    const isFirstTokenRef = useRef<boolean>(false);
-
-    // firstTokenLatencyArray number[]
-    const [firstTokenLatencyArray, setFirstTokenLatencyArray] = useState<
-      number[]
-    >([]);
-    const firstTokenLatencyArrayRef = useRef(firstTokenLatencyArray);
-    useEffect(() => {
-      firstTokenLatencyArrayRef.current = firstTokenLatencyArray;
-    }, [firstTokenLatencyArray]);
-
-    // tokenLatencyArray number[]
-    const [tokenLatencyArray, setTokenLatencyArray] = useState<number[]>([]);
-    const tokenLatencyArrayRef = useRef(tokenLatencyArray);
-    useEffect(() => {
-      tokenLatencyArrayRef.current = tokenLatencyArray;
-    }, [tokenLatencyArray]);
-
-    const resetApp = () => {
-      setAppKey((prevKey) => prevKey + 1);
-    };
-
-    const resetTokenLatency = () => {
-      isFirstTokenRef.current = true;
-      sendTimeRef.current = Date.now();
-      lastTokenTimeRef.current = 0;
-    };
-
-    const recordTokenLatency = (delta: any) => {
-      if (isFirstTokenRef.current) {
-        isFirstTokenRef.current = false;
-        lastTokenTimeRef.current = Date.now();
-        const latency = Date.now() - sendTimeRef.current;
-        if (latency > 0) {
-          setFirstTokenLatencyArray((prevArray: number[]) => [
-            ...prevArray,
-            latency,
-          ]);
-        }
-        lastTokenTimeRef.current = Date.now();
-      } else {
-        const latency = Date.now() - lastTokenTimeRef.current;
-        lastTokenTimeRef.current = Date.now();
-        if (latency > 0) {
-          setTokenLatencyArray((prevArray: number[]) => [...prevArray, latency]);
-        }
+      lastTokenTimeRef.current = Date.now();
+    } else {
+      const latency = Date.now() - lastTokenTimeRef.current;
+      lastTokenTimeRef.current = Date.now();
+      if (latency > 0) {
+        setTokenLatencyArray((prevArray: number[]) => [...prevArray, latency]);
       }
-    };
+    }
+  };
 
-    // -------- functions ---------
-    const camera_on_handler: Function = async ({
-      on,
-    }: {
-      [on: string]: boolean;
-    }) => {
-      try {
-        if (on) {
-          if (cameraStatusRef.current === CAMERA_READY) {
-            return {
-              message: 'The camera is already on.',
-            };
-          }
-
-          setCameraStatus(CAMERA_STARTING);
+  // -------- functions ---------
+  const camera_on_handler: Function = async ({
+    on,
+  }: {
+    [on: string]: boolean;
+  }) => {
+    try {
+      if (on) {
+        if (cameraStatusRef.current === CAMERA_READY) {
           return {
-            message: 'The camera is starting, please wait a moment to turn on.',
+            message: 'The camera is already on.',
           };
         }
 
-        setCameraStatus(CAMERA_OFF);
-
-        return { message: 'The camera has been turned off' };
-      } catch (error) {
-        console.error('camera error', error);
-        return { error: error };
-      }
-    };
-
-    const camera_current_handler: Function = async ({
-      prompt = '',
-    }: {
-      [key: string]: string | undefined;
-    }) => {
-      try {
-        if (prompt) {
-          prompt = `User questions about these frames are: ${prompt}`;
-        }
-
-        console.log('prompt', prompt);
-
-        if (photosRef.current && photosRef.current.length === 0) {
-          console.log('no photos, please turn on your camera');
-          return { error: 'no photos, please turn on your camera' };
-        }
-
-        let content: any = [
-          {
-            type: 'text',
-            text: `Can you describe what you saw? ${prompt}. The top left corner of the image is the time, and usually you don't need to explain this time.`,
-          },
-        ];
-
-        content.push({
-          type: 'image_url',
-          image_url: {
-            url: photosRef.current[photosRef.current.length - 1],
-            detail: 'high',
-          },
-        });
-
-        const messages = [
-          {
-            role: 'user',
-            content: content,
-          },
-        ];
-
-        const resp = await getCompletion(messages);
-        console.log('vision resp', resp);
-
-        return { message: resp };
-      } catch (error) {
-        console.error('vision error', error);
-        return { error: error };
-      }
-    };
-
-    const camera_video_handler: Function = async ({
-      prompt = '',
-      seconds = CAMERA_PHOTO_LIMIT,
-    }: {
-      [key: string]: any;
-    }) => {
-      console.log('prompt', prompt);
-      console.log('seconds', seconds);
-
-      if (seconds && seconds > CAMERA_PHOTO_LIMIT) {
+        setCameraStatus(CAMERA_STARTING);
         return {
-          error: `The maximum number of seconds is ${CAMERA_PHOTO_LIMIT}`,
+          message: 'The camera is starting, please wait a moment to turn on.',
         };
       }
 
-      if (photosRef.current && photosRef.current.length === 0) {
-        return { error: 'no photos, please turn on your camera' };
-      }
+      setCameraStatus(CAMERA_OFF);
 
+      return { message: 'The camera has been turned off' };
+    } catch (error) {
+      console.error('camera error', error);
+      return { error: error };
+    }
+  };
+
+  const camera_current_handler: Function = async ({
+    prompt = '',
+  }: {
+    [key: string]: string | undefined;
+  }) => {
+    try {
       if (prompt) {
         prompt = `User questions about these frames are: ${prompt}`;
+      }
+
+      console.log('prompt', prompt);
+
+      if (photosRef.current && photosRef.current.length === 0) {
+        console.log('no photos, please turn on your camera');
+        return { error: 'no photos, please turn on your camera' };
       }
 
       let content: any = [
         {
           type: 'text',
-          text: `I'm going to give you a set of video frames from the video head capture, just captured. The images are displayed in reverse chronological order. Can you describe what you saw? If there are more pictures, it is continuous, please tell me the complete event that happened just now. ${prompt}`,
+          text: `Can you describe what you saw? ${prompt}. The top left corner of the image is the time, and usually you don't need to explain this time.`,
         },
       ];
 
-      const lastTenPhotos = photosRef.current.slice(-seconds);
-      // for photos
-      lastTenPhotos.forEach((photo: string) => {
-        content.push({
-          type: 'image_url',
-          image_url: {
-            url: photo,
-          },
-        });
+      content.push({
+        type: 'image_url',
+        image_url: {
+          url: photosRef.current[photosRef.current.length - 1],
+          detail: 'high',
+        },
       });
 
-      try {
-        const messages = [
-          {
-            role: 'user',
-            content: content,
-          },
-        ];
+      const messages = [
+        {
+          role: 'user',
+          content: content,
+        },
+      ];
 
-        const resp = await getCompletion(messages);
-        console.log('vision resp', resp);
+      const resp = await getCompletion(messages);
+      console.log('vision resp', resp);
 
-        return { message: resp };
-      } catch (error) {
-        console.error('vision error', error);
+      return { message: resp };
+    } catch (error) {
+      console.error('vision error', error);
+      return { error: error };
+    }
+  };
 
-        return { error: error };
+  const camera_video_handler: Function = async ({
+    prompt = '',
+    seconds = CAMERA_PHOTO_LIMIT,
+  }: {
+    [key: string]: any;
+  }) => {
+    console.log('prompt', prompt);
+    console.log('seconds', seconds);
+
+    if (seconds && seconds > CAMERA_PHOTO_LIMIT) {
+      return {
+        error: `The maximum number of seconds is ${CAMERA_PHOTO_LIMIT}`,
+      };
+    }
+
+    if (photosRef.current && photosRef.current.length === 0) {
+      return { error: 'no photos, please turn on your camera' };
+    }
+
+    if (prompt) {
+      prompt = `User questions about these frames are: ${prompt}`;
+    }
+
+    let content: any = [
+      {
+        type: 'text',
+        text: `I'm going to give you a set of video frames from the video head capture, just captured. The images are displayed in reverse chronological order. Can you describe what you saw? If there are more pictures, it is continuous, please tell me the complete event that happened just now. ${prompt}`,
+      },
+    ];
+
+    const lastTenPhotos = photosRef.current.slice(-seconds);
+    // for photos
+    lastTenPhotos.forEach((photo: string) => {
+      content.push({
+        type: 'image_url',
+        image_url: {
+          url: photo,
+        },
+      });
+    });
+
+    try {
+      const messages = [
+        {
+          role: 'user',
+          content: content,
+        },
+      ];
+
+      const resp = await getCompletion(messages);
+      console.log('vision resp', resp);
+
+      return { message: resp };
+    } catch (error) {
+      console.error('vision error', error);
+
+      return { error: error };
+    }
+  };
+
+  const memory_handler: Function = async ({
+    key,
+    value,
+  }: {
+    [key: string]: any;
+  }) => {
+    setMemoryKv((memoryKv) => {
+      const newKv = { ...memoryKv };
+      newKv[key] = value;
+      return newKv;
+    });
+    return { ok: true };
+  };
+
+  const avatar_handler: Function = async ({
+    on,
+  }: {
+    [key: string]: boolean;
+  }) => {
+    if (on) {
+      if (
+        !profiles.currentProfile?.cogSvcSubKey ||
+        !profiles.currentProfile?.cogSvcRegion
+      ) {
+        return {
+          message:
+            'Please set your Cognitive Services subscription key and region.',
+        };
       }
-    };
 
-    const memory_handler: Function = async ({
-      key,
-      value,
-    }: {
-      [key: string]: any;
-    }) => {
-      setMemoryKv((memoryKv) => {
-        const newKv = { ...memoryKv };
-        newKv[key] = value;
-        return newKv;
-      });
-      return { ok: true };
-    };
+      if (avatarStatusRef.current === AVATAR_READY) {
+        return {
+          message: 'The avatar is already on.',
+        };
+      }
 
-    const avatar_handler: Function = async ({
-      on,
-    }: {
-      [key: string]: boolean;
-    }) => {
-      if (on) {
-        if (
-          !profiles.currentProfile?.cogSvcSubKey ||
-          !profiles.currentProfile?.cogSvcRegion
-        ) {
-          return {
-            message:
-              'Please set your Cognitive Services subscription key and region.',
-          };
-        }
+      setAvatarStatus(AVATAR_STARTING);
 
+      let checkTime = 0;
+
+      while (checkTime < 25) {
+        await delayFunction(1000);
+        checkTime++;
         if (avatarStatusRef.current === AVATAR_READY) {
-          return {
-            message: 'The avatar is already on.',
-          };
+          return { message: 'ok' };
         }
-
-        setAvatarStatus(AVATAR_STARTING);
-
-        let checkTime = 0;
-
-        while (checkTime < 25) {
-          await delayFunction(1000);
-          checkTime++;
-          if (avatarStatusRef.current === AVATAR_READY) {
-            return { message: 'ok' };
-          }
-        }
-
-        setAvatarStatus(AVATAR_OFF);
-        return { message: 'Error, please check your error message.' };
       }
 
       setAvatarStatus(AVATAR_OFF);
+      return { message: 'Error, please check your error message.' };
+    }
 
-      return { message: 'done' };
-    };
+    setAvatarStatus(AVATAR_OFF);
 
-    const dark_handler: Function = ({ on }: { [on: string]: boolean }) => {
-      setIsNightMode(on);
-      return { ok: true };
-    };
-
-    const gptImagesDispatch = useGptImagesDispatch()!;
-    const gptImagesRef = useGptImagesRef();
-    const painting_handler: Function = async ({
-      prompt,
-      n = 1,
-    }: {
-      [key: string]: any;
-    }) => {
-      try {
-        const resp = await getImages((prompt = prompt), (n = n));
-        const image = resp.data[0];
-
-        const gptImage: GptImage = {
-          prompt: prompt,
-          b64_json: image.b64_json,
-        };
-
-        gptImagesDispatch({ type: 'add', gptImage });
-        console.log('painting', gptImage);
-        console.log('gptImagesRef', gptImagesRef.current);
-
-        return { result: 'completed, please check the results in the modal.' };
-      } catch (error) {
-        console.error('painting error', error);
-        return { error: error };
-      }
-    };
-
-    const image_modify_handler: Function = async ({
-      prompt,
-      index = 1,
-    }: {
-      [key: string]: any;
-    }) => {
-      if (!gptImagesRef.current) {
-        return { error: 'no painting data, please generate painting first.' };
-      }
-
-      if (gptImagesRef.current.length === 0) {
-        return { error: 'no painting data, please generate painting first.' };
-      }
-
-      const realIndex = index - 1;
-
-      if (realIndex < 0 || realIndex >= gptImagesRef.current.length) {
-        return { error: 'index out of images, please check the index.' };
-      }
-
-      const { b64_json } = gptImagesRef.current[realIndex];
-
-      try {
-        const resp = await editImages(prompt, b64_json);
-        const image = resp.data[0];
-        const gptImage: GptImage = {
-          prompt: prompt,
-          b64_json: image.b64_json,
-        };
-
-        gptImagesDispatch({ type: 'add', gptImage });
-        console.log('painting', gptImage);
-        return { result: 'completed, please check the results in the modal.' };
-      } catch (error) {
-        console.error('modify painting error', error);
-        return { error: error };
-      }
-    };
-
-    const [bingSearchData, setBingSearchData] = useState<any>(null);
-    const bing_search_handler: Function = async ({
-      query,
-      count = 10,
-      page = 1,
-    }: {
-      [key: string]: any;
-    }) => {
-      if (!profiles.currentProfile?.bingApiKey) {
-        throw new Error('Bing API key is not set');
-      }
-
-      const offset = (page - 1) * count;
-      const mkt = 'en-US';
-      const params = { q: query, mkt: mkt, count: count, offset: offset };
-      const headers = {
-        'Ocp-Apim-Subscription-Key': profiles.currentProfile?.bingApiKey,
-      };
-
-      const response = await axios.get(
-        'https://api.bing.microsoft.com/v7.0/search',
-        { headers, params },
-      );
-      const data = response.data;
-
-      setBingSearchData(data);
-
-      console.log(data);
-
-      return {
-        message:
-          "ok, please check the results in the modal. you don't need to say anything.",
-        data: data,
-      };
-    };
-
-    const camera_take_photo_handler: Function = async () => {
-      // for first time, wait 2 seconds to make sure the camera is ready
-      if (cameraStatusRef.current !== CAMERA_READY) {
-        await delayFunction(4000);
-      }
-
-      if (cameraStatusRef.current !== CAMERA_READY) {
-        return { error: 'camera is not ready, please turn on the camera first.' };
-      }
-
-      const currentPhoto = photosRef.current[photosRef.current.length - 1];
-      const base64Data = currentPhoto.split(',')[1];
-      const gptImage: GptImage = {
-        prompt: 'take a photo',
-        b64_json: base64Data,
-      };
-      gptImagesDispatch({ type: 'add', gptImage });
-      return { message: 'ok' };
-    };
-
-    const opacity_handler: Function = async ({
-      opacity,
-    }: {
-      [key: string]: any;
-    }) => {
-      console.log('opacity', opacity);
-      // set opacity to float
-      setOpacity(Number(opacity));
-      return { message: 'ok' };
-    };
-
-    const background_handler: Function = () => {
-      const backgroundImage = ['1', '2', '3', '4'];
-      const randomIndex = Math.floor(Math.random() * backgroundImage.length);
-      const randomBackground = backgroundImage[randomIndex];
-      setBackground(randomBackground);
-      return { message: `ok, the background image is ${randomBackground}.png` };
-    };
-
-    const debug_handler: Function = async ({
-      debug_mode,
-    }: {
-      [key: string]: any;
-    }) => {
-      setIsDebugMode(debug_mode);
-      return { ok: true };
-    };
-
-    const set_disconnection_handler: Function = () => {
-      resetApp();
-      return { ok: true };
-    };
-
-    const azure_docs_definition = {
-      ...azure_docs.definition,
-      description: azure_docs.definition.description.replace(
-        '{rag}',
-        profiles.currentProfile?.graphragAbout || GRAPHRAG_ABOUT,
-      ),
-    };
-
-    const builtinFunctionTools: [ToolDefinitionType, Function][] = [
-      [camera_on.definition, camera_on_handler],
-      [camera_take_photo.definition, camera_take_photo_handler],
-      [opacity.definition, opacity_handler],
-      [background.definition, background_handler],
-      [camera_current.definition, camera_current_handler],
-      [camera_video.definition, camera_video_handler],
-      [memory.definition, memory_handler],
-      [avatar.definition, avatar_handler],
-      [dark.definition, dark_handler],
-      [bing.definition, bing_search_handler],
-      [painting.definition, painting_handler],
-      [image_modify.definition, image_modify_handler],
-      [debug_model.definition, debug_handler],
-      [set_disconnection.definition, set_disconnection_handler],
-      [news.definition, news.handler],
-      [weather.definition, weather.handler],
-      [order_get.definition, order_get.handler],
-      [order_return.definition, order_return.handler],
-      [exchange_rate_aim.definition, exchange_rate_aim.handler],
-      [exchange_rate_list.definition, exchange_rate_list.handler],
-      [exchange_rate_configs.definition, exchange_rate_configs.handler],
-      [products_recommend.definition, products_recommend.handler],
-      [location.definition, location.handler],
-      [feishu.definition, feishu.handler],
-      [open_url.definition, open_url.handler],
-      [azure_docs_definition, azure_docs.handler],
-      [demo.definition, demo.handler],
-      [quote.definition, quote.handler],
-      [stock_recommend.definition, stock_recommend.handler],
-      [devices_action.definition, devices_action.handler],
-    ];
-    builtinFunctionTools.sort((a, b) => a[0].name.localeCompare(b[0].name));
-
-    let merge_tools: [ToolDefinitionType, Function][] = profiles.currentProfile
-      ?.buildInFunctions
-      ? [...loadFunctionsTools, ...builtinFunctionTools]
-      : [...loadFunctionsTools];
-
-    // resort merge_tools by ToolDefinitionType name
-    merge_tools.sort((a, b) => a[0].name.localeCompare(b[0].name));
-
-    const functions_tool: [ToolDefinitionType, Function][] = merge_tools;
-
-    // functions_tools array
-    const functionsToolsRef =
-      useRef<[ToolDefinitionType, Function][]>(functions_tool);
-
-    let updateInstructions = profiles.currentProfile?.buildInPrompt
-      ? SYSTEM_INSTRUCTIONS
-      : profiles.currentProfile?.prompt || '';
-
-    // if (enableFunctionCalling() && functionsToolsRef.current.length > 0) {
-    //   updateInstructions += `\n\nYou have the following tools and abilities:`;
-    //   for (const tool of functionsToolsRef.current) {
-    //     updateInstructions += `\n${tool[0].name}: ${tool[0].description}`;
-    //   }
-    // }
-
-    const [messages, setMessages] = useState<any[]>([]);
-
-    const [llmInstructions, setLlmInstructions] =
-      useState<string>(updateInstructions);
-    const llmInstructionsRef = useRef(llmInstructions);
-
-    useEffect(() => {
-      llmInstructionsRef.current = llmInstructions;
-
-      if (assistant) {
-        assistant.instructions = llmInstructions;
-        (async () => {
-          try {
-            const res = await getOpenAIClient().beta.assistants.update(
-              assistant.id,
-              {
-                instructions: llmInstructions,
-              },
-            );
-            console.log('assistant instructions updated', res);
-          } catch (error) {
-            console.error('Error:', error);
-          }
-        })();
-      }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [llmInstructions]);
-
-    const replaceInstructions = (source: string | RegExp, target: string) => {
-      const new_instructions = llmInstructionsRef.current.replace(source, target);
-      setLlmInstructions(new_instructions);
-      return new_instructions;
-    };
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (
-        event.ctrlKey &&
-        event.altKey &&
-        (event.key === 'p' || event.key === 'P')
-      ) {
-        event.preventDefault();
-        setDebug((prevMyVariable) => {
-          return !prevMyVariable;
-        });
-      }
-    };
-
-    useEffect(() => {
-      window.addEventListener('keydown', handleKeyDown);
-      return () => {
-        window.removeEventListener('keydown', handleKeyDown);
-      };
-    }, []);
-
-    return (
-      <AppContext.Provider
-        value={{
-          isOnline,
-          photos,
-          photosRef,
-          setPhotos,
-          loading,
-          setLoading,
-          debug,
-          debugRef,
-          setDebug,
-          assistant,
-          assistantRef,
-          setAssistant,
-          thread,
-          threadRef,
-          setThread,
-          threadJob,
-          threadJobRef,
-          setThreadJob,
-          responseBuffer,
-          responseBufferRef,
-          setResponseBuffer,
-          speechSentencesCacheArray,
-          speechSentencesCacheArrayRef,
-          setSpeechSentencesCacheArray,
-          llmInstructions,
-          llmInstructionsRef,
-          replaceInstructions,
-          isNightMode,
-          isNightModeRef,
-          setIsNightMode,
-          isAvatarSpeaking,
-          setIsAvatarSpeaking,
-          memoryKv,
-          memoryKvRef,
-          setMemoryKv,
-          inputValue,
-          inputValueRef,
-          setInputValue,
-          needSpeechQueue,
-          needSpeechQueueRef,
-          setNeedSpeechQueue,
-          caption,
-          captionRef,
-          setCaption,
-          captionQueue,
-          captionQueueRef,
-          setCaptionQueue,
-          updateCaptionQueue,
-          addCaptionQueue,
-          bingSearchData,
-          setBingSearchData,
-          cameraStatus,
-          cameraStatusRef,
-          setCameraStatus,
-          connectStatus,
-          connectStatusRef,
-          setConnectStatus,
-          avatarStatus,
-          avatarStatusRef,
-          setAvatarStatus,
-          isFirstTokenRef,
-          firstTokenLatencyArray,
-          firstTokenLatencyArrayRef,
-          setFirstTokenLatencyArray,
-          tokenLatencyArray,
-          tokenLatencyArrayRef,
-          setTokenLatencyArray,
-          recordTokenLatency,
-          resetTokenLatency,
-          sendTimeRef,
-          lastTokenTimeRef,
-          functionsToolsRef,
-          connectMessage,
-          setConnectMessage,
-          resetApp,
-          isDebugMode,
-          isDebugModeRef,
-          setIsDebugMode,
-          vectorStore,
-          vectorStoreRef,
-          setVectorStore,
-          inputTokens,
-          inputTokensRef,
-          setInputTokens,
-          outputTokens,
-          outputTokensRef,
-          setOutputTokens,
-          inputTextTokens,
-          inputTextTokensRef,
-          setInputTextTokens,
-          outputTextTokens,
-          outputTextTokensRef,
-          setOutputTextTokens,
-          inputAudioTokens,
-          inputAudioTokensRef,
-          setInputAudioTokens,
-          outputAudioTokens,
-          outputAudioTokensRef,
-          setOutputAudioTokens,
-          appKey,
-          loadFunctionsTools,
-          builtinFunctionTools,
-          messages,
-          setMessages,
-        }}
-      >
-        {children}
-      </AppContext.Provider>
-    );
+    return { message: 'done' };
   };
+
+  const dark_handler: Function = ({ on }: { [on: string]: boolean }) => {
+    setIsNightMode(on);
+    return { ok: true };
+  };
+
+  const gptImagesDispatch = useGptImagesDispatch()!;
+  const gptImagesRef = useGptImagesRef();
+  const painting_handler: Function = async ({
+    prompt,
+    n = 1,
+  }: {
+    [key: string]: any;
+  }) => {
+    try {
+      const resp = await getImages((prompt = prompt), (n = n));
+      const image = resp.data[0];
+
+      const gptImage: GptImage = {
+        prompt: prompt,
+        b64_json: image.b64_json,
+      };
+
+      gptImagesDispatch({ type: 'add', gptImage });
+      console.log('painting', gptImage);
+      console.log('gptImagesRef', gptImagesRef.current);
+
+      return { result: 'completed, please check the results in the modal.' };
+    } catch (error) {
+      console.error('painting error', error);
+      return { error: error };
+    }
+  };
+
+  const image_modify_handler: Function = async ({
+    prompt,
+    index = 1,
+  }: {
+    [key: string]: any;
+  }) => {
+    if (!gptImagesRef.current) {
+      return { error: 'no painting data, please generate painting first.' };
+    }
+
+    if (gptImagesRef.current.length === 0) {
+      return { error: 'no painting data, please generate painting first.' };
+    }
+
+    const realIndex = index - 1;
+
+    if (realIndex < 0 || realIndex >= gptImagesRef.current.length) {
+      return { error: 'index out of images, please check the index.' };
+    }
+
+    const { b64_json } = gptImagesRef.current[realIndex];
+
+    try {
+      const resp = await editImages(prompt, b64_json);
+      const image = resp.data[0];
+      const gptImage: GptImage = {
+        prompt: prompt,
+        b64_json: image.b64_json,
+      };
+
+      gptImagesDispatch({ type: 'add', gptImage });
+      console.log('painting', gptImage);
+      return { result: 'completed, please check the results in the modal.' };
+    } catch (error) {
+      console.error('modify painting error', error);
+      return { error: error };
+    }
+  };
+
+  const [bingSearchData, setBingSearchData] = useState<any>(null);
+  const bing_search_handler: Function = async ({
+    query,
+    count = 10,
+    page = 1,
+  }: {
+    [key: string]: any;
+  }) => {
+    if (!profiles.currentProfile?.bingApiKey) {
+      throw new Error('Bing API key is not set');
+    }
+
+    const offset = (page - 1) * count;
+    const mkt = 'en-US';
+    const params = { q: query, mkt: mkt, count: count, offset: offset };
+    const headers = {
+      'Ocp-Apim-Subscription-Key': profiles.currentProfile?.bingApiKey,
+    };
+
+    const response = await axios.get(
+      'https://api.bing.microsoft.com/v7.0/search',
+      { headers, params },
+    );
+    const data = response.data;
+
+    setBingSearchData(data);
+
+    console.log(data);
+
+    return {
+      message:
+        "ok, please check the results in the modal. you don't need to say anything.",
+      data: data,
+    };
+  };
+
+  const camera_take_photo_handler: Function = async () => {
+    // for first time, wait 2 seconds to make sure the camera is ready
+    if (cameraStatusRef.current !== CAMERA_READY) {
+      await delayFunction(4000);
+    }
+
+    if (cameraStatusRef.current !== CAMERA_READY) {
+      return { error: 'camera is not ready, please turn on the camera first.' };
+    }
+
+    const currentPhoto = photosRef.current[photosRef.current.length - 1];
+    const base64Data = currentPhoto.split(',')[1];
+    const gptImage: GptImage = {
+      prompt: 'take a photo',
+      b64_json: base64Data,
+    };
+    gptImagesDispatch({ type: 'add', gptImage });
+    return { message: 'ok' };
+  };
+
+  const opacity_handler: Function = async ({
+    opacity,
+  }: {
+    [key: string]: any;
+  }) => {
+    console.log('opacity', opacity);
+    // set opacity to float
+    setOpacity(Number(opacity));
+    return { message: 'ok' };
+  };
+
+  const background_handler: Function = () => {
+    const backgroundImage = ['1', '2', '3', '4'];
+    const randomIndex = Math.floor(Math.random() * backgroundImage.length);
+    const randomBackground = backgroundImage[randomIndex];
+    setBackground(randomBackground);
+    return { message: `ok, the background image is ${randomBackground}.png` };
+  };
+
+  const debug_handler: Function = async ({
+    debug_mode,
+  }: {
+    [key: string]: any;
+  }) => {
+    setIsDebugMode(debug_mode);
+    return { ok: true };
+  };
+
+  const set_disconnection_handler: Function = () => {
+    resetApp();
+    return { ok: true };
+  };
+
+  const azure_docs_definition = {
+    ...azure_docs.definition,
+    description: azure_docs.definition.description.replace(
+      '{rag}',
+      profiles.currentProfile?.graphragAbout || GRAPHRAG_ABOUT,
+    ),
+  };
+
+  const builtinFunctionTools: [ToolDefinitionType, Function][] = [
+    [camera_on.definition, camera_on_handler],
+    [camera_take_photo.definition, camera_take_photo_handler],
+    [opacity.definition, opacity_handler],
+    [background.definition, background_handler],
+    [camera_current.definition, camera_current_handler],
+    [camera_video.definition, camera_video_handler],
+    [memory.definition, memory_handler],
+    [avatar.definition, avatar_handler],
+    [dark.definition, dark_handler],
+    [bing.definition, bing_search_handler],
+    [painting.definition, painting_handler],
+    [image_modify.definition, image_modify_handler],
+    [debug_model.definition, debug_handler],
+    [set_disconnection.definition, set_disconnection_handler],
+    [news.definition, news.handler],
+    [weather.definition, weather.handler],
+    [order_get.definition, order_get.handler],
+    [order_return.definition, order_return.handler],
+    [exchange_rate_aim.definition, exchange_rate_aim.handler],
+    [exchange_rate_list.definition, exchange_rate_list.handler],
+    [exchange_rate_configs.definition, exchange_rate_configs.handler],
+    [products_recommend.definition, products_recommend.handler],
+    [location.definition, location.handler],
+    [feishu.definition, feishu.handler],
+    [open_url.definition, open_url.handler],
+    [azure_docs_definition, azure_docs.handler],
+    [demo.definition, demo.handler],
+    [quote.definition, quote.handler],
+    [stock_recommend.definition, stock_recommend.handler],
+    [devices_action.definition, devices_action.handler],
+  ];
+  builtinFunctionTools.sort((a, b) => a[0].name.localeCompare(b[0].name));
+
+  let merge_tools: [ToolDefinitionType, Function][] = profiles.currentProfile
+    ?.buildInFunctions
+    ? [...loadFunctionsTools, ...builtinFunctionTools]
+    : [...loadFunctionsTools];
+
+  // resort merge_tools by ToolDefinitionType name
+  merge_tools.sort((a, b) => a[0].name.localeCompare(b[0].name));
+
+  const functions_tool: [ToolDefinitionType, Function][] = merge_tools;
+
+  // functions_tools array
+  const functionsToolsRef =
+    useRef<[ToolDefinitionType, Function][]>(functions_tool);
+
+  let updateInstructions = profiles.currentProfile?.buildInPrompt
+    ? SYSTEM_INSTRUCTIONS
+    : profiles.currentProfile?.prompt || '';
+
+  // if (enableFunctionCalling() && functionsToolsRef.current.length > 0) {
+  //   updateInstructions += `\n\nYou have the following tools and abilities:`;
+  //   for (const tool of functionsToolsRef.current) {
+  //     updateInstructions += `\n${tool[0].name}: ${tool[0].description}`;
+  //   }
+  // }
+
+  const [messages, setMessages] = useState<any[]>([]);
+
+  const [llmInstructions, setLlmInstructions] =
+    useState<string>(updateInstructions);
+  const llmInstructionsRef = useRef(llmInstructions);
+
+  useEffect(() => {
+    llmInstructionsRef.current = llmInstructions;
+
+    if (assistant) {
+      assistant.instructions = llmInstructions;
+      (async () => {
+        try {
+          const res = await getOpenAIClient().beta.assistants.update(
+            assistant.id,
+            {
+              instructions: llmInstructions,
+            },
+          );
+          console.log('assistant instructions updated', res);
+        } catch (error) {
+          console.error('Error:', error);
+        }
+      })();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [llmInstructions]);
+
+  const replaceInstructions = (source: string | RegExp, target: string) => {
+    const new_instructions = llmInstructionsRef.current.replace(source, target);
+    setLlmInstructions(new_instructions);
+    return new_instructions;
+  };
+
+  const handleKeyDown = (event: KeyboardEvent) => {
+    if (
+      event.ctrlKey &&
+      event.altKey &&
+      (event.key === 'p' || event.key === 'P')
+    ) {
+      event.preventDefault();
+      setDebug((prevMyVariable) => {
+        return !prevMyVariable;
+      });
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+  return (
+    <AppContext.Provider
+      value={{
+        isOnline,
+        photos,
+        photosRef,
+        setPhotos,
+        loading,
+        setLoading,
+        debug,
+        debugRef,
+        setDebug,
+        assistant,
+        assistantRef,
+        setAssistant,
+        thread,
+        threadRef,
+        setThread,
+        threadJob,
+        threadJobRef,
+        setThreadJob,
+        responseBuffer,
+        responseBufferRef,
+        setResponseBuffer,
+        speechSentencesCacheArray,
+        speechSentencesCacheArrayRef,
+        setSpeechSentencesCacheArray,
+        llmInstructions,
+        llmInstructionsRef,
+        replaceInstructions,
+        isNightMode,
+        isNightModeRef,
+        setIsNightMode,
+        isAvatarSpeaking,
+        setIsAvatarSpeaking,
+        memoryKv,
+        memoryKvRef,
+        setMemoryKv,
+        inputValue,
+        inputValueRef,
+        setInputValue,
+        needSpeechQueue,
+        needSpeechQueueRef,
+        setNeedSpeechQueue,
+        caption,
+        captionRef,
+        setCaption,
+        captionQueue,
+        captionQueueRef,
+        setCaptionQueue,
+        updateCaptionQueue,
+        addCaptionQueue,
+        bingSearchData,
+        setBingSearchData,
+        cameraStatus,
+        cameraStatusRef,
+        setCameraStatus,
+        connectStatus,
+        connectStatusRef,
+        setConnectStatus,
+        avatarStatus,
+        avatarStatusRef,
+        setAvatarStatus,
+        isFirstTokenRef,
+        firstTokenLatencyArray,
+        firstTokenLatencyArrayRef,
+        setFirstTokenLatencyArray,
+        tokenLatencyArray,
+        tokenLatencyArrayRef,
+        setTokenLatencyArray,
+        recordTokenLatency,
+        resetTokenLatency,
+        sendTimeRef,
+        lastTokenTimeRef,
+        functionsToolsRef,
+        connectMessage,
+        setConnectMessage,
+        resetApp,
+        isDebugMode,
+        isDebugModeRef,
+        setIsDebugMode,
+        vectorStore,
+        vectorStoreRef,
+        setVectorStore,
+        inputTokens,
+        inputTokensRef,
+        setInputTokens,
+        outputTokens,
+        outputTokensRef,
+        setOutputTokens,
+        inputTextTokens,
+        inputTextTokensRef,
+        setInputTextTokens,
+        outputTextTokens,
+        outputTextTokensRef,
+        setOutputTextTokens,
+        inputAudioTokens,
+        inputAudioTokensRef,
+        setInputAudioTokens,
+        outputAudioTokens,
+        outputAudioTokensRef,
+        setOutputAudioTokens,
+        appKey,
+        loadFunctionsTools,
+        builtinFunctionTools,
+        messages,
+        setMessages,
+        camera_on_handler,
+      }}
+    >
+      {children}
+    </AppContext.Provider>
+  );
+};
 
 export const useContexts = () => {
   const context = useContext(AppContext);

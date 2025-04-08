@@ -30,9 +30,14 @@ import {
   getAgentSessions,
   createAgentSession,
   sendAgentMessage,
+  InputMessage,
+  sendAgentClientToolResponseMessage,
+  updateSessionStates,
+  getSessionStates,
 } from '../lib/agentApi';
+import { AgentMessage, LlmMessage } from '../components/AgentMessage';
 
-const REFRESH_MESSAGE_INTERVAL = 300;
+const REFRESH_MESSAGE_INTERVAL = 1000;
 
 export function ConsolePageAgent() {
   const {
@@ -52,16 +57,32 @@ export function ConsolePageAgent() {
     setOutputTokens,
     loadFunctionsTools,
     setMessages,
+    camera_on_handler,
   } = useContexts();
 
-  const [agentMessages, setAgentMessages] = useState<any[]>([]);
+  const [agentMessages, setAgentMessages] = useState<AgentMessage[]>([]);
 
   const [agentRunning, setAgentRunning] = useState(false);
 
+  const [sessionStates, setSessionStates] = useState<any>({});
+  const sessionStatesRef = useRef<any>({});
+  useEffect(() => {
+    sessionStatesRef.current = sessionStates;
+  }, [sessionStates]);
+
   const [sessionId, setSessionId] = useState<string>('');
   const sessionIdRef = useRef<string>(sessionId);
+
   useEffect(() => {
     sessionIdRef.current = sessionId;
+    if (sessionIdRef.current) {
+      // get session states
+      (async () => {
+        const states = await getSessionStates(profiles, sessionIdRef.current);
+        console.log('states', states);
+        setSessionStates(states);
+      })();
+    }
   }, [sessionId]);
 
   const [profiles] = useState<Profiles>(new Profiles());
@@ -103,12 +124,51 @@ export function ConsolePageAgent() {
       profiles,
       sessionIdRef.current,
     );
+
     setAgentMessages(messages);
   }, [profiles]);
 
+  // exec tools when block_session is true
+  const execTools = async () => {
+    if (agentMessages.length === 0) {
+      return;
+    }
+
+    const lastMessage = agentMessages[agentMessages.length - 1];
+    if (!lastMessage.block_session) {
+      return;
+    }
+
+    const msg: LlmMessage = lastMessage?.content;
+
+    if (msg?.type !== 'function_call') {
+      return;
+    }
+
+    const call_id = msg.call_id || '';
+
+    if (msg?.name === 'camera_on_or_off') {
+      const res = await camera_on_handler({ ...msg?.arguments });
+      await sendAgentClientToolResponseMessage(
+        profiles,
+        sessionIdRef.current,
+        call_id,
+        res,
+      );
+      await updateSessionStates(
+        profiles,
+        sessionIdRef.current,
+        'camera_status',
+        msg?.arguments,
+      );
+      console.log(res);
+    }
+  };
+
   useEffect(() => {
-    const timer = setInterval(() => {
-      listMessages();
+    const timer = setInterval(async () => {
+      await execTools();
+      await listMessages();
     }, REFRESH_MESSAGE_INTERVAL);
     return () => clearInterval(timer);
   }, [agentMessages, listMessages]);
@@ -365,7 +425,11 @@ export function ConsolePageAgent() {
 
     // may need to add a check to see if the thread is already created
     try {
-      await sendAgentMessage(profiles, sessionIdRef.current, text);
+      const message: InputMessage = {
+        role: 'user',
+        content: text,
+      };
+      await sendAgentMessage(profiles, sessionIdRef.current, message);
     } catch (error) {
       console.error('sendAssistantMessage error', JSON.stringify(error));
     }

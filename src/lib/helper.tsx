@@ -5,6 +5,7 @@ import {
 import { DEEPSEEK_FUNCTION_CALL_ENABLE } from './const';
 import * as load_functions from '../tools/load_functions';
 import { Profiles } from './Profiles';
+import { AgentMessage } from '../components/AgentMessage';
 
 export const delayFunction = function delay(ms: number) {
   return new Promise((resolve) => {
@@ -45,10 +46,20 @@ export function lastMessageIsUserMessage(items: ItemType[]) {
   return false;
 }
 
-export function agentMessageNeedLoading(items: any[]) {
+export function agentMessageNeedLoading(items: AgentMessage[]) {
   if (items.length > 0) {
-    const lastItem: any = items[items.length - 1];
+    const lastItem: AgentMessage = items[items.length - 1];
     if (lastItem?.content?.role !== 'assistant') {
+      return true;
+    }
+  }
+  return false;
+}
+
+export function agentMessageNeedWaitClient(items: AgentMessage[]) {
+  if (items.length > 0) {
+    const lastItem: AgentMessage = items[items.length - 1];
+    if (lastItem?.block_session) {
       return true;
     }
   }

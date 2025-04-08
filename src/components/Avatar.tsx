@@ -157,7 +157,7 @@ const Avatar: React.FC = () => {
       console.log(error);
       alert(
         `Avatar session failed to start. Please check your configuration or network.\n` +
-        error,
+          error,
       );
       setAvatarStatus(AVATAR_OFF);
     }
