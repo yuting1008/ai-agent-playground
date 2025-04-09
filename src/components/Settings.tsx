@@ -7,7 +7,6 @@ import { GRAPHRAG_ABOUT } from '../tools/azure_docs';
 import {
   ALLOW_FUNCTIONS_CHARACTERS,
   ALLOW_PROMPT_CHARACTERS,
-  ALLOW_URL_CHARACTERS,
   ASSISTANT_TYPE_AGENT_AI,
   ASSISTANT_TYPE_ASSISTANT,
   ASSISTANT_TYPE_DEEPSEEK,
@@ -18,6 +17,7 @@ import {
   BUILD_IN_PROMPT_ENABLE,
   DEEPSEEK_FUNCTION_CALL_DISABLE,
   DEEPSEEK_FUNCTION_CALL_ENABLE,
+  DEFAULT_AGENT_API_URL,
   NOT_SETTINGS_STATUS,
 } from '../lib/const';
 import { useContexts } from '../providers/AppProvider';
@@ -1090,11 +1090,8 @@ const SettingsComponent: React.FC<{
         <input
           type="text"
           style={styles.settingInput}
-          value={
-            profiles.currentProfile?.agentApiUrl ||
-            'https://agent-api.azuretsp.com'
-          }
-          placeholder={'https://agent-api.azuretsp.com'}
+          value={profiles.currentProfile?.agentApiUrl || DEFAULT_AGENT_API_URL}
+          placeholder={DEFAULT_AGENT_API_URL}
           onChange={(e) => {
             profiles.currentProfile!.agentApiUrl = e.target.value;
             profiles.save();
@@ -1359,7 +1356,7 @@ const SettingsComponent: React.FC<{
       JSON.stringify(newProfiles.currentProfile) !==
       JSON.stringify(oldProfiles.currentProfile)
     ) {
-      alert('Current Profile changed, page will reload.');
+      alert('Current profile changed, page will reload.');
       window.location.reload();
     }
   };
