@@ -37,6 +37,7 @@ import {
 } from '../lib/agentApi';
 import { AgentMessageType } from '../types/AgentMessageType';
 import { LlmMessage } from '../components/AgentMessage';
+import axios from 'axios';
 
 const REFRESH_MESSAGE_INTERVAL = 100;
 
@@ -193,12 +194,19 @@ export function ConsolePageAgent() {
   }, [agentMessages, listMessages, camera_on_handler]);
 
   const setupSession = async () => {
-    const sessions: any = await getAgentSessions();
+    try {
+      const sessions: any = await getAgentSessions();
 
-    if (sessions.length === 0) {
-      setSessionId(await createAgentSession());
-    } else {
-      setSessionId(sessions[0].id);
+      if (sessions.length === 0) {
+        setSessionId(await createAgentSession());
+      } else {
+        setSessionId(sessions[0].id);
+      }
+    } catch (error: any) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.detail || error.message);
+      }
+      throw error;
     }
   };
 
