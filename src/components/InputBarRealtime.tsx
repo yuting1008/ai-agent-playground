@@ -5,6 +5,7 @@ import './InputBar.scss';
 import { CONNECT_CONNECTED } from '../lib/const';
 import { RealtimeClient } from '@theodoreniu/realtime-api-beta';
 import { WavStreamPlayer } from '../lib/wavtools';
+import { RecommandText } from './RecommandText';
 
 export function InputBarRealtime({
   wavStreamPlayer,
@@ -47,29 +48,39 @@ export function InputBarRealtime({
   return (
     <>
       {connectStatus === CONNECT_CONNECTED && (
-        <div className="text-input">
-          <input
-            type="text"
-            placeholder="Type your message here..."
-            value={inputValue}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                sendText(inputValue);
-              }
-              if (e.key === 'Escape') {
-                setInputValue('');
-              }
-            }}
-            onChange={(e) => setInputValue(e.target.value)}
+        <div>
+          <RecommandText
+            handleInputButtonClick={sendText}
+            messages={[
+              'open camera',
+              'what is the weather in tokyo?',
+              'open avatar',
+            ]}
           />
+          <div className="text-input">
+            <input
+              type="text"
+              placeholder="Type your message here..."
+              value={inputValue}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  sendText(inputValue);
+                }
+                if (e.key === 'Escape') {
+                  setInputValue('');
+                }
+              }}
+              onChange={(e) => setInputValue(e.target.value)}
+            />
 
-          <button
-            onClick={() => sendText(inputValue)}
-            style={{ display: inputValue ? '' : 'none' }}
-            disabled={!inputValue}
-          >
-            <Send />
-          </button>
+            <button
+              onClick={() => sendText(inputValue)}
+              style={{ display: inputValue ? '' : 'none' }}
+              disabled={!inputValue}
+            >
+              <Send />
+            </button>
+          </div>
         </div>
       )}
     </>

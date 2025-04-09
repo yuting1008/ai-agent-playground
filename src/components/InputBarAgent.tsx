@@ -1,24 +1,30 @@
-import { Clock, Mic, MicOff, Send, StopCircle } from 'react-feather';
+import { Clock, Mic, MicOff, Send, StopCircle, Trash } from 'react-feather';
 
 import { useContexts } from '../providers/AppProvider';
 import { useEffect, useRef, useState } from 'react';
 import * as SpeechSDK from 'microsoft-cognitiveservices-speech-sdk';
 import './InputBar.scss';
-import { clientHiEnglish, CONNECT_CONNECTED } from '../lib/const';
+import { CONNECT_CONNECTED } from '../lib/const';
 import { Profiles } from '../lib/Profiles';
 import { RecommandText } from './RecommandText';
-export function InputBarAssistant({
+import { AgentMessageType } from '../types/AgentMessageType';
+
+export function InputBarAgent({
   setMessagesAssistant,
-  setAssistantRunning,
-  sendAssistantMessage,
+  setAgentRunning: setAgentRunning,
+  sendAgentMessage: sendAgentMessage,
   stopCurrentStreamJob,
-  assistantRunning,
+  agentRunning: agentRunning,
+  clearMessages,
+  messages,
 }: {
   setMessagesAssistant: (messages: any) => void;
-  setAssistantRunning: (assistantRunning: boolean) => void;
-  sendAssistantMessage: (message: string) => void;
+  setAgentRunning: (agentRunning: boolean) => void;
+  sendAgentMessage: (message: string) => void;
   stopCurrentStreamJob: () => void;
-  assistantRunning: boolean;
+  agentRunning: boolean;
+  clearMessages: () => void;
+  messages: any[];
 }) {
   const {
     setInputValue,
@@ -169,42 +175,61 @@ export function InputBarAssistant({
 
     resetTokenLatency();
 
-    await stopCurrentStreamJob();
     setIsAvatarSpeaking(false);
-    setAssistantRunning(true);
-    setMessagesAssistant((prevMessages: any) => [
-      ...prevMessages,
-      { role: 'user', text: inputValue },
-    ]);
-    sendAssistantMessage(inputValue);
-    setInputValue('');
-  };
+    setAgentRunning(true);
 
-  useEffect(() => {
-    if (connectStatus === CONNECT_CONNECTED) {
-      const hi = clientHiEnglish;
-      sendText(hi);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [connectStatus]);
+    const msg: AgentMessageType = {
+      message_index: messages.length + 1,
+      created_at: new Date().toISOString(),
+      content: { role: 'user', content: inputValue },
+      id: '564c191361ce4621ba0d7bb282801e54',
+      block_session: false,
+      status: 0,
+      role: 'user',
+      session_id: '564c191361ce4621ba0d7bb282801e54',
+      user_id: 1,
+    };
+
+    setMessagesAssistant((prevMessages: any) => [...prevMessages, msg]);
+    sendAgentMessage(inputValue);
+    setInputValue('');
+    setAgentRunning(false);
+  };
 
   return (
     <>
       {connectStatus === CONNECT_CONNECTED && (
         <div>
-          <RecommandText
-            handleInputButtonClick={sendText}
-            messages={[
-              'open camera',
-              'what is the weather in tokyo?',
-              'open avatar',
-            ]}
-          />
+          {!agentRunning && (
+            <>
+              <RecommandText
+                handleInputButtonClick={sendText}
+                messages={[
+                  'what is the weather in tokyo?',
+                  'what is life',
+                  'who was the first president of the united states?',
+                  'What is the age of the user?',
+                  'Check all my devices',
+                  'open camera',
+                ]}
+              />
+              <RecommandText
+                handleInputButtonClick={sendText}
+                messages={[
+                  'use browser to search for azure news',
+                  'get_secret_word from mcp',
+                  'what is the weather in tokyo from mcp server?',
+                  'talk about stock market',
+                ]}
+              />
+            </>
+          )}
+
           <div className="text-input">
             <input
               type="text"
               placeholder={
-                assistantRunning
+                agentRunning
                   ? 'Waiting Response...'
                   : 'Type your message here...'
               }
@@ -218,7 +243,7 @@ export function InputBarAssistant({
                 }
               }}
               onChange={(e) => setInputValue(e.target.value)}
-              disabled={assistantRunning}
+              disabled={agentRunning}
             />
 
             <button
@@ -230,8 +255,15 @@ export function InputBarAssistant({
             </button>
 
             <button
+              onClick={clearMessages}
+              style={{ display: messages.length > 0 ? '' : 'none' }}
+            >
+              <Trash />
+            </button>
+
+            <button
               onClick={() => {
-                setAssistantRunning(false);
+                setAgentRunning(false);
                 (async () => {
                   await stopCurrentStreamJob();
                 })();
@@ -242,7 +274,7 @@ export function InputBarAssistant({
                 border: 'none',
                 cursor: 'pointer',
                 borderRadius: '5px',
-                display: assistantRunning ? '' : 'none',
+                display: agentRunning ? '' : 'none',
               }}
             >
               <StopCircle />

@@ -1,6 +1,7 @@
 import Markdown from 'react-markdown';
 import MessageLoading from './MessageLoading';
 import { Profiles } from '../lib/Profiles';
+
 type AssistantMessageProps = {
   role: 'user' | 'assistant' | 'code';
   text: string;

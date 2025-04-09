@@ -1,8 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
-  APP_AGENT_VECTOR_STORE,
-  APP_AGENT,
   CONNECT_CONNECTED,
   CONNECT_CONNECTING,
   CONNECT_DISCONNECTED,
@@ -11,64 +9,96 @@ import {
 import './ConsolePage.scss';
 import Camera from '../components/Camera';
 import SettingsComponent from '../components/Settings';
-import FileViewer from '../components/FileViewer';
 import Avatar from '../components/Avatar';
 import ConnectButton from '../components/ConnectButton';
 import ConnectMessage from '../components/ConnectMessage';
-import AssistantMessages from '../components/AssistantMessages';
+import AgentMessages from '../components/AgentMessages';
 
-import { getOpenAIClient, parseOpenaiSetting } from '../lib/openai';
+import { getOpenAIClient } from '../lib/openai';
 import { AssistantStream } from 'openai/lib/AssistantStream';
 // @ts-expect-error - no types for this yet
 import { AssistantStreamEvent } from 'openai/resources/beta/assistants/assistants';
-import {
-  Assistant,
-  AssistantCreateParams,
-  AssistantsPage,
-} from 'openai/resources/beta/assistants';
-import { ToolDefinitionType } from '@theodoreniu/realtime-api-beta/dist/lib/client';
 import { useContexts } from '../providers/AppProvider';
-import { InputBarAssistant } from '../components/InputBarAssistant';
-import {
-  VectorStore,
-  VectorStoresPage,
-} from 'openai/resources/vector-stores/vector-stores';
+import { InputBarAgent } from '../components/InputBarAgent';
 
 import { Run } from 'openai/resources/beta/threads/runs/runs';
 import BuiltFunctionDisable from '../components/BuiltFunctionDisable';
 import { Profiles } from '../lib/Profiles';
+import {
+  getAgentMessages,
+  clearAgentMessages,
+  getAgentSessions,
+  createAgentSession,
+  sendAgentMessage,
+  InputMessage,
+  sendAgentClientToolResponseMessage,
+  updateSessionStates,
+  getSessionStates,
+} from '../lib/agentApi';
+import { AgentMessageType } from '../types/AgentMessageType';
+import { LlmMessage } from '../components/AgentMessage';
+import axios from 'axios';
 
-export function ConsolePageAssistant() {
+const REFRESH_MESSAGE_INTERVAL = 200;
+
+export function ConsolePageAgent() {
   const {
     assistantRef,
-    connectMessage,
-    connectStatus,
-    isDebugModeRef,
-    loadFunctionsTools,
-    recordTokenLatency,
-    setAssistant,
-    setConnectMessage,
-    setConnectStatus,
-    setInputTokens,
     setLoading,
-    setMessages,
-    setOutputTokens,
-    setResponseBuffer,
-    setThread,
-    setThreadJob,
-    setVectorStore,
-    threadJobRef,
     threadRef,
+    threadJobRef,
+    setThreadJob,
+    setResponseBuffer,
+    recordTokenLatency,
+    connectStatus,
+    setConnectStatus,
+    connectMessage,
+    setConnectMessage,
+    isDebugModeRef,
+    setInputTokens,
+    setOutputTokens,
+    loadFunctionsTools,
+    setMessages,
+    camera_on_handler,
   } = useContexts();
 
-  const [messagesAssistant, setMessagesAssistant] = useState<any[]>([]);
+  const [agentMessages, setAgentMessages] = useState<AgentMessageType[]>([]);
+  const [agentRunning, setAgentRunning] = useState(false);
+  const agentRunningRef = useRef(false);
+  useEffect(() => {
+    agentRunningRef.current = agentRunning;
+  }, [agentRunning]);
 
-  const [assistantRunning, setAssistantRunning] = useState(false);
+  useEffect(() => {
+    const lastItem: AgentMessageType = agentMessages[agentMessages.length - 1];
+    if (lastItem?.block_session || lastItem?.need_approve) {
+      setAgentRunning(true);
+    } else {
+      setAgentRunning(false);
+    }
+  }, [agentMessages]);
 
-  const [profiles] = useState<Profiles>(new Profiles());
+  const [sessionStates, setSessionStates] = useState<any>({});
+  const sessionStatesRef = useRef<any>({});
+  useEffect(() => {
+    sessionStatesRef.current = sessionStates;
+  }, [sessionStates]);
 
-  const { functionsToolsRef, llmInstructions, llmInstructionsRef } =
-    useContexts();
+  const [sessionId, setSessionId] = useState<string>('');
+  const sessionIdRef = useRef<string>(sessionId);
+
+  useEffect(() => {
+    sessionIdRef.current = sessionId;
+    if (sessionIdRef.current) {
+      // get session states
+      (async () => {
+        const states = await getSessionStates(sessionIdRef.current);
+        setSessionStates(states);
+      })();
+    }
+  }, [sessionId]);
+
+  const { functionsToolsRef, llmInstructions } = useContexts();
 
   useEffect(() => {
     (async () => {
@@ -97,99 +127,92 @@ export function ConsolePageAssistant() {
     return () => clearInterval(timer);
   }, [assistantRef, llmInstructions]);
 
-  const cleanupAssistants = async () => {
-    const assistantsPageList: Assistant[] = [];
-    let lists: AssistantsPage = await getOpenAIClient().beta.assistants.list();
-    assistantsPageList.push(...lists.data);
-    setConnectMessage(`Collecting Assistants(${assistantsPageList.length})...`);
-
-    while (lists.hasNextPage()) {
-      lists = await lists.getNextPage();
-      assistantsPageList.push(...lists.data);
-      setConnectMessage(
-        `Collecting Assistants(${assistantsPageList.length})...`,
-      );
+  const listMessages = useCallback(async () => {
+    if (!sessionIdRef.current) {
+      return;
     }
+    const messages: any = await getAgentMessages(sessionIdRef.current);
 
-    for (const [index, assistant] of assistantsPageList.entries()) {
-      if (assistant.name === APP_AGENT) {
-        setConnectMessage(
-          `Deleting Assistant(${index}/${assistantsPageList.length}): ${assistant.id}`,
-        );
-        await getOpenAIClient().beta.assistants.del(assistant.id);
+    setAgentMessages(messages);
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(async () => {
+      const execTools = async () => {
+        if (agentMessages.length === 0) {
+          return;
+        }
+
+        const lastMessage = agentMessages[agentMessages.length - 1];
+        if (!lastMessage.block_session) {
+          return;
+        }
+
+        const msg: LlmMessage = lastMessage?.content;
+
+        if (msg?.type !== 'function_call') {
+          return;
+        }
+
+        const call_id = msg.call_id || '';
+
+        if (lastMessage?.need_approve && lastMessage?.approve_status === 0) {
+          return;
+        }
+
+        if (lastMessage?.need_approve && lastMessage?.approve_status === 2) {
+          await sendAgentClientToolResponseMessage(
+            sessionIdRef.current,
+            call_id,
+            JSON.stringify({
+              result: false,
+              message: 'Tool Rejected by user',
+            }),
+          );
+          return;
+        }
+
+        if (msg?.name === 'camera_on_or_off') {
+          const res = await camera_on_handler({ ...msg?.arguments });
+          await sendAgentClientToolResponseMessage(
+            sessionIdRef.current,
+            call_id,
+            res,
+          );
+          await updateSessionStates(
+            sessionIdRef.current,
+            'camera_status',
+            msg?.arguments,
+          );
+          console.log(res);
+        }
+      };
+      await execTools();
+      await listMessages();
+    }, REFRESH_MESSAGE_INTERVAL);
+    return () => clearInterval(timer);
+  }, [agentMessages, listMessages, camera_on_handler]);
+
+  const setupSession = async () => {
+    try {
+      const sessions: any = await getAgentSessions();
+
+      if (sessions.length === 0) {
+        setSessionId(await createAgentSession());
+      } else {
+        setSessionId(sessions[0].id);
       }
-    }
-  };
-
-  const cleanupVectorStores = async () => {
-    const vectorStoresPages: VectorStore[] = [];
-    let lists: VectorStoresPage = await getOpenAIClient().vectorStores.list();
-
-    vectorStoresPages.push(...lists.data);
-    setConnectMessage(
-      `Collecting Vector Stores(${vectorStoresPages.length})...`,
-    );
-
-    while (lists.hasNextPage()) {
-      lists = await lists.getNextPage();
-      vectorStoresPages.push(...lists.data);
-      setConnectMessage(
-        `Collecting Vector Stores(${vectorStoresPages.length})...`,
-      );
-    }
-
-    for (const [index, vectorStore] of vectorStoresPages.entries()) {
-      if (vectorStore.name === APP_AGENT_VECTOR_STORE) {
-        setConnectMessage(
-          `Deleting Vector Store(${index}/${vectorStoresPages.length}): ${vectorStore.id}`,
-        );
-        await getOpenAIClient().vectorStores.del(vectorStore.id);
+    } catch (error: any) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.detail || error.message);
       }
+      throw error;
     }
   };
 
-  const setupVectorStore = async (assistantId: string) => {
-    const vectorStore = await getOpenAIClient().vectorStores.create({
-      name: APP_AGENT_VECTOR_STORE,
-    });
-    await getOpenAIClient().beta.assistants.update(assistantId, {
-      tool_resources: {
-        file_search: {
-          vector_store_ids: [vectorStore.id],
-        },
-      },
-    });
-    setVectorStore(vectorStore);
-  };
-
-  const setupAssistant = async () => {
-    const { modelName } = parseOpenaiSetting(
-      profiles.currentProfile?.completionTargetUri || '',
-    );
-
-    const params: AssistantCreateParams = {
-      instructions: llmInstructionsRef.current,
-      name: APP_AGENT,
-      temperature: profiles.currentProfile?.temperature || 0.5,
-      top_p: 1,
-      model: modelName,
-      tools: [{ type: 'code_interpreter' }, { type: 'file_search' }],
-    };
-
-    // add custom functions to the assistant
-    functionsToolsRef.current.forEach(
-      ([definition]: [ToolDefinitionType, Function]) => {
-        params.tools?.push({ type: 'function', function: definition });
-      },
-    );
-
-    const assistant: Assistant =
-      await getOpenAIClient().beta.assistants.create(params);
-    console.log(`Assistant created:`, assistant);
-
-    setAssistant(assistant);
-    setConnectMessage(`Creating Vector Store...`);
-    setupVectorStore(assistant.id);
+  const clearMessages = async () => {
+    await clearAgentMessages(sessionIdRef.current);
+    setAgentMessages([]);
   };
 
   const functionCallHandler = async (call: any) => {
@@ -236,17 +259,6 @@ export function ConsolePageAssistant() {
     }
 
     setThreadJob(null);
-  };
-
-  const createThread = async () => {
-    const thread = await getOpenAIClient().beta.threads.create();
-    console.log('thread', thread);
-    setThread(thread);
-  };
-
-  // textCreated - create new assistant message
-  const handleAssistantTextCreated = () => {
-    appendAssistantMessage('assistant', '');
   };
 
   // textDelta - append text to last assistant message
@@ -309,7 +321,7 @@ export function ConsolePageAssistant() {
           return { output: result, tool_call_id: toolCall.id };
         }),
       );
-      setAssistantRunning(true);
+      setAgentRunning(true);
       await submitAssistantActionResult(runId, toolCallOutputs);
       setLoading(false);
     } catch (error) {
@@ -319,7 +331,7 @@ export function ConsolePageAssistant() {
 
   // handleRunCompleted - re-enable the input form
   const handleAssistantRunCompleted = () => {
-    setAssistantRunning(false);
+    setAgentRunning(false);
     setThreadJob(null);
   };
 
@@ -329,7 +341,7 @@ export function ConsolePageAssistant() {
     =======================
   */
   const appendAssistantToLastMessage = (text: string) => {
-    setMessagesAssistant((prevMessages: any) => {
+    setAgentMessages((prevMessages: any) => {
       const lastMessage = prevMessages[prevMessages.length - 1];
       const latestText = lastMessage.text + text;
       const updatedLastMessage = {
@@ -342,14 +354,11 @@ export function ConsolePageAssistant() {
   };
 
   const appendAssistantMessage = (role: string, text: string) => {
-    setMessagesAssistant((prevMessages: any) => [
-      ...prevMessages,
-      { role, text },
-    ]);
+    setAgentMessages((prevMessages: any) => [...prevMessages, { role, text }]);
   };
 
   const annotateAssistantLastMessage = (annotations: any) => {
-    setMessagesAssistant((prevMessages: any) => {
+    setAgentMessages((prevMessages: any) => {
       const lastMessage = prevMessages[prevMessages.length - 1];
       const updatedLastMessage = {
         ...lastMessage,
@@ -430,71 +439,41 @@ export function ConsolePageAssistant() {
     setOutputTokens((prev) => prev + e.completion_tokens);
   };
 
-  const sendAssistantMessage = async (text: string) => {
-    if (!threadRef.current?.id) {
-      console.error('Thread not found');
+  const sendMessage = async (text: string) => {
+    setAgentRunning(true);
+    if (!sessionIdRef.current) {
+      console.error('Session not found');
       return;
-    }
-
-    if (!assistantRef?.current?.id) {
-      console.error('Assistant not found');
-      return;
-    }
-
-    // wait to see if the thread is already running
-    const waitSeconds = 3 * 1000;
-    if (threadJobRef.current) {
-      await new Promise((resolve) => setTimeout(resolve, waitSeconds));
-      if (threadJobRef.current) {
-        console.error('Thread is already running');
-        return;
-      }
     }
 
     // may need to add a check to see if the thread is already created
     try {
-      handleAssistantTextCreated();
-      await getOpenAIClient().beta.threads.messages.create(
-        threadRef.current?.id,
-        {
-          role: 'user',
-          content: text,
-        },
-      );
-
-      const stream = getOpenAIClient().beta.threads.runs.stream(
-        threadRef.current?.id,
-        {
-          assistant_id: assistantRef?.current?.id,
-        },
-      );
-
-      const new_stream = AssistantStream.fromReadableStream(
-        stream.toReadableStream(),
-      );
-
-      handleAssistantReadableStream(new_stream);
+      const message: InputMessage = {
+        role: 'user',
+        content: text,
+      };
+      await sendAgentMessage(sessionIdRef.current, message);
     } catch (error) {
       console.error('sendAssistantMessage error', JSON.stringify(error));
     }
+
+    setAgentRunning(false);
   };
 
   const connectConversation = useCallback(async () => {
     try {
       setConnectStatus(CONNECT_CONNECTING);
-      setConnectMessage('Collecting Assistants...');
-      await cleanupAssistants();
-      setConnectMessage('Collecting Vector Stores...');
-      await cleanupVectorStores();
-      setConnectMessage('Creating Assistant...');
-      await setupAssistant();
-      setConnectMessage('Creating Thread...');
-      await createThread();
+      setConnectMessage('Creating Session...');
+      await setupSession();
+      setConnectMessage('Listing Messages...');
+      await listMessages();
       setConnectStatus(CONNECT_CONNECTED);
       setConnectMessage('');
     } catch (error: any) {
       setConnectStatus(CONNECT_DISCONNECTED);
-      setConnectMessage(error.message);
+      const profiles = new Profiles();
+      const agentApiUrl = profiles.currentProfile?.agentApiUrl;
+      setConnectMessage(`${error.message} with ${agentApiUrl}`);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -509,18 +488,20 @@ export function ConsolePageAssistant() {
           <div className="content-block-body" data-conversation-content>
             <ConnectMessage connectMessage={connectMessage} />
 
-            <AssistantMessages
+            <AgentMessages
               connectStatus={connectStatus}
-              messagesAssistant={messagesAssistant}
+              messages={agentMessages}
             />
           </div>
 
-          <InputBarAssistant
-            setMessagesAssistant={setMessagesAssistant}
-            setAssistantRunning={setAssistantRunning}
-            sendAssistantMessage={sendAssistantMessage}
+          <InputBarAgent
+            setMessagesAssistant={setAgentMessages}
+            setAgentRunning={setAgentRunning}
+            sendAgentMessage={sendMessage}
             stopCurrentStreamJob={stopCurrentStreamJob}
-            assistantRunning={assistantRunning}
+            agentRunning={agentRunning}
+            messages={agentMessages}
+            clearMessages={clearMessages}
           />
         </div>
       </div>
@@ -533,8 +514,6 @@ export function ConsolePageAssistant() {
         <Camera />
 
         <SettingsComponent connectStatus={connectStatus} />
-
-        <FileViewer connectStatus={connectStatus} />
 
         <ConnectButton
           connectStatus={connectStatus}
