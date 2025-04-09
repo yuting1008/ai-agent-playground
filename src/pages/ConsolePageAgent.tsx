@@ -74,11 +74,6 @@ export function ConsolePageAgent() {
 
         ws.current = new WebSocket(wsUrl);
 
-        // ws.current.onopen = () => {
-        //   console.log('WebSocket已连接');
-        //   ws.current?.send('Hi FastAPI Server!');
-        // };
-
         ws.current.onmessage = (event) => {
           const messages: AgentMessageType[] = JSON.parse(event.data);
           console.log('messages', messages);
