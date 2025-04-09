@@ -25,6 +25,7 @@ export const BUILD_IN_PROMPT_DISABLE = 'Disable';
 
 export const ALLOW_PROMPT_CHARACTERS = 15000;
 export const ALLOW_FUNCTIONS_CHARACTERS = 100000;
+export const ALLOW_URL_CHARACTERS = 1024;
 
 export const CAMERA_PHOTO_LIMIT = 50; // gpt limit 50 images
 export const CAMERA_PHOTO_INTERVAL_MS = 1000;
