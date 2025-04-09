@@ -8,6 +8,7 @@ import {
   ASSISTANT_TYPE_REALTIME,
   ASSISTANT_TYPES,
   DEEPSEEK_FUNCTION_CALL_DISABLE,
+  DEFAULT_AGENT_API_URL,
 } from './const';
 import defaultIcon from '../static/logomark.svg';
 import { supportedAssistantTypes } from '../components/Settings';
@@ -91,6 +92,11 @@ export class Profiles {
     }
 
     this.currentProfile = this.find(this.currentProfileId);
+
+    if (!this.currentProfile?.agentApiUrl) {
+      this.currentProfile!.agentApiUrl = DEFAULT_AGENT_API_URL;
+      this.save();
+    }
   }
 
   clone() {
