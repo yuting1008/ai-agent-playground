@@ -38,7 +38,7 @@ import {
 import { AgentMessageType } from '../types/AgentMessageType';
 import { LlmMessage } from '../components/AgentMessage';
 
-const REFRESH_MESSAGE_INTERVAL = 200;
+const REFRESH_MESSAGE_INTERVAL = 100;
 
 export function ConsolePageAgent() {
   const {

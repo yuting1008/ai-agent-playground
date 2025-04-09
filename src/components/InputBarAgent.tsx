@@ -216,8 +216,9 @@ export function InputBarAgent({
               <RecommandText
                 handleInputButtonClick={sendText}
                 messages={[
-                  'use browser to search for azure news and summarize the result',
+                  'use browser to search for azure news',
                   'get_secret_word from mcp',
+                  'what is the weather in tokyo from mcp server?',
                   'talk about stock market',
                 ]}
               />

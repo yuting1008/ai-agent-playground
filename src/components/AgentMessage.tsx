@@ -268,7 +268,6 @@ export const AgentLoadingMessage = () => {
     <div className={'conversation-item assistant'}>
       <div className={`speaker assistant`}></div>
       <div className={`speaker-content assistant`}>
-        <div style={styles.message_type}>AgentLoadingMessage</div>
         <MessageLoading messageId="msg_loading" />
       </div>
     </div>
