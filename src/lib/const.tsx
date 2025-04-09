@@ -2,6 +2,8 @@ export const APP_AGENT = 'AI Agent Playground';
 export const APP_AGENT_VECTOR_STORE =
   'ai-agent-playground-assistant-vector-store';
 
+export const DEFAULT_AGENT_API_URL = 'https://agent-api.azuretsp.com';
+
 export const ASSISTANT_TYPE_ASSISTANT = 'Assistant';
 export const ASSISTANT_TYPE_REALTIME = 'Realtime';
 export const ASSISTANT_TYPE_DEEPSEEK = 'DeepSeek';
