@@ -47,9 +47,10 @@ export function lastMessageIsUserMessage(items: ItemType[]) {
 }
 
 export function agentMessageNeedLoading(items: AgentMessageType[]) {
+  const types = ['assistant', 'assistant_error'];
   if (items.length > 0) {
     const lastItem: AgentMessageType = items[items.length - 1];
-    if (lastItem?.content?.role !== 'assistant' && !lastItem?.need_approve) {
+    if (!types.includes(lastItem?.content?.role) && !lastItem?.need_approve) {
       return true;
     }
   }

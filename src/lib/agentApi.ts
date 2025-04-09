@@ -2,7 +2,8 @@ import axios from 'axios';
 
 import { Profiles } from './Profiles';
 
-export async function getAgentSessions(profiles: Profiles) {
+export async function getAgentSessions() {
+  const profiles = new Profiles();
   const agentApiUrl = profiles.currentProfile?.agentApiUrl;
   if (!agentApiUrl) {
     throw new Error('agentApiUrl not found');
@@ -24,7 +25,8 @@ export async function getAgentSessions(profiles: Profiles) {
   return response.data?.data || [];
 }
 
-export async function createAgentSession(profiles: Profiles) {
+export async function createAgentSession() {
+  const profiles = new Profiles();
   const agentApiKey = profiles.currentProfile?.agentApiKey;
   const agentApiUrl = profiles.currentProfile?.agentApiUrl;
 
@@ -52,7 +54,8 @@ export async function createAgentSession(profiles: Profiles) {
   }
 }
 
-export async function getAgentMessages(profiles: Profiles, sessionId: string) {
+export async function getAgentMessages(sessionId: string) {
+  const profiles = new Profiles();
   const agentApiKey = profiles.currentProfile?.agentApiKey;
   const agentApiUrl = profiles.currentProfile?.agentApiUrl;
 
@@ -79,10 +82,8 @@ export async function getAgentMessages(profiles: Profiles, sessionId: string) {
   }
 }
 
-export async function clearAgentMessages(
-  profiles: Profiles,
-  sessionId: string,
-) {
+export async function clearAgentMessages(sessionId: string) {
+  const profiles = new Profiles();
   const agentApiKey = profiles.currentProfile?.agentApiKey;
   const agentApiUrl = profiles.currentProfile?.agentApiUrl;
 
@@ -115,10 +116,10 @@ export type InputMessage = {
 };
 
 export async function sendAgentMessage(
-  profiles: Profiles,
   sessionId: string,
   message: InputMessage,
 ) {
+  const profiles = new Profiles();
   const agentApiKey = profiles.currentProfile?.agentApiKey;
   const agentApiUrl = profiles.currentProfile?.agentApiUrl;
 
@@ -150,11 +151,11 @@ export async function sendAgentMessage(
 }
 
 export async function sendAgentClientToolResponseMessage(
-  profiles: Profiles,
   sessionId: string,
   call_id: string,
   output: any,
 ) {
+  const profiles = new Profiles();
   const agentApiKey = profiles.currentProfile?.agentApiKey;
   const agentApiUrl = profiles.currentProfile?.agentApiUrl;
 
@@ -189,7 +190,8 @@ export async function sendAgentClientToolResponseMessage(
   }
 }
 
-export async function getSessionStates(profiles: Profiles, sessionId: string) {
+export async function getSessionStates(sessionId: string) {
+  const profiles = new Profiles();
   const agentApiKey = profiles.currentProfile?.agentApiKey;
   const agentApiUrl = profiles.currentProfile?.agentApiUrl;
 
@@ -217,11 +219,11 @@ export async function getSessionStates(profiles: Profiles, sessionId: string) {
 }
 
 export async function updateSessionStates(
-  profiles: Profiles,
   sessionId: string,
   key: string,
   value: any,
 ) {
+  const profiles = new Profiles();
   const agentApiKey = profiles.currentProfile?.agentApiKey;
   const agentApiUrl = profiles.currentProfile?.agentApiUrl;
 

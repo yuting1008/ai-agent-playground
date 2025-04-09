@@ -37,12 +37,8 @@ import {
 } from '../lib/agentApi';
 import { AgentMessageType } from '../types/AgentMessageType';
 import { LlmMessage } from '../components/AgentMessage';
-import {
-  agentMessageNeedLoading,
-  agentMessageNeedWaitClient,
-} from '../lib/helper';
 
-const REFRESH_MESSAGE_INTERVAL = 100;
+const REFRESH_MESSAGE_INTERVAL = 200;
 
 export function ConsolePageAgent() {
   const {
@@ -67,6 +63,10 @@ export function ConsolePageAgent() {
 
   const [agentMessages, setAgentMessages] = useState<AgentMessageType[]>([]);
   const [agentRunning, setAgentRunning] = useState(false);
+  const agentRunningRef = useRef(false);
+  useEffect(() => {
+    agentRunningRef.current = agentRunning;
+  }, [agentRunning]);
 
   useEffect(() => {
     const lastItem: AgentMessageType = agentMessages[agentMessages.length - 1];
@@ -91,13 +91,11 @@ export function ConsolePageAgent() {
     if (sessionIdRef.current) {
       // get session states
       (async () => {
-        const states = await getSessionStates(profiles, sessionIdRef.current);
+        const states = await getSessionStates(sessionIdRef.current);
         setSessionStates(states);
       })();
     }
   }, [sessionId]);
-
-  const [profiles] = useState<Profiles>(new Profiles());
 
   const { functionsToolsRef, llmInstructions } = useContexts();
 
@@ -132,88 +130,80 @@ export function ConsolePageAgent() {
     if (!sessionIdRef.current) {
       return;
     }
-    const messages: any = await getAgentMessages(
-      profiles,
-      sessionIdRef.current,
-    );
+    const messages: any = await getAgentMessages(sessionIdRef.current);
 
     setAgentMessages(messages);
-  }, [profiles]);
-
-  // exec tools when block_session is true
-  const execTools = async () => {
-    if (agentMessages.length === 0) {
-      return;
-    }
-
-    const lastMessage = agentMessages[agentMessages.length - 1];
-    if (!lastMessage.block_session) {
-      return;
-    }
-
-    const msg: LlmMessage = lastMessage?.content;
-
-    if (msg?.type !== 'function_call') {
-      return;
-    }
-
-    const call_id = msg.call_id || '';
-
-    if (lastMessage?.need_approve && lastMessage?.approve_status === 0) {
-      return;
-    }
-
-    if (lastMessage?.need_approve && lastMessage?.approve_status === 2) {
-      await sendAgentClientToolResponseMessage(
-        profiles,
-        sessionIdRef.current,
-        call_id,
-        JSON.stringify({
-          result: false,
-          message: 'Tool Rejected by user',
-        }),
-      );
-      return;
-    }
-
-    if (msg?.name === 'camera_on_or_off') {
-      const res = await camera_on_handler({ ...msg?.arguments });
-      await sendAgentClientToolResponseMessage(
-        profiles,
-        sessionIdRef.current,
-        call_id,
-        res,
-      );
-      await updateSessionStates(
-        profiles,
-        sessionIdRef.current,
-        'camera_status',
-        msg?.arguments,
-      );
-      console.log(res);
-    }
-  };
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(async () => {
+      const execTools = async () => {
+        if (agentMessages.length === 0) {
+          return;
+        }
+
+        const lastMessage = agentMessages[agentMessages.length - 1];
+        if (!lastMessage.block_session) {
+          return;
+        }
+
+        const msg: LlmMessage = lastMessage?.content;
+
+        if (msg?.type !== 'function_call') {
+          return;
+        }
+
+        const call_id = msg.call_id || '';
+
+        if (lastMessage?.need_approve && lastMessage?.approve_status === 0) {
+          return;
+        }
+
+        if (lastMessage?.need_approve && lastMessage?.approve_status === 2) {
+          await sendAgentClientToolResponseMessage(
+            sessionIdRef.current,
+            call_id,
+            JSON.stringify({
+              result: false,
+              message: 'Tool Rejected by user',
+            }),
+          );
+          return;
+        }
+
+        if (msg?.name === 'camera_on_or_off') {
+          const res = await camera_on_handler({ ...msg?.arguments });
+          await sendAgentClientToolResponseMessage(
+            sessionIdRef.current,
+            call_id,
+            res,
+          );
+          await updateSessionStates(
+            sessionIdRef.current,
+            'camera_status',
+            msg?.arguments,
+          );
+          console.log(res);
+        }
+      };
       await execTools();
       await listMessages();
     }, REFRESH_MESSAGE_INTERVAL);
     return () => clearInterval(timer);
-  }, [agentMessages, listMessages]);
+  }, [agentMessages, listMessages, camera_on_handler]);
 
   const setupSession = async () => {
-    const sessions: any = await getAgentSessions(profiles);
+    const sessions: any = await getAgentSessions();
 
     if (sessions.length === 0) {
-      setSessionId(await createAgentSession(profiles));
+      setSessionId(await createAgentSession());
     } else {
       setSessionId(sessions[0].id);
     }
   };
 
   const clearMessages = async () => {
-    await clearAgentMessages(profiles, sessionIdRef.current);
+    await clearAgentMessages(sessionIdRef.current);
     setAgentMessages([]);
   };
 
@@ -454,7 +444,7 @@ export function ConsolePageAgent() {
         role: 'user',
         content: text,
       };
-      await sendAgentMessage(profiles, sessionIdRef.current, message);
+      await sendAgentMessage(sessionIdRef.current, message);
     } catch (error) {
       console.error('sendAssistantMessage error', JSON.stringify(error));
     }
@@ -473,6 +463,7 @@ export function ConsolePageAgent() {
       setConnectMessage('');
     } catch (error: any) {
       setConnectStatus(CONNECT_DISCONNECTED);
+      const profiles = new Profiles();
       const agentApiUrl = profiles.currentProfile?.agentApiUrl;
       setConnectMessage(`${error.message} with ${agentApiUrl}`);
     }

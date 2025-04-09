@@ -200,6 +200,22 @@ const AgentAssistantProgressMessage = ({ msg }: AgentMessageProps) => {
   );
 };
 
+const AgentAssistantErrorMessage = ({ msg }: AgentMessageProps) => {
+  return (
+    <div className={'conversation-item assistant'}>
+      <div className={`speaker assistant`}></div>
+      <div
+        className={`speaker-content assistant`}
+        style={{ background: '#e46c6c' }}
+      >
+        <div style={styles.message_type}>AgentAssistantErrorMessage</div>
+        <p>{JSON.stringify(msg.content)}</p>
+        <ClickToJson msg={msg} />
+      </div>
+    </div>
+  );
+};
+
 const AgentAssistantMessage = ({ msg }: AgentMessageProps) => {
   let text = JSON.stringify(msg, null, 2);
 
@@ -277,6 +293,8 @@ export default function AgentMessage({ msg }: AgentMessageProps) {
       return <AgentUserMessage msg={msg} />;
     case 'client_tool':
       return <AgentUserMessage msg={msg} />;
+    case 'assistant_error':
+      return <AgentAssistantErrorMessage msg={msg} />;
     case 'assistant':
       return <AgentAssistantMessage msg={msg} />;
     case 'code':

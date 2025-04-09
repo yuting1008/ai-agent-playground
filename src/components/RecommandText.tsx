@@ -34,7 +34,9 @@ export function RecommandText({
     <div style={styles.input_button_group}>
       {messages.map((text) => (
         <button
-          style={styles.input_button}
+          style={{
+            ...styles.input_button,
+          }}
           onClick={() => handleInputButtonClick(text)}
           key={text}
         >

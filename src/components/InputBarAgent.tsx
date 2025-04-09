@@ -201,17 +201,27 @@ export function InputBarAgent({
       {connectStatus === CONNECT_CONNECTED && (
         <div>
           {!agentRunning && (
-            <RecommandText
-              handleInputButtonClick={sendText}
-              messages={[
-                'what is the weather in tokyo?',
-                'what is life',
-                'who was the first president of the united states?',
-                'What is the age of the user?',
-                'Check all my devices',
-                'open camera',
-              ]}
-            />
+            <>
+              <RecommandText
+                handleInputButtonClick={sendText}
+                messages={[
+                  'what is the weather in tokyo?',
+                  'what is life',
+                  'who was the first president of the united states?',
+                  'What is the age of the user?',
+                  'Check all my devices',
+                  'open camera',
+                ]}
+              />
+              <RecommandText
+                handleInputButtonClick={sendText}
+                messages={[
+                  'use browser to search for azure news and summarize the result',
+                  'get_secret_word from mcp',
+                  'talk about stock market',
+                ]}
+              />
+            </>
           )}
 
           <div className="text-input">
