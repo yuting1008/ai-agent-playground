@@ -43,7 +43,7 @@ export async function createAgentSession() {
       },
     );
 
-    return response.data?.id || '';
+    return response.data?.data?.id || '';
   } catch (error) {
     if (axios.isAxiosError(error)) {
       console.error('Axios error:', error.response?.data || error.message);
