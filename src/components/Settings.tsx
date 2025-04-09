@@ -7,6 +7,7 @@ import { GRAPHRAG_ABOUT } from '../tools/azure_docs';
 import {
   ALLOW_FUNCTIONS_CHARACTERS,
   ALLOW_PROMPT_CHARACTERS,
+  ALLOW_URL_CHARACTERS,
   ASSISTANT_TYPE_AGENT_AI,
   ASSISTANT_TYPE_ASSISTANT,
   ASSISTANT_TYPE_DEEPSEEK,
@@ -1074,12 +1075,26 @@ const SettingsComponent: React.FC<{
 
     return (
       <div>
+        <div style={styles.settings_tip}>
+          You can get your own key from
+          <a
+            href="https://agent.azuretsp.com"
+            target="_blank"
+            style={{ ...styles.link, marginLeft: '8px' }}
+          >
+            https://agent.azuretsp.com
+          </a>
+        </div>
+
         <div style={styles.settingLabel}>Agent API URL</div>
         <input
           type="text"
           style={styles.settingInput}
-          value={profiles.currentProfile?.agentApiUrl || ''}
-          placeholder={''}
+          value={
+            profiles.currentProfile?.agentApiUrl ||
+            'https://agent-api.azuretsp.com'
+          }
+          placeholder={'https://agent-api.azuretsp.com'}
           onChange={(e) => {
             profiles.currentProfile!.agentApiUrl = e.target.value;
             profiles.save();
@@ -1112,7 +1127,7 @@ const SettingsComponent: React.FC<{
 
         <div style={styles.settingLabel}>
           Remaining Characters:{' '}
-          {ALLOW_FUNCTIONS_CHARACTERS -
+          {ALLOW_URL_CHARACTERS -
             (profiles.currentProfile?.agentApiUrl?.length || 0)}
         </div>
       </div>
