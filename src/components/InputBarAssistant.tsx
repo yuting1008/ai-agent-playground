@@ -195,10 +195,9 @@ export function InputBarAssistant({
           <RecommandText
             handleInputButtonClick={sendText}
             messages={[
+              'open camera',
               'what is the weather in tokyo?',
-              'what is life',
-              'who was the first president of the united states?',
-              'What is the age of the user?',
+              'open avatar',
             ]}
           />
           <div className="text-input">
