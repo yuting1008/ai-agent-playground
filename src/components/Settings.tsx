@@ -1086,7 +1086,7 @@ const SettingsComponent: React.FC<{
           </a>
         </div>
 
-        <div style={styles.settingLabel}>Agent API URL</div>
+        <div style={styles.settingLabel}>API URL</div>
         <input
           type="text"
           style={styles.settingInput}
@@ -1124,12 +1124,6 @@ const SettingsComponent: React.FC<{
             setProfiles(new Profiles());
           }}
         />
-
-        <div style={styles.settingLabel}>
-          Remaining Characters:{' '}
-          {ALLOW_URL_CHARACTERS -
-            (profiles.currentProfile?.agentApiUrl?.length || 0)}
-        </div>
       </div>
     );
   };

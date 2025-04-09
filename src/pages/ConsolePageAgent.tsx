@@ -39,7 +39,7 @@ import { AgentMessageType } from '../types/AgentMessageType';
 import { LlmMessage } from '../components/AgentMessage';
 import axios from 'axios';
 
-const REFRESH_MESSAGE_INTERVAL = 100;
+const REFRESH_MESSAGE_INTERVAL = 200;
 
 export function ConsolePageAgent() {
   const {
