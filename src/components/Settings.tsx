@@ -34,7 +34,7 @@ const COMPLETION = 'Completion';
 const DEEPSEEK = 'DeepSeek';
 const TOKENS = 'Third API';
 const FUNCTIONS = 'Functions';
-const AGENT_AI = 'Agent API';
+const AGENT_AI = 'Agent';
 const PROMPT = 'Prompt';
 const BING = 'Bing';
 
@@ -104,7 +104,7 @@ const SettingsComponent: React.FC<{
       padding: '20px',
       borderRadius: '8px',
       color: isNightMode ? '#dddddf' : '#3e3e47',
-      width: '870px',
+      width: '850px',
       maxHeight: '90%',
       overflowY: 'auto',
     } as React.CSSProperties,
@@ -1405,6 +1405,15 @@ const SettingsComponent: React.FC<{
                 <button
                   style={{
                     ...styles.settingsTabButton,
+                    ...(activeTab === AGENT_AI ? styles.tabActive : {}),
+                  }}
+                  onClick={() => setActiveTab(AGENT_AI)}
+                >
+                  {AGENT_AI}
+                </button>
+                <button
+                  style={{
+                    ...styles.settingsTabButton,
                     ...(activeTab === REAL_TIME_API ? styles.tabActive : {}),
                   }}
                   onClick={() => setActiveTab(REAL_TIME_API)}
@@ -1429,15 +1438,7 @@ const SettingsComponent: React.FC<{
                 >
                   {FUNCTIONS}
                 </button>
-                <button
-                  style={{
-                    ...styles.settingsTabButton,
-                    ...(activeTab === AGENT_AI ? styles.tabActive : {}),
-                  }}
-                  onClick={() => setActiveTab(AGENT_AI)}
-                >
-                  {AGENT_AI}
-                </button>
+
                 <button
                   style={{
                     ...styles.settingsTabButton,
