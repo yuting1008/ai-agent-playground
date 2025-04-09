@@ -49,6 +49,7 @@ const styles = {
     padding: '5px 10px',
     borderRadius: '5px',
     border: 'none',
+    cursor: 'pointer',
   },
   button_reject: {
     backgroundColor: 'red',
@@ -57,6 +58,7 @@ const styles = {
     padding: '5px 10px',
     borderRadius: '5px',
     border: 'none',
+    cursor: 'pointer',
   },
   message_type: {
     fontSize: '12px',
@@ -96,6 +98,7 @@ const AgentApproveMessage = ({ msg, sendMessage }: AgentMessageProps) => {
         {msg?.content?.arguments && (
           <p>Arguments: {JSON.stringify(msg?.content?.arguments)}</p>
         )}
+        <br />
         <button
           style={{
             ...styles.button_approve,
@@ -244,7 +247,12 @@ const AgentAssistantMessage = ({ msg, sendMessage }: AgentMessageProps) => {
   if (msg?.content?.type === 'function_call_output') {
     let output = msg?.content?.output;
     if (typeof output === 'string') {
-      output = JSON.parse(output);
+      try {
+        // output : "{'assistant': 'MCP Agent'}"
+        output = JSON.parse(output);
+      } catch (error) {
+        console.info('AgentAssistantMessage error', output);
+      }
     }
     const progress = output?.progress;
     if (progress) {
@@ -286,12 +294,16 @@ const AgentCodeMessage = ({ msg }: AgentMessageProps) => {
   );
 };
 
-export const AgentLoadingMessage = () => {
+export const AgentLoadingMessage = ({
+  streamBuffer,
+}: {
+  streamBuffer: string;
+}) => {
   return (
     <div className={'conversation-item assistant'}>
       <div className={`speaker assistant`}></div>
       <div className={`speaker-content assistant`}>
-        <MessageLoading messageId="msg_loading" />
+        <MessageLoading messageId="msg_loading" text={streamBuffer} />
       </div>
     </div>
   );

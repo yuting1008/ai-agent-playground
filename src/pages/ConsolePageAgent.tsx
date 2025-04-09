@@ -60,6 +60,8 @@ export function ConsolePageAgent() {
   const [sessionId, setSessionId] = useState<string>('');
   const sessionIdRef = useRef<string>(sessionId);
 
+  const [streamBuffer, setStreamBuffer] = useState<string>('');
+
   const ws = useRef<WebSocket | null>(null);
 
   useEffect(() => {
@@ -75,7 +77,15 @@ export function ConsolePageAgent() {
         ws.current = new WebSocket(wsUrl);
 
         ws.current.onmessage = (event) => {
-          const messages: AgentMessageType[] = JSON.parse(event.data);
+          const messages: AgentMessageType[] | any = JSON.parse(event.data);
+
+          if (!Array.isArray(messages)) {
+            setStreamBuffer((prev) => {
+              return `${prev}${messages?.delta}`;
+            });
+            return;
+          }
+
           console.log('messages', messages);
 
           setAgentMessages((prevMessages: AgentMessageType[]) => {
@@ -204,6 +214,8 @@ export function ConsolePageAgent() {
 
   const sendMessage = async (message: any) => {
     setAgentRunning(true);
+    setStreamBuffer('');
+
     if (!sessionIdRef.current) {
       console.error('Session not found');
       return;
@@ -249,6 +261,7 @@ export function ConsolePageAgent() {
 
             <AgentMessages
               sendMessage={sendMessage}
+              streamBuffer={streamBuffer}
               connectStatus={connectStatus}
               messages={agentMessages}
             />
