@@ -13,9 +13,11 @@ import { AgentMessageType } from '../types/AgentMessageType';
 export default function AgentMessages({
   connectStatus,
   messages: messages,
+  sendMessage,
 }: {
   connectStatus: string;
   messages: AgentMessageType[];
+  sendMessage: (message_id: string) => Promise<void>;
 }) {
   // automatically scroll to bottom of chat
   const messagesEndAgentRef = useRef<HTMLDivElement | null>(null);
@@ -41,7 +43,7 @@ export default function AgentMessages({
     <>
       <div>
         {messages.map((msg, index) => (
-          <AgentMessage key={index} msg={msg} />
+          <AgentMessage key={index} msg={msg} sendMessage={sendMessage} />
         ))}
 
         {agentMessageNeedWaitClient(messages) && <AgentWaitClientMessage />}

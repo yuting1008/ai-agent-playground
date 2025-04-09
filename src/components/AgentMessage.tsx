@@ -3,7 +3,6 @@ import MessageLoading from './MessageLoading';
 
 import { useContexts } from '../providers/AppProvider';
 import ClickToJson from './ClickToJson';
-import { approveMessage, rejectMessage } from '../lib/agentApi';
 import { AgentMessageType } from '../types/AgentMessageType';
 import Box from '@mui/material/Box';
 import LinearProgress from '@mui/material/LinearProgress';
@@ -24,7 +23,7 @@ type ToolCall = {
 };
 
 export type LlmMessage = {
-  arguments?: object;
+  arguments?: string;
   call_id?: string;
   content?: any | LlmMessageContent[];
   id: string;
@@ -39,6 +38,7 @@ export type LlmMessage = {
 
 type AgentMessageProps = {
   msg: AgentMessageType;
+  sendMessage: (message: any) => Promise<void>;
 };
 
 const styles = {
@@ -82,7 +82,7 @@ const AgentUserMessage = ({ msg }: AgentMessageProps) => {
   );
 };
 
-const AgentApproveMessage = ({ msg }: AgentMessageProps) => {
+const AgentApproveMessage = ({ msg, sendMessage }: AgentMessageProps) => {
   const [approveing, setApproveing] = useState<boolean>(false);
 
   return (
@@ -103,7 +103,10 @@ const AgentApproveMessage = ({ msg }: AgentMessageProps) => {
           }}
           onClick={async () => {
             setApproveing(true);
-            await approveMessage(msg.session_id, msg.id);
+            await sendMessage({
+              type: 'approved',
+              message_id: msg.id,
+            });
             setApproveing(false);
           }}
           disabled={msg?.approve_status !== 0 || approveing}
@@ -117,7 +120,10 @@ const AgentApproveMessage = ({ msg }: AgentMessageProps) => {
           }}
           onClick={async () => {
             setApproveing(true);
-            await rejectMessage(msg.session_id, msg.id);
+            await sendMessage({
+              type: 'rejected',
+              message_id: msg.id,
+            });
             setApproveing(false);
           }}
           disabled={msg?.approve_status !== 0 || approveing}
@@ -183,21 +189,29 @@ const AgentUnknownMessage = ({ msg }: AgentMessageProps) => {
   );
 };
 
-const AgentAssistantProgressMessage = ({ msg }: AgentMessageProps) => {
-  const progress = msg?.content?.output?.progress;
-  return (
-    <div className={'conversation-item assistant'}>
-      <div className={`speaker assistant`}></div>
-      <div className={`speaker-content assistant`}>
-        <div style={styles.message_type}>AgentAssistantProgressMessage</div>
-        <p>Progress: {progress}</p>
-        <Box sx={{ width: '300px', margin: '10px 0px' }}>
-          <LinearProgress variant="buffer" value={progress} valueBuffer={1} />
-        </Box>
-        <ClickToJson msg={msg} />
+const AgentAssistantProgressMessage = ({
+  msg,
+  sendMessage,
+}: AgentMessageProps) => {
+  try {
+    const output = JSON.parse(msg?.content?.output || '{}');
+    const progress = output.progress;
+    return (
+      <div className={'conversation-item assistant'}>
+        <div className={`speaker assistant`}></div>
+        <div className={`speaker-content assistant`}>
+          <div style={styles.message_type}>AgentAssistantProgressMessage</div>
+          <p>Progress: {progress}</p>
+          <Box sx={{ width: '300px', margin: '10px 0px' }}>
+            <LinearProgress variant="buffer" value={progress} valueBuffer={1} />
+          </Box>
+          <ClickToJson msg={msg} />
+        </div>
       </div>
-    </div>
-  );
+    );
+  } catch (error) {
+    return <AgentUnknownMessage msg={msg} sendMessage={sendMessage} />;
+  }
 };
 
 const AgentAssistantErrorMessage = ({ msg }: AgentMessageProps) => {
@@ -216,7 +230,7 @@ const AgentAssistantErrorMessage = ({ msg }: AgentMessageProps) => {
   );
 };
 
-const AgentAssistantMessage = ({ msg }: AgentMessageProps) => {
+const AgentAssistantMessage = ({ msg, sendMessage }: AgentMessageProps) => {
   let text = JSON.stringify(msg, null, 2);
 
   if (Array.isArray(msg?.content?.content)) {
@@ -224,11 +238,20 @@ const AgentAssistantMessage = ({ msg }: AgentMessageProps) => {
   }
 
   if (msg?.need_approve) {
-    return <AgentApproveMessage msg={msg} />;
+    return <AgentApproveMessage msg={msg} sendMessage={sendMessage} />;
   }
 
-  if (msg?.content?.output?.progress) {
-    return <AgentAssistantProgressMessage msg={msg} />;
+  if (msg?.content?.type === 'function_call_output') {
+    let output = msg?.content?.output;
+    if (typeof output === 'string') {
+      output = JSON.parse(output);
+    }
+    const progress = output?.progress;
+    if (progress) {
+      return (
+        <AgentAssistantProgressMessage msg={msg} sendMessage={sendMessage} />
+      );
+    }
   }
 
   return (
@@ -286,30 +309,30 @@ export const AgentWaitClientMessage = () => {
   );
 };
 
-export default function AgentMessage({ msg }: AgentMessageProps) {
+export default function AgentMessage({ msg, sendMessage }: AgentMessageProps) {
   switch (msg.role) {
     case 'user':
-      return <AgentUserMessage msg={msg} />;
+      return <AgentUserMessage msg={msg} sendMessage={sendMessage} />;
     case 'client_tool':
-      return <AgentUserMessage msg={msg} />;
+      return <AgentUserMessage msg={msg} sendMessage={sendMessage} />;
     case 'assistant_error':
-      return <AgentAssistantErrorMessage msg={msg} />;
+      return <AgentAssistantErrorMessage msg={msg} sendMessage={sendMessage} />;
     case 'assistant':
-      return <AgentAssistantMessage msg={msg} />;
+      return <AgentAssistantMessage msg={msg} sendMessage={sendMessage} />;
     case 'code':
-      return <AgentCodeMessage msg={msg} />;
+      return <AgentCodeMessage msg={msg} sendMessage={sendMessage} />;
     default:
-      return <AgentOtherMessage msg={msg} />;
+      return <AgentOtherMessage msg={msg} sendMessage={sendMessage} />;
   }
 }
 
-function AgentOtherMessage({ msg }: AgentMessageProps) {
+function AgentOtherMessage({ msg, sendMessage }: AgentMessageProps) {
   switch (msg.content.type) {
     case 'function_call':
-      return <AgentAssistantOtherMessage msg={msg} />;
+      return <AgentAssistantOtherMessage msg={msg} sendMessage={sendMessage} />;
     case 'function_call_output':
-      return <AgentUserOtherMessage msg={msg} />;
+      return <AgentUserOtherMessage msg={msg} sendMessage={sendMessage} />;
     default:
-      return <AgentUnknownMessage msg={msg} />;
+      return <AgentUnknownMessage msg={msg} sendMessage={sendMessage} />;
   }
 }

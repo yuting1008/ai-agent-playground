@@ -2,6 +2,11 @@ import axios from 'axios';
 
 import { Profiles } from './Profiles';
 
+export type InputMessage = {
+  role: string;
+  content: string;
+};
+
 export async function getAgentSessions() {
   const profiles = new Profiles();
   const agentApiUrl = profiles.currentProfile?.agentApiUrl;
@@ -54,34 +59,6 @@ export async function createAgentSession() {
   }
 }
 
-export async function getAgentMessages(sessionId: string) {
-  const profiles = new Profiles();
-  const agentApiKey = profiles.currentProfile?.agentApiKey;
-  const agentApiUrl = profiles.currentProfile?.agentApiUrl;
-
-  try {
-    const response = await axios.get(
-      `${agentApiUrl}/api/sessions/${sessionId}/messages`,
-      {
-        headers: {
-          accept: 'application/json',
-          'api-key': agentApiKey,
-        },
-        timeout: 10000,
-      },
-    );
-
-    return response.data?.data || [];
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error('Axios error:', error.response?.data || error.message);
-    } else {
-      console.error('Unexpected error:', error);
-    }
-    return [];
-  }
-}
-
 export async function clearAgentMessages(sessionId: string) {
   const profiles = new Profiles();
   const agentApiKey = profiles.currentProfile?.agentApiKey;
@@ -100,46 +77,6 @@ export async function clearAgentMessages(sessionId: string) {
     );
 
     return response.data || [];
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error('Axios error:', error.response?.data || error.message);
-    } else {
-      console.error('Unexpected error:', error);
-    }
-    return [];
-  }
-}
-
-export type InputMessage = {
-  role: string;
-  content: string;
-};
-
-export async function sendAgentMessage(
-  sessionId: string,
-  message: InputMessage,
-) {
-  const profiles = new Profiles();
-  const agentApiKey = profiles.currentProfile?.agentApiKey;
-  const agentApiUrl = profiles.currentProfile?.agentApiUrl;
-
-  try {
-    const response = await axios.post(
-      `${agentApiUrl}/api/sessions/${sessionId}/messages`,
-      {
-        session_id: sessionId,
-        message: message,
-      },
-      {
-        headers: {
-          accept: 'application/json',
-          'api-key': agentApiKey,
-        },
-        timeout: 100000,
-      },
-    );
-
-    return response.data?.message || [];
   } catch (error) {
     if (axios.isAxiosError(error)) {
       console.error('Axios error:', error.response?.data || error.message);
@@ -252,63 +189,5 @@ export async function updateSessionStates(
       console.error('Unexpected error:', error);
     }
     return '';
-  }
-}
-
-export async function approveMessage(sessionId: string, messageId: string) {
-  const profiles = new Profiles();
-  const agentApiKey = profiles.currentProfile?.agentApiKey;
-  const agentApiUrl = profiles.currentProfile?.agentApiUrl;
-
-  try {
-    const response = await axios.put(
-      `${agentApiUrl}/api/sessions/${sessionId}/messages/${messageId}/approve`,
-      {},
-      {
-        headers: {
-          accept: 'application/json',
-          'api-key': agentApiKey,
-        },
-        timeout: 100000,
-      },
-    );
-
-    return response.data || {};
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error('Axios error:', error.response?.data || error.message);
-    } else {
-      console.error('Unexpected error:', error);
-    }
-    return {};
-  }
-}
-
-export async function rejectMessage(sessionId: string, messageId: string) {
-  const profiles = new Profiles();
-  const agentApiKey = profiles.currentProfile?.agentApiKey;
-  const agentApiUrl = profiles.currentProfile?.agentApiUrl;
-
-  try {
-    const response = await axios.put(
-      `${agentApiUrl}/api/sessions/${sessionId}/messages/${messageId}/reject`,
-      {},
-      {
-        headers: {
-          accept: 'application/json',
-          'api-key': agentApiKey,
-        },
-        timeout: 100000,
-      },
-    );
-
-    return response.data || {};
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error('Axios error:', error.response?.data || error.message);
-    } else {
-      console.error('Unexpected error:', error);
-    }
-    return {};
   }
 }

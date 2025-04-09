@@ -22,21 +22,15 @@ import { InputBarAgent } from '../components/InputBarAgent';
 import BuiltFunctionDisable from '../components/BuiltFunctionDisable';
 import { Profiles } from '../lib/Profiles';
 import {
-  getAgentMessages,
   clearAgentMessages,
   getAgentSessions,
   createAgentSession,
-  sendAgentMessage,
   InputMessage,
-  sendAgentClientToolResponseMessage,
-  updateSessionStates,
   getSessionStates,
 } from '../lib/agentApi';
 import { AgentMessageType } from '../types/AgentMessageType';
 import { LlmMessage } from '../components/AgentMessage';
 import axios from 'axios';
-
-const REFRESH_MESSAGE_INTERVAL = 100;
 
 export function ConsolePageAgent() {
   const {
@@ -57,21 +51,6 @@ export function ConsolePageAgent() {
     agentRunningRef.current = agentRunning;
   }, [agentRunning]);
 
-  const [listMessagesIng, setListMessagesIng] = useState(false);
-  const listMessagesIngRef = useRef(false);
-  useEffect(() => {
-    listMessagesIngRef.current = listMessagesIng;
-  }, [listMessagesIng]);
-
-  useEffect(() => {
-    const lastItem: AgentMessageType = agentMessages[agentMessages.length - 1];
-    if (lastItem?.block_session || lastItem?.need_approve) {
-      setAgentRunning(true);
-    } else {
-      setAgentRunning(false);
-    }
-  }, [agentMessages]);
-
   const [sessionStates, setSessionStates] = useState<any>({});
   const sessionStatesRef = useRef<any>({});
   useEffect(() => {
@@ -81,9 +60,52 @@ export function ConsolePageAgent() {
   const [sessionId, setSessionId] = useState<string>('');
   const sessionIdRef = useRef<string>(sessionId);
 
+  const ws = useRef<WebSocket | null>(null);
+
   useEffect(() => {
     sessionIdRef.current = sessionId;
     if (sessionIdRef.current) {
+      if (!ws.current) {
+        const profiles = new Profiles();
+        const url = profiles.currentProfile?.agentApiUrl;
+        const key = profiles.currentProfile?.agentApiKey;
+        const wsEndpoint = url?.replace('http', 'ws').replace('https', 'ws');
+        const wsUrl = `${wsEndpoint}/ws/${sessionId}?api_key=${key}`;
+
+        ws.current = new WebSocket(wsUrl);
+
+        // ws.current.onopen = () => {
+        //   console.log('WebSocket已连接');
+        //   ws.current?.send('Hi FastAPI Server!');
+        // };
+
+        ws.current.onmessage = (event) => {
+          const messages: AgentMessageType[] = JSON.parse(event.data);
+          console.log('messages', messages);
+
+          setAgentMessages((prevMessages: AgentMessageType[]) => {
+            const newMessages = [...prevMessages];
+            for (const message of messages) {
+              const index = newMessages.findIndex((m) => m.id === message.id);
+              if (index !== -1) {
+                newMessages[index] = message;
+              } else {
+                newMessages.push(message);
+              }
+            }
+            return newMessages;
+          });
+        };
+
+        ws.current.onclose = (event) => {
+          console.log('WebSocket已关闭:', event.code, event.reason);
+        };
+
+        ws.current.onerror = (event) => {
+          console.error('WebSocket遇到错误:', event);
+        };
+      }
+
       // get session states
       (async () => {
         const states = await getSessionStates(sessionIdRef.current);
@@ -91,79 +113,6 @@ export function ConsolePageAgent() {
       })();
     }
   }, [sessionId]);
-
-  const listMessages = useCallback(async () => {
-    if (!sessionIdRef.current) {
-      return;
-    }
-    setListMessagesIng(true);
-    const messages: AgentMessageType[] = await getAgentMessages(
-      sessionIdRef.current,
-    );
-    setAgentMessages(messages);
-    setListMessagesIng(false);
-  }, []);
-
-  useEffect(() => {
-    const timer = setInterval(async () => {
-      if (listMessagesIngRef.current) {
-        return;
-      }
-
-      const execTools = async () => {
-        if (agentMessages.length === 0) {
-          return;
-        }
-
-        const lastMessage = agentMessages[agentMessages.length - 1];
-        if (!lastMessage.block_session) {
-          return;
-        }
-
-        const msg: LlmMessage = lastMessage?.content;
-
-        if (msg?.type !== 'function_call') {
-          return;
-        }
-
-        const call_id = msg.call_id || '';
-
-        if (lastMessage?.need_approve && lastMessage?.approve_status === 0) {
-          return;
-        }
-
-        if (lastMessage?.need_approve && lastMessage?.approve_status === 2) {
-          await sendAgentClientToolResponseMessage(
-            sessionIdRef.current,
-            call_id,
-            JSON.stringify({
-              result: false,
-              message: 'Tool Rejected by user',
-            }),
-          );
-          return;
-        }
-
-        if (msg?.name === 'camera_on_or_off') {
-          const res = await camera_on_handler({ ...msg?.arguments });
-          await sendAgentClientToolResponseMessage(
-            sessionIdRef.current,
-            call_id,
-            res,
-          );
-          await updateSessionStates(
-            sessionIdRef.current,
-            'camera_status',
-            msg?.arguments,
-          );
-          console.log(res);
-        }
-      };
-      await execTools();
-      await listMessages();
-    }, REFRESH_MESSAGE_INTERVAL);
-    return () => clearInterval(timer);
-  }, [agentMessages, listMessages, camera_on_handler]);
 
   const setupSession = async () => {
     try {
@@ -207,7 +156,58 @@ export function ConsolePageAgent() {
     setThreadJob(null);
   };
 
-  const sendMessage = async (text: string) => {
+  const sendMessageUser = async (text: string) => {
+    await sendMessage({
+      type: 'user_input',
+      role: 'user',
+      content: text,
+    });
+  };
+
+  const sendMessageToolsResponse = async (call_id: string, output: any) => {
+    await sendMessage({
+      type: 'function_call_output',
+      call_id: call_id,
+      output: JSON.stringify(output),
+    });
+  };
+
+  useEffect(() => {
+    if (agentMessages.length === 0) {
+      return;
+    }
+
+    const lastMessage = agentMessages[agentMessages.length - 1];
+    if (!lastMessage.block_session) {
+      return;
+    }
+
+    const msg: LlmMessage = lastMessage?.content;
+
+    if (msg?.type !== 'function_call') {
+      return;
+    }
+
+    const call_id = msg.call_id || '';
+
+    if (lastMessage?.need_approve && lastMessage?.approve_status === 0) {
+      return;
+    }
+
+    if (msg?.name === 'camera_on_or_off') {
+      const args = JSON.parse(msg?.arguments || '{}');
+      const res = camera_on_handler(args);
+      sendMessageToolsResponse(call_id, res);
+      // await updateSessionStates(
+      //   sessionIdRef.current,
+      //   'camera_status',
+      //   msg?.arguments,
+      // );
+      console.log(res);
+    }
+  }, [agentMessages, camera_on_handler, sendMessageToolsResponse]);
+
+  const sendMessage = async (message: any) => {
     setAgentRunning(true);
     if (!sessionIdRef.current) {
       console.error('Session not found');
@@ -216,11 +216,7 @@ export function ConsolePageAgent() {
 
     // may need to add a check to see if the thread is already created
     try {
-      const message: InputMessage = {
-        role: 'user',
-        content: text,
-      };
-      await sendAgentMessage(sessionIdRef.current, message);
+      ws.current?.send(JSON.stringify(message));
     } catch (error) {
       console.error('sendAssistantMessage error', JSON.stringify(error));
     }
@@ -229,12 +225,11 @@ export function ConsolePageAgent() {
   };
 
   const connectConversation = useCallback(async () => {
+    setAgentRunning(true);
     try {
       setConnectStatus(CONNECT_CONNECTING);
       setConnectMessage('Creating Session...');
       await setupSession();
-      setConnectMessage('Listing Messages...');
-      await listMessages();
       setConnectStatus(CONNECT_CONNECTED);
       setConnectMessage('');
     } catch (error: any) {
@@ -243,6 +238,7 @@ export function ConsolePageAgent() {
       const agentApiUrl = profiles.currentProfile?.agentApiUrl;
       setConnectMessage(`${error.message} with ${agentApiUrl}`);
     }
+    setAgentRunning(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -257,6 +253,7 @@ export function ConsolePageAgent() {
             <ConnectMessage connectMessage={connectMessage} />
 
             <AgentMessages
+              sendMessage={sendMessage}
               connectStatus={connectStatus}
               messages={agentMessages}
             />
@@ -265,7 +262,7 @@ export function ConsolePageAgent() {
           <InputBarAgent
             setMessagesAssistant={setAgentMessages}
             setAgentRunning={setAgentRunning}
-            sendAgentMessage={sendMessage}
+            sendAgentMessage={sendMessageUser}
             stopCurrentStreamJob={stopCurrentStreamJob}
             agentRunning={agentRunning}
             messages={agentMessages}

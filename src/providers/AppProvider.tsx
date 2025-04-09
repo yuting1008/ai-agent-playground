@@ -493,11 +493,7 @@ export const AppProvider: React.FC<{
   };
 
   // -------- functions ---------
-  const camera_on_handler: Function = async ({
-    on,
-  }: {
-    [on: string]: boolean;
-  }) => {
+  const camera_on_handler: Function = ({ on }: { [on: string]: boolean }) => {
     try {
       if (on) {
         if (cameraStatusRef.current === CAMERA_READY) {
