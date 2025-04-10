@@ -80,7 +80,7 @@ const Avatar: React.FC = () => {
 
       const speechSynthesisConfig = SpeechSDK.SpeechConfig.fromEndpoint(
         new URL(profile.getAgentAvatarUrl()),
-        (profile.useAgentProxy ? profile.agentApiKey : profile.cogSvcSubKey) ||
+        (profile.useAgentProxy ? profile.agentApiKey : profile.avatarSubKey) ||
           '',
       );
 
@@ -108,10 +108,10 @@ const Avatar: React.FC = () => {
         responseData = await getAgentAvatarToken();
       } else {
         const response = await fetch(
-          `https://${profile.cogSvcRegion}.tts.speech.microsoft.com/cognitiveservices/avatar/relay/token/v1`,
+          `https://${profile.avatarRegion}.tts.speech.microsoft.com/cognitiveservices/avatar/relay/token/v1`,
           {
             headers: {
-              'Ocp-Apim-Subscription-Key': profile.cogSvcSubKey,
+              'Ocp-Apim-Subscription-Key': profile.avatarSubKey,
             },
           },
         );

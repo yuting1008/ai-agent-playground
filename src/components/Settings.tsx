@@ -701,7 +701,7 @@ const SettingsComponent: React.FC<{
 
     return (
       <div>
-        <div style={styles.settingLabel}>Region</div>
+        <div style={styles.settingLabel}>Speech Region</div>
         <input
           type={'text'}
           style={styles.settingInput}
@@ -715,7 +715,7 @@ const SettingsComponent: React.FC<{
         />
 
         <div style={styles.settingLabel}>
-          Subscription Key
+          Speech Subscription Key
           <span style={styles.settingLabelShow} onClick={toggleVisibility}>
             {isVisible ? <FaRegEye /> : <FaRegEyeSlash />}
           </span>
@@ -727,6 +727,37 @@ const SettingsComponent: React.FC<{
           placeholder={''}
           onChange={(e) => {
             profiles.currentProfile!.cogSvcSubKey = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
+          }}
+        />
+
+        <div style={styles.settingLabel}>Avatar Region</div>
+        <input
+          type={'text'}
+          style={styles.settingInput}
+          value={profiles.currentProfile?.avatarRegion || ''}
+          placeholder={'southeastasia'}
+          onChange={(e) => {
+            profiles.currentProfile!.avatarRegion = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
+          }}
+        />
+
+        <div style={styles.settingLabel}>
+          Avatar Subscription Key
+          <span style={styles.settingLabelShow} onClick={toggleVisibility}>
+            {isVisible ? <FaRegEye /> : <FaRegEyeSlash />}
+          </span>
+        </div>
+        <input
+          type={isVisible ? 'text' : 'password'}
+          style={styles.settingInput}
+          value={profiles.currentProfile?.avatarSubKey || ''}
+          placeholder={''}
+          onChange={(e) => {
+            profiles.currentProfile!.avatarSubKey = e.target.value;
             profiles.save();
             setProfiles(new Profiles());
           }}
