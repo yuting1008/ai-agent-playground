@@ -2,11 +2,6 @@ import axios from 'axios';
 
 import { Profiles } from './Profiles';
 
-export type InputMessage = {
-  role: string;
-  content: string;
-};
-
 export async function getAgentSessions() {
   const profiles = new Profiles();
   const agentApiUrl = profiles.currentProfile?.agentApiUrl;
@@ -28,6 +23,29 @@ export async function getAgentSessions() {
   });
 
   return response.data?.data || [];
+}
+
+export async function getAgentAvatarToken() {
+  const profiles = new Profiles();
+  const agentApiUrl = profiles.currentProfile?.agentApiUrl;
+  if (!agentApiUrl) {
+    throw new Error('agentApiUrl not found');
+  }
+
+  const agentApiKey = profiles.currentProfile?.agentApiKey;
+  if (!agentApiKey) {
+    throw new Error('agentApiKey not found');
+  }
+
+  const response = await axios.get(`${agentApiUrl}/api/avatar/token`, {
+    headers: {
+      accept: 'application/json',
+      'api-key': agentApiKey,
+    },
+    timeout: 10000,
+  });
+
+  return response.data?.data?.token || {};
 }
 
 export async function createAgentSession() {

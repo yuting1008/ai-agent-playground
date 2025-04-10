@@ -69,6 +69,11 @@ const buildInFunctionsOptions = [
   { value: BUILD_IN_FUNCTIONS_DISABLE, label: 'Disable' },
 ];
 
+const useAgentProxyOptions = [
+  { value: 'Enable', label: 'Enable' },
+  { value: 'Disable', label: 'Disable' },
+];
+
 const buildInPromptOptions = [
   { value: BUILD_IN_PROMPT_ENABLE, label: 'Enable' },
   { value: BUILD_IN_PROMPT_DISABLE, label: 'Disable' },
@@ -726,32 +731,6 @@ const SettingsComponent: React.FC<{
             setProfiles(new Profiles());
           }}
         />
-
-        <div style={styles.settingLabel}>Use Speech Proxy (STT)</div>
-        {/* tip */}
-        <div style={styles.settings_tip}>
-          Learn more about
-          <a
-            href="https://github.com/theodoreniu/speech_proxy"
-            target="_blank"
-            style={{ ...styles.link, marginLeft: '8px' }}
-          >
-            Speech Proxy
-          </a>
-        </div>
-        <input
-          type={'text'}
-          style={styles.settingInput}
-          value={profiles.currentProfile?.cogSvcEndpoint || ''}
-          placeholder={
-            'https://xxx.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1'
-          }
-          onChange={(e) => {
-            profiles.currentProfile!.cogSvcEndpoint = e.target.value;
-            profiles.save();
-            setProfiles(new Profiles());
-          }}
-        />
       </div>
     );
   };
@@ -1117,6 +1096,21 @@ const SettingsComponent: React.FC<{
           placeholder={''}
           onChange={(e) => {
             profiles.currentProfile!.agentApiKey = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
+          }}
+        />
+
+        <div style={styles.settingLabel}>
+          Use Agent Proxy for Realtime, Speech, Avatar
+        </div>
+        <Dropdown
+          options={useAgentProxyOptions}
+          selectedValue={
+            profiles.currentProfile?.useAgentProxy ? 'Enable' : 'Disable'
+          }
+          onChange={(e) => {
+            profiles.currentProfile!.useAgentProxy = e === 'Enable';
             profiles.save();
             setProfiles(new Profiles());
           }}

@@ -32,7 +32,6 @@ class Profile {
   public graphragApiKey: string = '';
   public graphragProjectName: string = '';
   public graphragAbout: string = '';
-  public cogSvcEndpoint: string = '';
   public cogSvcSubKey: string = '';
   public cogSvcRegion: string = 'westus2';
   public bingEndpoint: string = '';
@@ -48,6 +47,7 @@ class Profile {
   public functionsUrl: string = '';
   public agentApiUrl: string = '';
   public agentApiKey: string = '';
+  public useAgentProxy: boolean = false;
   public functions: string = '';
   public feishuHook: string = '';
   public quoteToken: string = '';
@@ -66,13 +66,88 @@ class Profile {
   setProperty<K extends keyof Profile>(key: K, value: Profile[K]) {
     Object.assign(this, { [key]: value });
   }
+
+  getAgentWsUrl(sessionId: string): string {
+    const endpoint = this.agentApiUrl
+      .replace('http', 'ws')
+      .replace('https', 'ws');
+
+    if (!this.agentApiKey) {
+      alert('Agent API Key is not set');
+      return '';
+    }
+
+    return `${endpoint}/ws/agent/${sessionId}?api_key=${this.agentApiKey}`;
+  }
+
+  getAgentRealtimeUrl(): string {
+    if (!this.useAgentProxy) {
+      return this.realtimeEndpoint;
+    }
+
+    const endpoint = this.agentApiUrl
+      .replace('http', 'ws')
+      .replace('https', 'ws');
+
+    if (!this.agentApiKey) {
+      alert('Agent API Key is not set');
+      return '';
+    }
+
+    return `${endpoint}/ws/realtime?api_key=${this.agentApiKey}`;
+  }
+
+  getAgentSseUrl(sessionId: string): string {
+    const endpoint = this.agentApiUrl;
+
+    if (!this.agentApiKey) {
+      alert('Agent API Key is not set');
+      return '';
+    }
+
+    return `${endpoint}/sse/${sessionId}?api_key=${this.agentApiKey}`;
+  }
+
+  getAgentSpeechUrl(): string {
+    if (!this.useAgentProxy) {
+      return `wss://${this.cogSvcRegion}.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1?language=en-US&format=simple&profanity=raw`;
+    }
+
+    const endpoint = this.agentApiUrl
+      .replace('http', 'ws')
+      .replace('https', 'ws');
+
+    if (!this.agentApiKey) {
+      alert('Agent API Key is not set');
+      return '';
+    }
+
+    return `${endpoint}/ws/speech?api_key=${this.agentApiKey}`;
+  }
+
+  getAgentAvatarUrl(): string {
+    if (!this.useAgentProxy) {
+      return `wss://${this.cogSvcRegion}.tts.speech.microsoft.com/cognitiveservices/websocket/v1?enableTalkingAvatar=true`;
+    }
+
+    const endpoint = this.agentApiUrl
+      .replace('http', 'ws')
+      .replace('https', 'ws');
+
+    if (!this.agentApiKey) {
+      alert('Agent API Key is not set');
+      return '';
+    }
+
+    return `${endpoint}/ws/avatar?api_key=${this.agentApiKey}`;
+  }
 }
 
 // Profiles is the list of profiles
 export class Profiles {
   public currentProfileId: string;
   public profiles: Profile[] = [];
-  public currentProfile: Profile | undefined;
+  public currentProfile: Profile;
 
   constructor() {
     this.init();
@@ -91,7 +166,7 @@ export class Profiles {
       this.save();
     }
 
-    this.currentProfile = this.find(this.currentProfileId);
+    this.currentProfile = this.find(this.currentProfileId) || this.profiles[0];
 
     if (!this.currentProfile?.agentApiUrl) {
       this.currentProfile!.agentApiUrl = DEFAULT_AGENT_API_URL;
@@ -175,7 +250,6 @@ export class Profiles {
 
     p.cogSvcRegion = localStorage.getItem('cogSvcRegion') || '';
     p.cogSvcSubKey = localStorage.getItem('cogSvcSubKey') || '';
-    p.cogSvcEndpoint = localStorage.getItem('cogSvcEndpoint') || '';
 
     p.dallTargetUri = localStorage.getItem('dallTargetUri') || '';
     p.dallApiKey = localStorage.getItem('dallApiKey') || '';
@@ -220,7 +294,6 @@ export class Profiles {
     localStorage.removeItem('deepSeekApiKey');
     localStorage.removeItem('cogSvcRegion');
     localStorage.removeItem('cogSvcSubKey');
-    localStorage.removeItem('cogSvcEndpoint');
     localStorage.removeItem('dallTargetUri');
     localStorage.removeItem('dallApiKey');
     localStorage.removeItem('graphragUrl');

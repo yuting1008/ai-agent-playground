@@ -60,15 +60,12 @@ export function ConsolePageRealtime() {
   const profiles = new Profiles();
   const profile = profiles.currentProfile;
 
-  const endpoint = profile?.realtimeEndpoint || '';
-  const key = profile?.realtimeKey || '';
-
   const [callStates, setCallStates] = useState<Record<string, any>>({});
 
   const realtimeClientRef = useRef<RealtimeClient>(
     new RealtimeClient({
-      apiKey: key,
-      url: endpoint,
+      apiKey: profile.realtimeKey,
+      url: profile.getAgentRealtimeUrl(),
       debug: false,
       dangerouslyAllowAPIKeyInBrowser: true,
     }),
@@ -318,15 +315,9 @@ export function ConsolePageRealtime() {
    * WavRecorder tasK speech input, WavStreamPlayer output, client is API client
    */
   const connectConversation = useCallback(async () => {
-    if (!endpoint) {
+    if (!profile.getAgentRealtimeUrl()) {
       setConnectStatus(CONNECT_DISCONNECTED);
       setConnectMessage('Please set your Target URI.');
-      return;
-    }
-
-    if (!key) {
-      setConnectStatus(CONNECT_DISCONNECTED);
-      setConnectMessage('Please set your Key.');
       return;
     }
 
@@ -343,7 +334,7 @@ export function ConsolePageRealtime() {
       `;
       setConnectStatus(CONNECT_DISCONNECTED);
       setConnectMessage(tip);
-      alert(`${tip}\n${e}\n\nKey is "${key}"`);
+      alert(`${tip}\n${e}`);
       resetApp();
       return;
     }

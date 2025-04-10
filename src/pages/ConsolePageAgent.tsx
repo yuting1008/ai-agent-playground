@@ -25,7 +25,6 @@ import {
   clearAgentMessages,
   getAgentSessions,
   createAgentSession,
-  InputMessage,
   getSessionStates,
 } from '../lib/agentApi';
 import { AgentMessageType } from '../types/AgentMessageType';
@@ -68,13 +67,14 @@ export function ConsolePageAgent() {
     sessionIdRef.current = sessionId;
     if (sessionIdRef.current) {
       if (!ws.current) {
-        const profiles = new Profiles();
-        const url = profiles.currentProfile?.agentApiUrl;
-        const key = profiles.currentProfile?.agentApiKey;
-        const wsEndpoint = url?.replace('http', 'ws').replace('https', 'ws');
-        const wsUrl = `${wsEndpoint}/ws/${sessionId}?api_key=${key}`;
+        const profile = new Profiles().currentProfile;
 
-        ws.current = new WebSocket(wsUrl);
+        const sse = new EventSource(profile.getAgentSseUrl(sessionId));
+        sse.onmessage = (ev) => {
+          console.log(ev.data);
+        };
+
+        ws.current = new WebSocket(profile.getAgentWsUrl(sessionId));
 
         ws.current.onmessage = (event) => {
           const messages: AgentMessageType[] | any = JSON.parse(event.data);
@@ -169,14 +169,6 @@ export function ConsolePageAgent() {
     });
   };
 
-  const sendMessageToolsResponse = async (call_id: string, output: any) => {
-    await sendMessage({
-      type: 'function_call_output',
-      call_id: call_id,
-      output: JSON.stringify(output),
-    });
-  };
-
   useEffect(() => {
     if (agentMessages.length === 0) {
       return;
@@ -195,22 +187,32 @@ export function ConsolePageAgent() {
 
     const call_id = msg.call_id || '';
 
-    if (lastMessage?.need_approve && lastMessage?.approve_status === 0) {
+    if (
+      lastMessage?.need_approve &&
+      (lastMessage?.approve_status === 0 || lastMessage?.approve_status === 2)
+    ) {
       return;
     }
 
     if (msg?.name === 'camera_on_or_off') {
       const args = JSON.parse(msg?.arguments || '{}');
       const res = camera_on_handler(args);
-      sendMessageToolsResponse(call_id, res);
+
+      sendMessage({
+        type: 'function_call_output',
+        call_id: call_id,
+        output: JSON.stringify(res),
+      });
+
       // await updateSessionStates(
       //   sessionIdRef.current,
       //   'camera_status',
       //   msg?.arguments,
       // );
+
       console.log(res);
     }
-  }, [agentMessages, camera_on_handler, sendMessageToolsResponse]);
+  }, [agentMessages, camera_on_handler]);
 
   const sendMessage = async (message: any) => {
     setAgentRunning(true);

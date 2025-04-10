@@ -646,16 +646,6 @@ export const AppProvider: React.FC<{
     [key: string]: boolean;
   }) => {
     if (on) {
-      if (
-        !profiles.currentProfile?.cogSvcSubKey ||
-        !profiles.currentProfile?.cogSvcRegion
-      ) {
-        return {
-          message:
-            'Please set your Cognitive Services subscription key and region.',
-        };
-      }
-
       if (avatarStatusRef.current === AVATAR_READY) {
         return {
           message: 'The avatar is already on.',

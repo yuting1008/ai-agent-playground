@@ -35,10 +35,6 @@ export function InputBarAgent({
   const profiles = new Profiles();
   const profile = profiles.currentProfile;
 
-  const cogSvcSubKey = profile?.cogSvcSubKey || '';
-  const cogSvcRegion = profile?.cogSvcRegion || 'westus2';
-  const cogSvcEndpoint = profile?.cogSvcEndpoint || '';
-
   const [sttRecognizer, setSttRecognizer] =
     useState<SpeechSDK.SpeechRecognizer | null>(null);
   const [sttRecognizerConnecting, setSttRecognizerConnecting] = useState(false);
@@ -64,12 +60,10 @@ export function InputBarAgent({
       ]);
 
     const speechConfig = SpeechSDK.SpeechConfig.fromEndpoint(
-      new URL(
-        cogSvcEndpoint
-          ? cogSvcEndpoint
-          : `https://${cogSvcRegion}.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1`,
-      ),
-      cogSvcSubKey,
+      new URL(profile.getAgentSpeechUrl()),
+      (profiles.currentProfile.useAgentProxy
+        ? profiles.currentProfile.agentApiKey
+        : profiles.currentProfile.cogSvcSubKey) || '',
     );
 
     speechConfig.outputFormat = SpeechSDK.OutputFormat.Simple;
