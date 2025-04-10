@@ -7,10 +7,8 @@ import './InputBar.scss';
 import { CONNECT_CONNECTED } from '../lib/const';
 import { Profiles } from '../lib/Profiles';
 import { RecommandText } from './RecommandText';
-import { AgentMessageType } from '../types/AgentMessageType';
 
 export function InputBarAgent({
-  setMessagesAssistant,
   setAgentRunning: setAgentRunning,
   sendAgentMessage: sendAgentMessage,
   stopCurrentStreamJob,
@@ -37,10 +35,6 @@ export function InputBarAgent({
   const profiles = new Profiles();
   const profile = profiles.currentProfile;
 
-  const cogSvcSubKey = profile?.cogSvcSubKey || '';
-  const cogSvcRegion = profile?.cogSvcRegion || 'westus2';
-  const cogSvcEndpoint = profile?.cogSvcEndpoint || '';
-
   const [sttRecognizer, setSttRecognizer] =
     useState<SpeechSDK.SpeechRecognizer | null>(null);
   const [sttRecognizerConnecting, setSttRecognizerConnecting] = useState(false);
@@ -66,12 +60,10 @@ export function InputBarAgent({
       ]);
 
     const speechConfig = SpeechSDK.SpeechConfig.fromEndpoint(
-      new URL(
-        cogSvcEndpoint
-          ? cogSvcEndpoint
-          : `https://${cogSvcRegion}.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1`,
-      ),
-      cogSvcSubKey,
+      new URL(profile.getAgentSpeechUrl()),
+      (profiles.currentProfile.useAgentProxy
+        ? profiles.currentProfile.agentApiKey
+        : profiles.currentProfile.cogSvcSubKey) || '',
     );
 
     speechConfig.outputFormat = SpeechSDK.OutputFormat.Simple;
@@ -102,11 +94,7 @@ export function InputBarAgent({
     recognizer.recognized = (s, e) => {
       if (e.result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
         console.log(`Final result: ${e.result.text}`);
-        if (profile?.isAssistant) {
-          (async () => {
-            await stopCurrentStreamJob();
-          })();
-        }
+
         setInputValue(e.result.text);
         setIsRecognizing(false);
         sendText(e.result.text);
@@ -174,23 +162,8 @@ export function InputBarAgent({
     setResponseBuffer('');
 
     resetTokenLatency();
-
     setIsAvatarSpeaking(false);
     setAgentRunning(true);
-
-    const msg: AgentMessageType = {
-      message_index: messages.length + 1,
-      created_at: new Date().toISOString(),
-      content: { role: 'user', content: inputValue },
-      id: '564c191361ce4621ba0d7bb282801e54',
-      block_session: false,
-      status: 0,
-      role: 'user',
-      session_id: '564c191361ce4621ba0d7bb282801e54',
-      user_id: 1,
-    };
-
-    setMessagesAssistant((prevMessages: any) => [...prevMessages, msg]);
     sendAgentMessage(inputValue);
     setInputValue('');
     setAgentRunning(false);

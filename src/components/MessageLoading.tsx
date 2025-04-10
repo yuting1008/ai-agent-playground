@@ -5,10 +5,12 @@ const MessageLoading: React.FC<{
   text?: string;
 }> = ({ messageId, text }) => {
   return (
-    <div className="loading-spinner" key={messageId}>
-      <div className="spinner" key={messageId + 'spinner'}></div>
-      {text && <div className="text">{text}</div>}
-    </div>
+    <>
+      {text && <div>{text}</div>}
+      <div className="loading-spinner" key={messageId}>
+        <div className="spinner" key={messageId + 'spinner'}></div>
+      </div>
+    </>
   );
 };
 

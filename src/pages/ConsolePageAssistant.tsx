@@ -492,6 +492,18 @@ export function ConsolePageAssistant() {
       await createThread();
       setConnectStatus(CONNECT_CONNECTED);
       setConnectMessage('');
+
+      const profile = new Profiles().currentProfile;
+      const sse = new EventSource(profile.getAgentSseUrl('sessionId'));
+      sse.onmessage = (event) => {
+        console.log(event.data);
+      };
+      sse.onerror = (event) => {
+        console.error(event);
+      };
+      sse.onopen = (event) => {
+        console.log('sse open', event);
+      };
     } catch (error: any) {
       setConnectStatus(CONNECT_DISCONNECTED);
       setConnectMessage(error.message);

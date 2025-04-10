@@ -60,15 +60,12 @@ export function ConsolePageRealtime() {
   const profiles = new Profiles();
   const profile = profiles.currentProfile;
 
-  const endpoint = profile?.realtimeEndpoint || '';
-  const key = profile?.realtimeKey || '';
-
   const [callStates, setCallStates] = useState<Record<string, any>>({});
 
   const realtimeClientRef = useRef<RealtimeClient>(
     new RealtimeClient({
-      apiKey: key,
-      url: endpoint,
+      apiKey: profile.realtimeKey,
+      url: profile.getAgentRealtimeUrl(),
       debug: false,
       dangerouslyAllowAPIKeyInBrowser: true,
     }),
@@ -318,15 +315,9 @@ export function ConsolePageRealtime() {
    * WavRecorder tasK speech input, WavStreamPlayer output, client is API client
    */
   const connectConversation = useCallback(async () => {
-    if (!endpoint) {
+    if (!profile.getAgentRealtimeUrl()) {
       setConnectStatus(CONNECT_DISCONNECTED);
       setConnectMessage('Please set your Target URI.');
-      return;
-    }
-
-    if (!key) {
-      setConnectStatus(CONNECT_DISCONNECTED);
-      setConnectMessage('Please set your Key.');
       return;
     }
 
@@ -336,6 +327,17 @@ export function ConsolePageRealtime() {
     // Connect to realtime API
     try {
       await realtimeClientRef.current.connect();
+
+      const sse = new EventSource(profile.getAgentSseUrl('sessionId'));
+      sse.onmessage = (event) => {
+        console.log(event.data);
+      };
+      sse.onerror = (event) => {
+        console.error(event);
+      };
+      sse.onopen = (event) => {
+        console.log('sse open', event);
+      };
     } catch (e: any) {
       console.error(e);
       const tip = `链接失败，如果您确定配置信息无误，可能是由于网络问题。建议使用 VPN 及最新版 Edge 浏览器。
@@ -343,7 +345,7 @@ export function ConsolePageRealtime() {
       `;
       setConnectStatus(CONNECT_DISCONNECTED);
       setConnectMessage(tip);
-      alert(`${tip}\n${e}\n\nKey is "${key}"`);
+      alert(`${tip}\n${e}`);
       resetApp();
       return;
     }

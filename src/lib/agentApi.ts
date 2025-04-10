@@ -25,6 +25,29 @@ export async function getAgentSessions() {
   return response.data?.data || [];
 }
 
+export async function getAgentAvatarToken() {
+  const profiles = new Profiles();
+  const agentApiUrl = profiles.currentProfile?.agentApiUrl;
+  if (!agentApiUrl) {
+    throw new Error('agentApiUrl not found');
+  }
+
+  const agentApiKey = profiles.currentProfile?.agentApiKey;
+  if (!agentApiKey) {
+    throw new Error('agentApiKey not found');
+  }
+
+  const response = await axios.get(`${agentApiUrl}/api/avatar/token`, {
+    headers: {
+      accept: 'application/json',
+      'api-key': agentApiKey,
+    },
+    timeout: 10000,
+  });
+
+  return response.data?.data?.token || {};
+}
+
 export async function createAgentSession() {
   const profiles = new Profiles();
   const agentApiKey = profiles.currentProfile?.agentApiKey;
@@ -54,34 +77,6 @@ export async function createAgentSession() {
   }
 }
 
-export async function getAgentMessages(sessionId: string) {
-  const profiles = new Profiles();
-  const agentApiKey = profiles.currentProfile?.agentApiKey;
-  const agentApiUrl = profiles.currentProfile?.agentApiUrl;
-
-  try {
-    const response = await axios.get(
-      `${agentApiUrl}/api/sessions/${sessionId}/messages`,
-      {
-        headers: {
-          accept: 'application/json',
-          'api-key': agentApiKey,
-        },
-        timeout: 10000,
-      },
-    );
-
-    return response.data?.data || [];
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error('Axios error:', error.response?.data || error.message);
-    } else {
-      console.error('Unexpected error:', error);
-    }
-    return [];
-  }
-}
-
 export async function clearAgentMessages(sessionId: string) {
   const profiles = new Profiles();
   const agentApiKey = profiles.currentProfile?.agentApiKey;
@@ -100,46 +95,6 @@ export async function clearAgentMessages(sessionId: string) {
     );
 
     return response.data || [];
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error('Axios error:', error.response?.data || error.message);
-    } else {
-      console.error('Unexpected error:', error);
-    }
-    return [];
-  }
-}
-
-export type InputMessage = {
-  role: string;
-  content: string;
-};
-
-export async function sendAgentMessage(
-  sessionId: string,
-  message: InputMessage,
-) {
-  const profiles = new Profiles();
-  const agentApiKey = profiles.currentProfile?.agentApiKey;
-  const agentApiUrl = profiles.currentProfile?.agentApiUrl;
-
-  try {
-    const response = await axios.post(
-      `${agentApiUrl}/api/sessions/${sessionId}/messages`,
-      {
-        session_id: sessionId,
-        message: message,
-      },
-      {
-        headers: {
-          accept: 'application/json',
-          'api-key': agentApiKey,
-        },
-        timeout: 100000,
-      },
-    );
-
-    return response.data?.message || [];
   } catch (error) {
     if (axios.isAxiosError(error)) {
       console.error('Axios error:', error.response?.data || error.message);
@@ -252,63 +207,5 @@ export async function updateSessionStates(
       console.error('Unexpected error:', error);
     }
     return '';
-  }
-}
-
-export async function approveMessage(sessionId: string, messageId: string) {
-  const profiles = new Profiles();
-  const agentApiKey = profiles.currentProfile?.agentApiKey;
-  const agentApiUrl = profiles.currentProfile?.agentApiUrl;
-
-  try {
-    const response = await axios.put(
-      `${agentApiUrl}/api/sessions/${sessionId}/messages/${messageId}/approve`,
-      {},
-      {
-        headers: {
-          accept: 'application/json',
-          'api-key': agentApiKey,
-        },
-        timeout: 100000,
-      },
-    );
-
-    return response.data || {};
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error('Axios error:', error.response?.data || error.message);
-    } else {
-      console.error('Unexpected error:', error);
-    }
-    return {};
-  }
-}
-
-export async function rejectMessage(sessionId: string, messageId: string) {
-  const profiles = new Profiles();
-  const agentApiKey = profiles.currentProfile?.agentApiKey;
-  const agentApiUrl = profiles.currentProfile?.agentApiUrl;
-
-  try {
-    const response = await axios.put(
-      `${agentApiUrl}/api/sessions/${sessionId}/messages/${messageId}/reject`,
-      {},
-      {
-        headers: {
-          accept: 'application/json',
-          'api-key': agentApiKey,
-        },
-        timeout: 100000,
-      },
-    );
-
-    return response.data || {};
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error('Axios error:', error.response?.data || error.message);
-    } else {
-      console.error('Unexpected error:', error);
-    }
-    return {};
   }
 }
