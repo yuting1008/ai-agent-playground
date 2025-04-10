@@ -69,6 +69,11 @@ const buildInFunctionsOptions = [
   { value: BUILD_IN_FUNCTIONS_DISABLE, label: 'Disable' },
 ];
 
+const useAgentProxyOptions = [
+  { value: 'Enable', label: 'Enable' },
+  { value: 'Disable', label: 'Disable' },
+];
+
 const buildInPromptOptions = [
   { value: BUILD_IN_PROMPT_ENABLE, label: 'Enable' },
   { value: BUILD_IN_PROMPT_DISABLE, label: 'Disable' },
@@ -696,7 +701,7 @@ const SettingsComponent: React.FC<{
 
     return (
       <div>
-        <div style={styles.settingLabel}>Region</div>
+        <div style={styles.settingLabel}>Speech Region</div>
         <input
           type={'text'}
           style={styles.settingInput}
@@ -710,7 +715,7 @@ const SettingsComponent: React.FC<{
         />
 
         <div style={styles.settingLabel}>
-          Subscription Key
+          Speech Subscription Key
           <span style={styles.settingLabelShow} onClick={toggleVisibility}>
             {isVisible ? <FaRegEye /> : <FaRegEyeSlash />}
           </span>
@@ -727,27 +732,32 @@ const SettingsComponent: React.FC<{
           }}
         />
 
-        <div style={styles.settingLabel}>Use Speech Proxy (STT)</div>
-        {/* tip */}
-        <div style={styles.settings_tip}>
-          Learn more about
-          <a
-            href="https://github.com/theodoreniu/speech_proxy"
-            target="_blank"
-            style={{ ...styles.link, marginLeft: '8px' }}
-          >
-            Speech Proxy
-          </a>
-        </div>
+        <div style={styles.settingLabel}>Avatar Region</div>
         <input
           type={'text'}
           style={styles.settingInput}
-          value={profiles.currentProfile?.cogSvcEndpoint || ''}
-          placeholder={
-            'https://xxx.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1'
-          }
+          value={profiles.currentProfile?.avatarRegion || ''}
+          placeholder={'southeastasia'}
           onChange={(e) => {
-            profiles.currentProfile!.cogSvcEndpoint = e.target.value;
+            profiles.currentProfile!.avatarRegion = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
+          }}
+        />
+
+        <div style={styles.settingLabel}>
+          Avatar Subscription Key
+          <span style={styles.settingLabelShow} onClick={toggleVisibility}>
+            {isVisible ? <FaRegEye /> : <FaRegEyeSlash />}
+          </span>
+        </div>
+        <input
+          type={isVisible ? 'text' : 'password'}
+          style={styles.settingInput}
+          value={profiles.currentProfile?.avatarSubKey || ''}
+          placeholder={''}
+          onChange={(e) => {
+            profiles.currentProfile!.avatarSubKey = e.target.value;
             profiles.save();
             setProfiles(new Profiles());
           }}
@@ -1117,6 +1127,21 @@ const SettingsComponent: React.FC<{
           placeholder={''}
           onChange={(e) => {
             profiles.currentProfile!.agentApiKey = e.target.value;
+            profiles.save();
+            setProfiles(new Profiles());
+          }}
+        />
+
+        <div style={styles.settingLabel}>
+          Use Agent Proxy for Realtime, Speech, Avatar
+        </div>
+        <Dropdown
+          options={useAgentProxyOptions}
+          selectedValue={
+            profiles.currentProfile?.useAgentProxy ? 'Enable' : 'Disable'
+          }
+          onChange={(e) => {
+            profiles.currentProfile!.useAgentProxy = e === 'Enable';
             profiles.save();
             setProfiles(new Profiles());
           }}

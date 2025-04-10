@@ -17,46 +17,48 @@ import { supportedAssistantTypes } from '../components/Settings';
 class Profile {
   public id: string = '';
   public name: string = '';
-  public assistantType: string = '';
-  public temperature: number = 0.5;
-  public prompt: string = '';
-  public buildInPrompt: boolean = false;
-  public buildInFunctions: boolean = false;
-  public realtimeEndpoint: string = '';
-  public realtimeKey: string = '';
-  public ttsTargetUri: string = '';
-  public ttsApiKey: string = '';
-  public dallTargetUri: string = '';
-  public dallApiKey: string = '';
-  public graphragUrl: string = '';
-  public graphragApiKey: string = '';
-  public graphragProjectName: string = '';
-  public graphragAbout: string = '';
-  public cogSvcEndpoint: string = '';
-  public cogSvcSubKey: string = '';
-  public cogSvcRegion: string = 'westus2';
-  public bingEndpoint: string = '';
-  public bingLocation: string = '';
-  public bingApiKey: string = '';
-  public completionTargetUri: string = '';
-  public completionApiKey: string = '';
-  public deepSeekFunctionCalling: string = DEEPSEEK_FUNCTION_CALL_DISABLE;
-  public deepSeekDeploymentName: string = 'DeepSeek-R1';
-  public deepSeekTargetUri: string = '';
-  public deepSeekApiKey: string = '';
-  public promptUrl: string = '';
-  public functionsUrl: string = '';
-  public agentApiUrl: string = '';
   public agentApiKey: string = '';
-  public functions: string = '';
-  public feishuHook: string = '';
-  public quoteToken: string = '';
-  public newsKey: string = '';
-  public mxnzpAppId: string = '';
-  public mxnzpAppSecret: string = '';
+  public agentApiUrl: string = '';
   public appIconDark: string = '';
   public appIconLight: string = '';
+  public assistantType: string = '';
+  public bingApiKey: string = '';
+  public bingEndpoint: string = '';
+  public bingLocation: string = '';
+  public buildInFunctions: boolean = false;
+  public buildInPrompt: boolean = false;
+  public cogSvcRegion: string = 'southeastasia';
+  public cogSvcSubKey: string = '';
+  public avatarRegion: string = 'southeastasia';
+  public avatarSubKey: string = '';
+  public completionApiKey: string = '';
+  public completionTargetUri: string = '';
+  public dallApiKey: string = '';
+  public dallTargetUri: string = '';
+  public deepSeekApiKey: string = '';
+  public deepSeekDeploymentName: string = 'DeepSeek-R1';
+  public deepSeekFunctionCalling: string = DEEPSEEK_FUNCTION_CALL_DISABLE;
+  public deepSeekTargetUri: string = '';
+  public feishuHook: string = '';
+  public functions: string = '';
+  public functionsUrl: string = '';
+  public graphragAbout: string = '';
+  public graphragApiKey: string = '';
+  public graphragProjectName: string = '';
+  public graphragUrl: string = '';
+  public mxnzpAppId: string = '';
+  public mxnzpAppSecret: string = '';
+  public newsKey: string = '';
+  public prompt: string = '';
+  public promptUrl: string = '';
+  public quoteToken: string = '';
+  public realtimeEndpoint: string = '';
+  public realtimeKey: string = '';
   public supportedAssistantType: string = '';
+  public temperature: number = 0.5;
+  public ttsApiKey: string = '';
+  public ttsTargetUri: string = '';
+  public useAgentProxy: boolean = false;
 
   public isAssistant: boolean = this.assistantType === ASSISTANT_TYPE_ASSISTANT;
   public isRealtime: boolean = this.assistantType === ASSISTANT_TYPE_REALTIME;
@@ -66,13 +68,88 @@ class Profile {
   setProperty<K extends keyof Profile>(key: K, value: Profile[K]) {
     Object.assign(this, { [key]: value });
   }
+
+  getAgentWsUrl(sessionId: string): string {
+    const endpoint = this.agentApiUrl
+      .replace('http', 'ws')
+      .replace('https', 'ws');
+
+    if (!this.agentApiKey) {
+      alert('Agent API Key is not set');
+      return '';
+    }
+
+    return `${endpoint}/ws/agent/${sessionId}?api_key=${this.agentApiKey}`;
+  }
+
+  getAgentRealtimeUrl(): string {
+    if (!this.useAgentProxy) {
+      return this.realtimeEndpoint;
+    }
+
+    const endpoint = this.agentApiUrl
+      .replace('http', 'ws')
+      .replace('https', 'ws');
+
+    if (!this.agentApiKey) {
+      alert('Agent API Key is not set');
+      return '';
+    }
+
+    return `${endpoint}/ws/realtime?api_key=${this.agentApiKey}`;
+  }
+
+  getAgentSseUrl(sessionId: string): string {
+    const endpoint = this.agentApiUrl;
+
+    if (!this.agentApiKey) {
+      alert('Agent API Key is not set');
+      return '';
+    }
+
+    return `${endpoint}/sse/${sessionId}?api_key=${this.agentApiKey}`;
+  }
+
+  getAgentSpeechUrl(): string {
+    if (!this.useAgentProxy) {
+      return `wss://${this.cogSvcRegion}.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1?language=en-US&format=simple&profanity=raw`;
+    }
+
+    const endpoint = this.agentApiUrl
+      .replace('http', 'ws')
+      .replace('https', 'ws');
+
+    if (!this.agentApiKey) {
+      alert('Agent API Key is not set');
+      return '';
+    }
+
+    return `${endpoint}/ws/speech?api_key=${this.agentApiKey}`;
+  }
+
+  getAgentAvatarUrl(): string {
+    if (!this.useAgentProxy) {
+      return `wss://${this.cogSvcRegion}.tts.speech.microsoft.com/cognitiveservices/websocket/v1?enableTalkingAvatar=true`;
+    }
+
+    const endpoint = this.agentApiUrl
+      .replace('http', 'ws')
+      .replace('https', 'ws');
+
+    if (!this.agentApiKey) {
+      alert('Agent API Key is not set');
+      return '';
+    }
+
+    return `${endpoint}/ws/avatar?api_key=${this.agentApiKey}`;
+  }
 }
 
 // Profiles is the list of profiles
 export class Profiles {
   public currentProfileId: string;
   public profiles: Profile[] = [];
-  public currentProfile: Profile | undefined;
+  public currentProfile: Profile;
 
   constructor() {
     this.init();
@@ -91,7 +168,7 @@ export class Profiles {
       this.save();
     }
 
-    this.currentProfile = this.find(this.currentProfileId);
+    this.currentProfile = this.find(this.currentProfileId) || this.profiles[0];
 
     if (!this.currentProfile?.agentApiUrl) {
       this.currentProfile!.agentApiUrl = DEFAULT_AGENT_API_URL;
@@ -175,7 +252,6 @@ export class Profiles {
 
     p.cogSvcRegion = localStorage.getItem('cogSvcRegion') || '';
     p.cogSvcSubKey = localStorage.getItem('cogSvcSubKey') || '';
-    p.cogSvcEndpoint = localStorage.getItem('cogSvcEndpoint') || '';
 
     p.dallTargetUri = localStorage.getItem('dallTargetUri') || '';
     p.dallApiKey = localStorage.getItem('dallApiKey') || '';
@@ -220,7 +296,6 @@ export class Profiles {
     localStorage.removeItem('deepSeekApiKey');
     localStorage.removeItem('cogSvcRegion');
     localStorage.removeItem('cogSvcSubKey');
-    localStorage.removeItem('cogSvcEndpoint');
     localStorage.removeItem('dallTargetUri');
     localStorage.removeItem('dallApiKey');
     localStorage.removeItem('graphragUrl');

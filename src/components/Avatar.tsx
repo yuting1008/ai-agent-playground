@@ -5,6 +5,7 @@ import { htmlEncodeAvatar } from '../lib/helper';
 import { AVATAR_OFF, AVATAR_READY, AVATAR_STARTING } from '../lib/const';
 import { componentLoadingStyles } from '../styles/componentLoadingStyles';
 import { Profiles } from '../lib/Profiles';
+import { getAgentAvatarToken } from '../lib/agentApi';
 
 const Avatar: React.FC = () => {
   const {
@@ -26,7 +27,7 @@ const Avatar: React.FC = () => {
   const avatarVideoRef = useRef<HTMLVideoElement>(null);
   const avatarAudioRef = useRef<HTMLAudioElement>(null);
   const componentLoading = componentLoadingStyles({ isNightMode });
-  const profiles = new Profiles();
+  const profile = new Profiles().currentProfile;
 
   useEffect(() => {
     if (avatarStatus === AVATAR_STARTING) {
@@ -74,37 +75,14 @@ const Avatar: React.FC = () => {
 
   const startAvatarSession = useCallback(async () => {
     try {
-      const privateEndpoint = profiles.currentProfile?.cogSvcEndpoint || '';
-      const cogSvcSubKey = profiles.currentProfile?.cogSvcSubKey || '';
-      const cogSvcRegion = profiles.currentProfile?.cogSvcRegion || 'westus2';
-
-      if (!cogSvcSubKey || !cogSvcRegion) {
-        alert(
-          'Please set your Cognitive Services subscription key, region, and private endpoint.',
-        );
-        setAvatarStatus(AVATAR_OFF);
-        return;
-      }
-
       setAvatarStatus(AVATAR_STARTING);
       console.log('starting avatar session...');
 
-      let speechSynthesisConfig;
-      if (privateEndpoint) {
-        console.log(`using private endpoint: ${privateEndpoint}`);
-        speechSynthesisConfig = SpeechSDK.SpeechConfig.fromEndpoint(
-          new URL(
-            `wss://${privateEndpoint}/tts/cognitiveservices/websocket/v1?enableTalkingAvatar=true`,
-          ),
-          cogSvcSubKey,
-        );
-      } else {
-        speechSynthesisConfig = SpeechSDK.SpeechConfig.fromSubscription(
-          cogSvcSubKey,
-          cogSvcRegion,
-        );
-        console.log(`using public endpoint: ${cogSvcRegion}`);
-      }
+      const speechSynthesisConfig = SpeechSDK.SpeechConfig.fromEndpoint(
+        new URL(profile.getAgentAvatarUrl()),
+        (profile.useAgentProxy ? profile.agentApiKey : profile.avatarSubKey) ||
+          '',
+      );
 
       const videoFormat = new SpeechSDK.AvatarVideoFormat();
       videoFormat.setCropRange(
@@ -124,20 +102,23 @@ const Avatar: React.FC = () => {
         'https://playground.azuretsp.com/images/avatar_bg.jpg',
       );
 
-      // Get token
-      const response = await fetch(
-        privateEndpoint
-          ? `https://${privateEndpoint}/tts/cognitiveservices/avatar/relay/token/v1`
-          : `https://${cogSvcRegion}.tts.speech.microsoft.com/cognitiveservices/avatar/relay/token/v1`,
-        {
-          headers: {
-            'Ocp-Apim-Subscription-Key': cogSvcSubKey,
-          },
-        },
-      );
+      let responseData = null;
 
-      const responseData = await response.json();
-      console.log('responseData: ' + JSON.stringify(responseData));
+      if (profile.useAgentProxy) {
+        responseData = await getAgentAvatarToken();
+      } else {
+        const response = await fetch(
+          `https://${profile.avatarRegion}.tts.speech.microsoft.com/cognitiveservices/avatar/relay/token/v1`,
+          {
+            headers: {
+              'Ocp-Apim-Subscription-Key': profile.avatarSubKey,
+            },
+          },
+        );
+        responseData = await response.json();
+      }
+
+      console.log(responseData);
 
       avatarSynthesizerRef.current = new SpeechSDK.AvatarSynthesizer(
         speechSynthesisConfig,
@@ -297,7 +278,7 @@ const Avatar: React.FC = () => {
     }
   };
 
-  return profiles.currentProfile?.buildInFunctions ? (
+  return profile?.buildInFunctions ? (
     <div className="content-actions container_bg remoteVideo">
       {avatarStatus === AVATAR_STARTING && (
         <div style={componentLoading.camLoading}>
