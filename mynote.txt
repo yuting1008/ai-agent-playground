@@ -1,0 +1,57 @@
+#################################################
+# Local test production build
+#################################################
+
+# Install packages
+npm install -g serve
+
+# Build typeScript for production
+pnpm build
+npm install -g serve
+serve -s build
+
+
+#################################################
+# Docker Build and Check locally
+#################################################
+
+# Build docker image for AI Agent Playground
+docker build -t ai-agent-playground .
+
+# For debug, 啟動容器並進入其檔案系統
+docker run -it --rm ai-agent-playground sh
+
+# run as container in local
+docker run -p 3000:3000 ai-agent-playground
+
+# Open Docker Desktop and check the container is running
+
+
+#################################################
+# Build and Push Image
+#################################################
+
+# Tag and Push image to ACR
+az login
+az acr login --name mtcpaytonacr
+docker tag ai-agent-playground mtcpaytonacr.azurecr.io/ai-agent-playground:latest
+docker push mtcpaytonacr.azurecr.io/ai-agent-playground:latest
+
+#################################################
+# Deploy to Azure Web App for Containers
+#################################################
+
+# Deploy to Azure Web App for Containers
+https://learn.microsoft.com/zh-tw/azure/app-service/tutorial-custom-container?tabs=azure-portal&pivots=container-linux
+
+# Debugging
+- In Container registry
+  - Make sure the image is pushed to ACR
+- In Web App
+  - Deployment Center / Logs
+    For Setup log
+  - Log Stream
+    For console log
+
+# Note
+- Must use production build for deployment

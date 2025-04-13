@@ -1,0 +1,5 @@
+.github
+.vscode
+node_modules
+build
+ai-agent-playground-profiles.json
