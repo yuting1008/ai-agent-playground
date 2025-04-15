@@ -6,7 +6,7 @@ import {
 } from '@theodoreniu/realtime-api-beta/dist/lib/client.js';
 import {
   AVATAR_READY,
-  clientHiEnglish,
+  clientHiChinese,
   CONNECT_CONNECTED,
   CONNECT_CONNECTING,
   CONNECT_DISCONNECTED,
@@ -365,7 +365,7 @@ export function ConsolePageRealtime() {
     realtimeClientRef.current.sendUserMessageContent([
       {
         type: `input_text`,
-        text: clientHiEnglish,
+        text: clientHiChinese,
       },
     ]);
 
