@@ -18,6 +18,9 @@ serve -s build
 # Build docker image for AI Agent Playground
 docker build -t ai-agent-playground .
 
+# Build docker image for AI Agent Playground with squash
+docker build --squash -t ai-agent-playground .
+
 # For debug, 啟動容器並進入其檔案系統
 docker run -it --rm ai-agent-playground sh
 
