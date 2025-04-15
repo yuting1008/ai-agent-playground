@@ -55,7 +55,7 @@ export function InputBarAgent({
 
     const autoDetectSourceLanguageConfig =
       SpeechSDK.AutoDetectSourceLanguageConfig.fromLanguages([
-        'zh-CN',
+        'zh-TW',
         'en-US',
       ]);
 
