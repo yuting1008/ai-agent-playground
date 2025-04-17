@@ -1,6 +1,6 @@
 # AI Agent Playground
 
-AI Agent Playground 是一個多模態、多智能體的 AI 助手，使用者可以透過文字、語音、影像及圖像式介面等多種方式與 AI 互動，讓 AI 能夠在各種情境中準確地完成任務。
+AI Agent Playground 是一個多模態、多代理人的 AI 系統，使用者可以透過文字、語音、影像及圖像式介面等多種方式與 AI 互動，讓 AI 能夠在各種情境中準確地完成任務。
 
 [Online Demo](https://playground.azuretsp.com/)
 
@@ -14,8 +14,10 @@ AI Agent Playground 是一個多模態、多智能體的 AI 助手，使用者�
 1. 模擬正式部署
 1. 在本地環境建置與測試映像
 1. 建立 Azure Container Registry 並推送映像
+1. 授權登錄的受控識別
 1. 建立並部署 Web 應用程式
-1. 如何使用該應用程式
+1. 使用應用程式
+1. 修改應用程式碼並重新部署
 
 # Step 1. 前置條件
 
@@ -24,7 +26,7 @@ AI Agent Playground 是一個多模態、多智能體的 AI 助手，使用者�
 1. [Azure CLI](https://learn.microsoft.com/zh-tw/cli/azure/install-azure-cli)
 
 # Step 2. 建立本地開發環境
-此步驟將說明如何建立本地開發環境。本地開發環境讓開發者可以即時撰寫、測試與調整應用程式功能。在這個模式下，程式碼修改後會自動重新載入（Hot Module Replacement, HMR）。這有助於幫助開發者大幅提升開發與除錯效率。
+在此步驟中，我們會建立本地開發環境，讓開發者可以即時撰寫、測試與調整應用程式功能。在這個模式下，程式碼修改後會自動重新載入（Hot Module Replacement, HMR）。這有助於幫助開發者大幅提升開發與除錯效率。
 
 1. 安裝專案相依套件
 
@@ -46,7 +48,7 @@ http://localhost:3000/
 
 # Step 3. 模擬正式部署
 
-在此步驟中專案程式碼將會被編譯成最佳化的靜態資源，並且透過靜態伺服器，我們可以在本地環境中預覽網站，模擬實際部署網站後的成果。這有助於測試部署成果是否符合預期，並提早發現潛在的相容性或路徑問題。
+在此步驟中，我們將會把專案程式碼編譯成最佳化的靜態資源，並且透過啟動靜態伺服器，我們可以在本地環境中預覽網站，模擬實際部署網站後的成果。這有助於測試部署成果是否符合預期，並提早發現潛在的相容性或路徑問題。
 
 1. 安裝靜態伺服器工具
 ```bash
@@ -65,6 +67,7 @@ serve -s build
 
 
 # Step 4. 在本地環境建置與測試映像
+在此步驟中，我們將把應用程式包裝成 Docker 映像，並在本地環境中進行測試，以確保應用程式在容器化環境下依然可以順利運行，為後續上傳至 Azure 做準備。
 
 1. 建立映像
 ```bash
@@ -86,6 +89,7 @@ docker run -p 3000:3000 ai-agent-playground
 
 
 # Step 5. 建立 Azure Container Registry 並推送映像 
+在此步驟中，我們將會建立一個 [Azure Container Registry（ACR）](https://azure.microsoft.com/zh-tw/products/container-registry)容器登錄，作為應用程式映像的雲端儲存空間。ACR 可用來集中管理容器映像，並支援後續的自動化部署。完成登錄建立後，我們會將剛才建立的 Docker 映像標記並推送至 ACR，供後續 Azure App Service 使用。
 
 ### 建立 Azure Container Registry
 
@@ -124,7 +128,7 @@ az acr login --name <registry-name>
 <!-- az acr login --name sallyaiagentregistry -->
 
 
-2. 將本機 Docker 映像標記至登錄：
+2. 將本機 Docker 映像標記至登錄
 ```bash
 TAGVERSION=v1.4
 docker tag ai-agent-playground <registry-name>.azurecr.io/ai-agent-playground:$TAGVERSION
@@ -135,7 +139,7 @@ docker tag ai-agent-playground sallyaiagentregistry.azurecr.io/ai-agent-playgrou
 docker tag ai-agent-playground sallyaiagentregistry.azurecr.io/ai-agent-playground:latest -->
 
 
-3. 使用 docker push 將映像推送至登錄：
+3. 使用 docker push 將映像推送至登錄
 ```bash
 docker push <registry-name>.azurecr.io/ai-agent-playground:$TAGVERSION
 docker push <registry-name>.azurecr.io/ai-agent-playground:latest
@@ -145,26 +149,28 @@ docker push sallyaiagentregistry.azurecr.io/ai-agent-playground:latest -->
 
 
 # Step 6. 授權登錄的受控識別
+在此步驟中，我們將會為受控識別授與 AcrPull 權限，讓 Azure App Service 可以安全地從 ACR 存取映像。
 
 1. 前往 [Azure Portal](https://ms.portal.azure.com)，開啟剛才建立的容器登錄。
 
 1. 在左側導覽功能表中選取**存取控制 (IAM)**，選擇**新增**
-![screenshot](image\iam.png)
+![screenshot](image/iam.png)
 
 1. 在角色清單中選取 **AcrPull**。
-![screenshot](image\acrpull.png)
+![screenshot](image/acrpull.png)
 
 1. 選擇**受控識別**與**選取成員** > 選擇**您的訂用帳戶**、**使用者指派的受控識別**，以及您剛才建立的受控識別。
-![screenshot](image\add-iam.png)
+![screenshot](image/add-iam.png)
 
 1. 完成**檢覽 + 指派**。
 
 
 
 # Step 7. 建立並部署 Web 應用程式
+在此步驟中，我們將透過 Azure Portal 建立一個 Web 應用程式（App Service），並部署先前上傳至 ACR 的映像。這個服務會作為容器映像的執行環境，並提供一個公開的 URL 供使用者存取應用程式。
 
 1. 在 [Azure Portal](https://ms.portal.azure.com) 頂端的搜尋列中輸入「Web App」，選擇**應用程式服務**並點選**建立**。
-![screenshot](image\search-web-app.png)
+![screenshot](image/search-web-app.png)
 
 2. 按照以下敘述完成 Web 應用程式基礎設定。
 - 選取您稍早使用的訂用帳戶與資源群組
@@ -174,7 +180,7 @@ docker push sallyaiagentregistry.azurecr.io/ai-agent-playground:latest -->
 - 在地區中，選取 West Europe 或您附近的區域
 - 在 Linux 方案中，選取**新建**，輸入方案名稱，然後選取**確定**
 - 在價格方案中，選取 **B1**
-![screenshot](image\set-web-app.png)
+![screenshot](image/set-web-app.png)
 
 3. 瀏覽**容器**索引標籤，依照以下設定建立容器設定。
 - 在映像來源中，選取 **Azure Container Registry**
@@ -185,22 +191,30 @@ docker push sallyaiagentregistry.azurecr.io/ai-agent-playground:latest -->
 - 在標籤中，輸入 **latest**
 - 在連接埠中，輸入 **3000**
 - 完成**檢閱 + 建立**
-![screenshot](image\set-docker.png)
+![screenshot](image/set-docker.png)
 
 4. 前往剛才建立的**應用程式服務**，瀏覽**設定 > 環境變數 > 應用程式設定**，選取**新增**。
-![screenshot](image\set-port.png)
+![screenshot](image/set-port.png)
 
 5. 輸入名稱 **WEBSITES_PORT** 與值 **3000**，完成套用。
-![screenshot](image\edit-port.png)
+![screenshot](image/edit-port.png)
 
 6. 前往剛才建立的**應用程式服務**中的**概觀**，在預設網域中選取連結，即可存取應用程式。
-![screenshot](image\website.png)
+![screenshot](image/website.png)
 > 第一次嘗試存取應用程式時，應用程式可能需要一些時間才能回應，因為 App Service 必須從登錄提取整個映像。 如果瀏覽器逾時，只需重新整理頁面即可。
 
 > 更多與部署 Web App 相關的說明請參考：https://learn.microsoft.com/zh-tw/azure/app-service/tutorial-custom-container?tabs=azure-portal&pivots=container-linux
 
-# Step 8. 修改應用程式碼並重新部署
-當您修改完程式碼後，需要重新部署應用程式時，請參考以下步驟，無須重新建立身分識別、資源群組、應用程式服務等上述設定。
+# Step 8. 使用應用程式
+1. 開啟應用程式後，選擇 **Settings**。
+![screenshot](image/settings.png)
+
+1. Connect
+![screenshot](image/connect.png)
+
+
+# Step 9. 修改應用程式碼並重新部署
+部署完成後，開發者可能會根據實際使用情況或新需求對應用程式進行修改。當程式碼完成修改後，需要重新建置 Docker 映像，並推送至 ACR，以讓 App Service 自動拉取最新版本的映像並更新部署內容。
 
 1. 重建映像。
 ```bash
@@ -219,9 +233,6 @@ docker push <registry-name>.azurecr.io/ai-agent-playground:latest
 ```
 <!-- docker push sallyaiagentregistry.azurecr.io/ai-agent-playground:latest -->
 
-# Step 9. 如何使用該應用程式
-1. Upload profile
-2. Connect
 
 # Debugging
 - In Container registry
