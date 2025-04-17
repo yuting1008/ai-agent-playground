@@ -46,7 +46,7 @@ export const AVATAR_STARTING = 'avatar_starting';
 export const AVATAR_READY = 'avatar_ready';
 
 export const clientHiEnglish = `Hi!`;
-export const clientHiChinese = `你好！`;
+export const clientHiChinese = `哈囉 你好！`;
 
 export const fileUploadInstructions = `我已经上传了数据文件，请告诉我你收到了什么内容的文件，只需要简单解释你收到了什么。不要超过30个字。内容在 ----用户已经上传的数据文件开始---- 下面`;
 export const fileUploadTooBig = `请告诉用户，你只是一个 Demo，不处理内容过多的文件，请重新上传一个内容少的文件。`;

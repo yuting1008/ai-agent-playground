@@ -52,9 +52,17 @@ export function InputBarRealtime({
           <RecommandText
             handleInputButtonClick={sendText}
             messages={[
+              'Please introduce Microsoft',
+              'Xin giới thiệu Microsoft',
+              'マイクロソフトを紹介してください',
+              'Microsoft를 소개해 주세요',
               'open camera',
-              'what is the weather in tokyo?',
-              'open avatar',
+              '請幫我拍照',
+              '請問你看到什麼?',
+              '請幫我畫一張海邊的圖畫',
+              '幫我搜尋越南有什麼好玩的',
+              '請給我這份文件的總結',
+              'what is the weather in tokyo?',              
             ]}
           />
           <div className="text-input">

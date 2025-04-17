@@ -4,7 +4,7 @@ import { useContexts } from '../providers/AppProvider';
 import { useEffect, useRef, useState } from 'react';
 import * as SpeechSDK from 'microsoft-cognitiveservices-speech-sdk';
 import './InputBar.scss';
-import { clientHiEnglish, CONNECT_CONNECTED } from '../lib/const';
+import { clientHiChinese, CONNECT_CONNECTED } from '../lib/const';
 import { Profiles } from '../lib/Profiles';
 import { RecommandText } from './RecommandText';
 export function InputBarAssistant({
@@ -51,7 +51,7 @@ export function InputBarAssistant({
 
     const autoDetectSourceLanguageConfig =
       SpeechSDK.AutoDetectSourceLanguageConfig.fromLanguages([
-        'zh-CN',
+        'zh-TW',
         'en-US',
       ]);
 
@@ -177,7 +177,7 @@ export function InputBarAssistant({
 
   useEffect(() => {
     if (connectStatus === CONNECT_CONNECTED) {
-      const hi = clientHiEnglish;
+      const hi = clientHiChinese;
       sendText(hi);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -190,9 +190,17 @@ export function InputBarAssistant({
           <RecommandText
             handleInputButtonClick={sendText}
             messages={[
+              'Please introduce Microsoft',
+              'Hãy mô tả Microsoft trong 50 từ',
+              'マイクロソフトを50語で説明してください',
+              'Microsoft를 50단어로 설명해 주세요.',
               'open camera',
+              '請幫我拍照',
+              '請問你看到什麼?',
+              '請幫我畫一張海邊的圖畫',
+              '幫我搜尋越南有什麼好玩的',
+              '請給我這份文件的總結',
               'what is the weather in tokyo?',
-              'open avatar',
             ]}
           />
           <div className="text-input">

@@ -18,6 +18,9 @@ serve -s build
 # Build docker image for AI Agent Playground
 docker build -t ai-agent-playground .
 
+# Build docker image for AI Agent Playground with squash
+docker build --squash -t ai-agent-playground .
+
 # For debug, 啟動容器並進入其檔案系統
 docker run -it --rm ai-agent-playground sh
 
@@ -34,7 +37,15 @@ docker run -p 3000:3000 ai-agent-playground
 # Tag and Push image to ACR
 az login
 az acr login --name mtcpaytonacr
+
+# Build docker image for AI Agent Playground
+docker build -t ai-agent-playground .
+
+TAGVERSION=v1.4
+docker tag ai-agent-playground mtcpaytonacr.azurecr.io/ai-agent-playground:$TAGVERSION
 docker tag ai-agent-playground mtcpaytonacr.azurecr.io/ai-agent-playground:latest
+
+docker push mtcpaytonacr.azurecr.io/ai-agent-playground:$TAGVERSION
 docker push mtcpaytonacr.azurecr.io/ai-agent-playground:latest
 
 #################################################
@@ -48,6 +59,7 @@ https://learn.microsoft.com/zh-tw/azure/app-service/tutorial-custom-container?ta
 - In Container registry
   - Make sure the image is pushed to ACR
 - In Web App
+  - Update container tag version in Deployment Center / Containers
   - Deployment Center / Logs
     For Setup log
   - Log Stream
