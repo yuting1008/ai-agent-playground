@@ -26,7 +26,7 @@ AI Agent Playground 是一個多模態、多代理人的 AI 系統，使用者�
 1. [Azure CLI](https://learn.microsoft.com/zh-tw/cli/azure/install-azure-cli)
 
 # Step 2. 建立本地開發環境
-在此步驟中，我們會建立本地開發環境，讓開發者可以即時撰寫、測試與調整應用程式功能。在這個模式下，程式碼修改後會自動重新載入（Hot Module Replacement, HMR）。這有助於幫助開發者大幅提升開發與除錯效率。
+在此步驟中，我們會建立本地開發環境，讓開發者可以即時撰寫、測試與調整應用程式功能。在這個模式下，程式碼修改後會自動重新載入（Hot Module Replacement, HMR），幫助開發者即時看到程式碼更動後的結果。
 
 1. 安裝專案相依套件
 
@@ -46,9 +46,8 @@ http://localhost:3000/
 
 
 
-# Step 3. 模擬正式部署
-
-在此步驟中，我們將會把專案程式碼編譯成最佳化的靜態資源，並且透過啟動靜態伺服器，我們可以在本地環境中預覽網站，模擬實際部署網站後的成果。這有助於測試部署成果是否符合預期，並提早發現潛在的相容性或路徑問題。
+# Step 3. 預覽部署結果
+在此步驟中，我們將會把專案程式碼編譯成最佳化的靜態資源，並且透過啟動靜態伺服器，我們可以在本地環境中預覽網站，模擬實際部署網站後的成果，幫助開法者測試部署成果是否符合預期，並提早發現潛在的相容性或路徑問題。
 
 1. 安裝靜態伺服器工具
 ```bash
@@ -67,7 +66,7 @@ serve -s build
 
 
 # Step 4. 在本地環境建置與測試映像
-在此步驟中，我們將把應用程式包裝成 Docker 映像，並在本地環境中進行測試，以確保應用程式在容器化環境下依然可以順利運行，為後續上傳至 Azure 做準備。
+在此步驟中，我們將把應用程式包裝成 Docker 映像，並在本地環境中進行測試該映像檔，以確保應用程式在容器化環境下依然可以順利運行，為後續上傳至 Azure 做準備。
 
 1. 建立映像
 ```bash
@@ -98,54 +97,54 @@ docker run -p 3000:3000 ai-agent-playground
 az login
 ```
 2. 建立資源群組
-<!-- ai-agent-playground -->
+<!-- az group create --name <resource-group-name> --location westeurope -->
 ```bash
-az group create --name <resource-group-name> --location westeurope
+az group create --name ai-agent-playground --location westeurope
 ```
 3. 建立受控識別
-<!-- ai-agent-identity -->
+<!-- az identity create --name <identity-name> --resource-group <resource-group-name>-->
 ```bash
-az identity create --name <identity-name> --resource-group <resource-group-name>
+az identity create --name ai-agent-identity --resource-group ai-agent-playground
 ```
 4. 建立 Azure Container Registry
-<!-- sallyaiagentregistry -->
+<!-- az acr create --name <registry-name> --resource-group <resource-group-name> --sku Basic --admin-enabled true -->
 <!-- Registry name cannot contain dashes. -->
 ```bash
-az acr create --name <registry-name> --resource-group <resource-group-name> --sku Basic --admin-enabled true
+az acr create --name aiagentregistry --resource-group ai-agent-playground --sku Basic --admin-enabled true
 ```
 5. 擷取系統管理認證
+<!-- az acr credential show --resource-group <resource-group-name> --name <registry-name> -->
 ```bash
-az acr credential show --resource-group <resource-group-name> --name <registry-name>
+az acr credential show --resource-group ai-agent-playground --name aiagentregistry
 ```
-<!-- az acr credential show --resource-group ai-agent-playground --name sallyaiagentregistry -->
 
 ### 將映像推送至 Azure Container Registry
 將映像推送至 Azure Container Registry，以供 App Service 稍後使用。
 1. 登入您的登錄
 ```bash
-az acr login --name <registry-name>
+az acr login --name aiagentregistry
 ```
-<!-- az acr login --name sallyaiagentregistry -->
+<!-- az acr login --name <registry-name> -->
 
 
 2. 將本機 Docker 映像標記至登錄
 ```bash
 TAGVERSION=v1.4
-docker tag ai-agent-playground <registry-name>.azurecr.io/ai-agent-playground:$TAGVERSION
-docker tag ai-agent-playground <registry-name>.azurecr.io/ai-agent-playground:latest
+docker tag ai-agent-playground aiagentregistry.azurecr.io/ai-agent-playground:$TAGVERSION
+docker tag ai-agent-playground aiagentregistry.azurecr.io/ai-agent-playground:latest
 ```
 <!-- TAGVERSION=v1.4
-docker tag ai-agent-playground sallyaiagentregistry.azurecr.io/ai-agent-playground:$TAGVERSION
-docker tag ai-agent-playground sallyaiagentregistry.azurecr.io/ai-agent-playground:latest -->
+docker tag ai-agent-playground <registry-name>.azurecr.io/ai-agent-playground:$TAGVERSION
+docker tag ai-agent-playground <registry-name>.azurecr.io/ai-agent-playground:latest -->
 
 
 3. 使用 docker push 將映像推送至登錄
 ```bash
-docker push <registry-name>.azurecr.io/ai-agent-playground:$TAGVERSION
-docker push <registry-name>.azurecr.io/ai-agent-playground:latest
+docker push aiagentregistry.azurecr.io/ai-agent-playground:$TAGVERSION
+docker push aiagentregistry.azurecr.io/ai-agent-playground:latest
 ```
-<!-- docker push sallyaiagentregistry.azurecr.io/ai-agent-playground:$TAGVERSION
-docker push sallyaiagentregistry.azurecr.io/ai-agent-playground:latest -->
+<!-- docker push <registry-name>.azurecr.io/ai-agent-playground:$TAGVERSION
+docker push <registry-name>.azurecr.io/ai-agent-playground:latest -->
 
 
 # Step 6. 授權登錄的受控識別
@@ -397,15 +396,15 @@ docker build -t ai-agent-playground .
 
 2. 將映像的標籤更新為 latest。
 ```bash
-docker tag ai-agent-playground <registry-name>.azurecr.io/ai-agent-playground:latest
+docker tag ai-agent-playground aiagentregistry.azurecr.io/ai-agent-playground:latest
 ```
-<!-- docker tag ai-agent-playground sallyaiagentregistry.azurecr.io/ai-agent-playground:latest -->
+<!-- docker tag ai-agent-playground <registry-name>.azurecr.io/ai-agent-playground:latest -->
 
 3. 將映像推送至登錄。
 ```bash
-docker push <registry-name>.azurecr.io/ai-agent-playground:latest
+docker push aiagentregistry.azurecr.io/ai-agent-playground:latest
 ```
-<!-- docker push sallyaiagentregistry.azurecr.io/ai-agent-playground:latest -->
+<!-- docker push <registry-name>.azurecr.io/ai-agent-playground:latest -->
 
 
 # Debugging
