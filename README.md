@@ -210,6 +210,10 @@ docker push <registry-name>.azurecr.io/ai-agent-playground:latest -->
 2. 您會看到預設的 Profile，選擇 **Clone Profile**。接下來我們會建立此應用程式會使用到的所有 API Key。
 ![screenshot](image/clone-profile.png)
 
+### 快速瀏覽：
+- [Default](#default)
+- [Agent](#agent)
+
 ### Default
 <!-- TODO: 更新詳細說明 -->
 - 設定 App Name
@@ -388,40 +392,43 @@ GraphRAG API 主要用於支援應用程式在回答問題時查詢本地知識�
 
 
 # Step 10. 修改應用程式碼並重新部署
-部署完成後，開發者可能會根據實際使用情況或新需求對應用程式進行修改。當程式碼完成修改後，需要重新建置 Docker 映像，並推送至 ACR，以讓 App Service 自動拉取最新版本的映像並更新部署內容。
+部署完成後，開發者可能會根據實際使用情況或新需求對應用程式進行修改。當程式碼完成修改後，需要重新建置 Docker 映像，並推送至 ACR，以讓 App Service 拉取最新版本的映像並更新部署內容。
 
 1. 重建映像。
 ```bash
 docker build -t ai-agent-playground .
 ```
 
-2. 將映像的標籤更新為 latest。
+2. 將映像的標記為 latest 和您自訂的版本編號 `TAGVERSION`。
 ```bash
+TAGVERSION=v1.X
+docker tag ai-agent-playground aiagentregistry.azurecr.io/ai-agent-playground:$TAGVERSION
 docker tag ai-agent-playground aiagentregistry.azurecr.io/ai-agent-playground:latest
 ```
 <!-- docker tag ai-agent-playground <registry-name>.azurecr.io/ai-agent-playground:latest -->
 
-3. 將映像推送至登錄，您可以在設定自己的版本編號 `TAGVERSION`。
+3. 將映像推送至登錄，您可以設定自己的版本編號 `TAGVERSION`。
 ```bash
-TAGVERSION=v1.X
 docker tag ai-agent-playground aiagentregistry.azurecr.io/ai-agent-playground:$TAGVERSION
+docker tag ai-agent-playground aiagentregistry.azurecr.io/ai-agent-playground:latest
 ```
 <!-- docker push <registry-name>.azurecr.io/ai-agent-playground:latest -->
 
 
 # Debugging
-- In Container registry
-  - Make sure the image is pushed to ACR
-![screenshot](image/registry.png)
+- 在 Container Registry 中確認映像檔是否成功推送至 Azure Container Registry（ACR）。
+  - 前往 [Azure Portal](https://ms.portal.azure.com)，瀏覽您資源群組中的 ACR `aiagentregistry`。
+  - 開啟 服務 > 存放庫 > `ai-agent-playground`，查看您先前成功推送的映象。
+    ![screenshot](image/registry.png)
 
-- In Web App
-  - Deployment Center / Logs
-    For Setup log
-![screenshot](image/deployment-log.png)
+- 在 Web App 中檢查應用程式的執行狀況與部署記錄。
+  - 前往 [Azure Portal](https://ms.portal.azure.com)，瀏覽您資源群組中的 App Service `ai-agent-playground`。
+  - 開啟 記錄資料流，查看應用程式的 Console Log，以除錯執行階段的錯誤或狀態。
+    ![screenshot](image/log-stream.png)
+  - 開啟 部署 > 部署中心，查看部署過程中的 Setup Log（設定日誌），以確認映像是否正確拉取與設定。
+    ![screenshot](image/deployment-log.png)
     
-  - Log Stream
-    For console log
-![screenshot](image/log-stream.png)
+
   
 
 
