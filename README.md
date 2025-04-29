@@ -210,9 +210,19 @@ docker push <registry-name>.azurecr.io/ai-agent-playground:latest -->
 2. 您會看到預設的 Profile，選擇 **Clone Profile**。接下來我們會建立此應用程式會使用到的所有 API Key。
 ![screenshot](image/clone-profile.png)
 
-### 快速瀏覽：
-- [Default](#default)
-- [Agent](#agent)
+> 快速導覽
+> - [Default](#default)
+> - [Agent](#agent)
+> - [Realtime](#realtime)
+> - [Prompt](#prompt)
+> - [Functions](#functions)
+> - [Speech](#speech)
+> - [Completion](#completion)
+> - [DeepSeek](#deepseek)
+> - [Dall-E](#dall-e)
+> - [RAG](#rag)
+> - [Third API](#third-api)
+
 
 ### Default
 <!-- TODO: 更新詳細說明 -->
@@ -262,7 +272,7 @@ docker push <registry-name>.azurecr.io/ai-agent-playground:latest -->
 > <span style="color:red;"> 注意：目前您無法 Disable Bulit-in Prompt。</span>
 
 
-### Funtions
+### Functions
 1. 在 Default 標籤頁中，若 Disable Bulit-in Functions，您可以提供自訂的 Functions。
 ![screenshot](image/disable-functions.png)
 1. 在 Functions 標籤頁中，您可以依照 OpenAI 的 [Function calling 格式](https://platform.openai.com/docs/guides/function-calling?api-mode=responses#defining-functions) 來設計 Function範例如下：
@@ -372,7 +382,7 @@ Bing Search API 主要用於在應用程式中整合 Web 搜尋功能，可以�
 GraphRAG API 主要用於支援應用程式在回答問題時查詢本地知識庫。您可以先忽略此標籤頁。
 
 ### Third API
-在 Third API 標籤頁中，您可以整合第三方 API 的資訊來源，讓應用程式能夠即時查詢外部資訊，並運用在對話中。您可以先忽略此標籤頁。
+您可以整合第三方 API 的資訊來源，讓應用程式能夠即時查詢外部資訊，並運用在對話中。您可以先忽略此標籤頁。
 
 <!-- | 欄位名稱                 | 說明                                                                                                                                     |
 |--------------------------|------------------------------------------------------------------------------------------------------------------------------------------|
