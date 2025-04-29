@@ -8,7 +8,7 @@ AI Agent Playground 是一個多模態、多代理人的 AI 系統，使用者�
 <!-- TODO: Demo Video -->
 
 ### Table of Contents
-<!-- TODO: Update link -->
+<!-- TODO: Update title and hypolink -->
 1. 前置條件
 1. 建立本地開發環境
 1. 模擬正式部署
@@ -204,10 +204,10 @@ docker push <registry-name>.azurecr.io/ai-agent-playground:latest -->
 > 更多與部署 Web App 相關的說明請參考：https://learn.microsoft.com/zh-tw/azure/app-service/tutorial-custom-container?tabs=azure-portal&pivots=container-linux
 
 # Step 8. 
-1. 開啟應用程式後，選擇 **Settings**。接下來我們會設定此應用程式會使用到的所有 API Key。
+1. 開啟應用程式後，選擇 **Settings**。
 ![screenshot](image/settings.png)
 
-2. 您會看到預設的 Profile，選擇 **Clone Profile**。
+2. 您會看到預設的 Profile，選擇 **Clone Profile**。接下來我們會建立此應用程式會使用到的所有 API Key。
 ![screenshot](image/clone-profile.png)
 
 ### Default
@@ -380,9 +380,10 @@ GraphRAG API 主要用於支援應用程式在回答問題時查詢本地知識�
 
 
 
-# Step 9. 如何使用應用程式
+# Step 9. 應用程式使用方式
 1. 選擇 Connect。
 ![screenshot](image/connect.png)
+1. Demo
 
 
 
@@ -400,9 +401,10 @@ docker tag ai-agent-playground aiagentregistry.azurecr.io/ai-agent-playground:la
 ```
 <!-- docker tag ai-agent-playground <registry-name>.azurecr.io/ai-agent-playground:latest -->
 
-3. 將映像推送至登錄。
+3. 將映像推送至登錄，您可以在設定自己的版本編號 `TAGVERSION`。
 ```bash
-docker push aiagentregistry.azurecr.io/ai-agent-playground:latest
+TAGVERSION=v1.X
+docker tag ai-agent-playground aiagentregistry.azurecr.io/ai-agent-playground:$TAGVERSION
 ```
 <!-- docker push <registry-name>.azurecr.io/ai-agent-playground:latest -->
 
@@ -410,11 +412,17 @@ docker push aiagentregistry.azurecr.io/ai-agent-playground:latest
 # Debugging
 - In Container registry
   - Make sure the image is pushed to ACR
+![screenshot](image/registry.png)
+
 - In Web App
   - Deployment Center / Logs
     For Setup log
+![screenshot](image/deployment-log.png)
+    
   - Log Stream
     For console log
+![screenshot](image/log-stream.png)
+  
 
 
 # Note
